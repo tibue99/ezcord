@@ -4,7 +4,7 @@ version = "0.0.1"
 description = "An easy-to-use extension for the Pycord library"
 readme = "README.md"
 requires-python = ">=3.8"
-license = {file = "LICENSE"}
+license = {text = "MIT"}
 keywords = ["discord", "pycord", "py-cord"]
 authors = [
     { name = "tibue99" }
@@ -26,7 +26,7 @@ classifiers = [
 dependencies = ["py-cord"]
 
 [project.urls]
-"Homepage" = "https://github.com/tibue99/ezcord"
+"GitHub" = "https://github.com/tibue99/ezcord"
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]

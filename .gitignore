@@ -1,4 +1,6 @@
-__pycache__
+build/
+dist/
+__pycache__/
 .idea
 venv
 .env

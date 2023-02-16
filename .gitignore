@@ -1,9 +1,10 @@
 build/
 dist/
 __pycache__/
+.idea/
 *.egg-info/
 *.egg
-.idea
 venv
 .env
 *.db
+*.log

@@ -8,3 +8,17 @@ An easy-to-use extension for the Pycord library with a lot of utility functions.
 ```
 pip install ezcord
 ```
+
+## Example
+```py
+import ezcord
+import discord
+
+bot = ezcord.Bot(
+    intents=discord.Intents.default()
+)
+
+if __name__ == "__main__":
+    bot.load_cogs("cogs")  # Load all cogs in the "cogs" folder
+    bot.run("TOKEN")
+```

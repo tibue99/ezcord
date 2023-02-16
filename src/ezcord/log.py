@@ -1,3 +1,10 @@
+"""Some logging utilities that are used for bot logs.
+
+    .. warning::
+        These utilities are not meant to be used directly, instead they should
+        be used through the :class:`ezcord.bot.Bot` class.
+"""
+
 from colorama import Fore
 
 import logging
@@ -6,6 +13,21 @@ import sys
 
 
 class ColorFormatter(logging.Formatter):
+    """A logging formatter that adds colors to the output.
+
+    .. note::
+        This class is not meant to be used directly, instead it should be
+        used through the :func:`set_log` function.
+
+    Parameters
+    ----------
+    file : :class:`bool`
+        Whether to log to a file.
+    log_format : :class:`str`
+        The log format.
+    time_format : :class:`str`
+        The time format.
+    """
     def __init__(
             self,
             file: bool,
@@ -28,6 +50,7 @@ class ColorFormatter(logging.Formatter):
         self.COLOR_FORMATS = color_formats
 
     def format(self, record):
+        """Checks if the log is being sent to a file or not and formats it accordingly."""
         if self.file:
             formatter = logging.Formatter(self.LOG_FORMAT, self.TIME_FORMAT)
         else:
@@ -43,6 +66,21 @@ def set_log(
         log_format: str = "[%(asctime)s] %(levelname)s: %(message)s",
         time_format: str = "%Y-%m-%d %H:%M:%S",
 ):
+    """Creates a logger.
+
+    Parameters
+    ----------
+    name : :class:`str`
+        The name of the logger.
+    debug : :class:`bool`
+        Whether to enable debug logs. Defaults to True.
+    file : :class:`bool`
+        Whether to log to a file. Defaults to False.
+    log_format : :class:`str`
+        The log format. Defaults to ``[%(asctime)s] %(levelname)s: %(message)s``.
+    time_format : :class:`str`
+        The time format. Defaults to ``%Y-%m-%d %H:%M:%S``.
+    """
     if not os.path.exists('logs'):
         os.mkdir('logs')
 

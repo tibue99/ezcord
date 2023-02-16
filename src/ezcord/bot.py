@@ -6,16 +6,40 @@ from .log import set_log
 
 
 class Bot(discord.Bot):
-    def __init__(self, debug: bool = True, log_file: bool = False, *args, **kwargs):
+    """Bot class.
+
+    Parameters
+    ----------
+    debug : :class:`bool`
+        Enable debug logs. Defaults to True.
+    log_file : :class:`bool`
+        Log to file instead of console. Defaults to False.
+    """
+    def __init__(
+            self,
+            debug=True,
+            log_file=False,
+            *args,
+            **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.logger = set_log(__name__, debug=debug, file=log_file)
 
-    def load_cogs(self, directory: str = "cogs") -> None:
+    def load_cogs(self, directory="cogs"):
+        """Load all cogs in a given directory.
+
+        Parameters:
+            directory (:class:`str`) : Name of the directory to load cogs from.
+                Defaults to ``cogs``.
+        """
         for filename in os.listdir(f"./{directory}"):
             if filename.endswith(".py"):
                 self.load_extension(f'{directory}.{filename[:-3]}')
 
     async def on_ready(self):
+        """
+        Prints the bot's information when it's ready.
+        """
         infos = [
             f"Pycord: {discord.__version__}",
             f"User: {self.user}",

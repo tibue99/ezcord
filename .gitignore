@@ -1,10 +1,16 @@
-build/
-dist/
+testing/
 __pycache__/
 .idea/
-*.egg-info/
-*.egg
 venv
 .env
 *.db
 *.log
+
+# Packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Sphinx
+docs/_build

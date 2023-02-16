@@ -25,6 +25,9 @@ classifiers = [
 ]
 dependencies = ["py-cord", "colorama"]
 
+[project.optional-dependencies]
+docs = ["sphinx", "furo"]
+
 [project.urls]
 "GitHub" = "https://github.com/tibue99/ezcord"
 

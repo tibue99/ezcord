@@ -23,7 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
-dependencies = ["py-cord"]
+dependencies = ["py-cord", "colorama"]
 
 [project.urls]
 "GitHub" = "https://github.com/tibue99/ezcord"

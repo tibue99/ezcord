@@ -1,9 +1,32 @@
+from colorama import Fore
+
 import logging
 import os
 import sys
 
-LOG_FORMAT = "[%(asctime)s] %(levelname)s: %(message)s"
-TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+class ColorFormatter(logging.Formatter):
+    def __init__(self, file: bool):
+        super().__init__()
+        self.file = file
+
+    LOG_FORMAT = "[%(asctime)s] %(levelname)s: %(message)s"
+    TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+    FORMATS = {
+        logging.DEBUG: Fore.WHITE + LOG_FORMAT + Fore.RESET,
+        logging.INFO: Fore.CYAN + LOG_FORMAT + Fore.RESET,
+        logging.WARNING: Fore.YELLOW + LOG_FORMAT + Fore.RESET,
+        logging.ERROR: Fore.LIGHTRED_EX + LOG_FORMAT + Fore.RESET,
+        logging.CRITICAL: Fore.RED + LOG_FORMAT + Fore.RESET
+    }
+
+    def format(self, record):
+        if self.file:
+            formatter = logging.Formatter(self.LOG_FORMAT, self.TIME_FORMAT)
+        else:
+            log_format = self.FORMATS.get(record.levelno)
+            formatter = logging.Formatter(log_format, self.TIME_FORMAT)
+        return formatter.format(record)
 
 
 def set_logs(name, debug=True, file=False):
@@ -22,6 +45,6 @@ def set_logs(name, debug=True, file=False):
     else:
         handler = logging.StreamHandler(sys.stdout)
 
-    handler.setFormatter(logging.Formatter(LOG_FORMAT, TIME_FORMAT))
+    handler.setFormatter(ColorFormatter(file))
     logger.addHandler(handler)
     return logger

@@ -2,13 +2,13 @@ import os
 
 import discord
 
-from .log import set_logs
+from .log import set_log
 
 
 class Bot(discord.Bot):
     def __init__(self, debug: bool = True, log_file: bool = False, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.logger = set_logs(__name__, debug=debug, file=log_file)
+        self.logger = set_log(__name__, debug=debug, file=log_file)
 
     def load_cogs(self, directory: str = "cogs") -> None:
         for filename in os.listdir(f"./{directory}"):

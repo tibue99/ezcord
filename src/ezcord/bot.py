@@ -11,9 +11,9 @@ class Bot(discord.Bot):
     Parameters
     ----------
     debug: :class:`bool`
-        Enable debug logs. Defaults to True.
+        Enable debug logs. Defaults to ``True``.
     log_file: :class:`bool`
-        Log to file instead of console. Defaults to False.
+        Log to file instead of console. Defaults to ``False``.
     """
     def __init__(
             self,

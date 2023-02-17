@@ -8,6 +8,9 @@ An easy-to-use extension for the Pycord library with a lot of utility functions.
 ```
 pip install ezcord
 ```
+## Resources
+- [Documentation](https://ezcord.readthedocs.io/)
+- [Getting started](https://ezcord.readthedocs.io/en/latest/getting_started.html)
 
 ## Example
 ```py

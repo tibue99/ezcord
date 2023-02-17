@@ -16,16 +16,15 @@ class ColorFormatter(logging.Formatter):
     """A logging formatter that adds colors to the output.
 
     .. note::
-        This class is not meant to be used directly, instead it should be
-        used through the :func:`set_log` function.
+        This class is used through the :func:`set_log` function.
 
     Parameters
     ----------
-    file : :class:`bool`
+    file: :class:`bool`
         Whether to log to a file.
-    log_format : :class:`str`
+    log_format: :class:`str`
         The log format.
-    time_format : :class:`str`
+    time_format: :class:`str`
         The time format.
     """
     def __init__(
@@ -70,15 +69,15 @@ def set_log(
 
     Parameters
     ----------
-    name : :class:`str`
+    name: :class:`str`
         The name of the logger.
-    debug : :class:`bool`
-        Whether to enable debug logs. Defaults to True.
-    file : :class:`bool`
-        Whether to log to a file. Defaults to False.
-    log_format : :class:`str`
+    debug: :class:`bool`
+        Whether to enable debug logs. Defaults to ``True``.
+    file: :class:`bool`
+        Whether to log to a file. Defaults to ``False``.
+    log_format: :class:`str`
         The log format. Defaults to ``[%(asctime)s] %(levelname)s: %(message)s``.
-    time_format : :class:`str`
+    time_format: :class:`str`
         The time format. Defaults to ``%Y-%m-%d %H:%M:%S``.
     """
     if not os.path.exists('logs'):

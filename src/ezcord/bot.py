@@ -10,9 +10,9 @@ class Bot(discord.Bot):
 
     Parameters
     ----------
-    debug : :class:`bool`
+    debug: :class:`bool`
         Enable debug logs. Defaults to True.
-    log_file : :class:`bool`
+    log_file: :class:`bool`
         Log to file instead of console. Defaults to False.
     """
     def __init__(
@@ -28,9 +28,11 @@ class Bot(discord.Bot):
     def load_cogs(self, directory="cogs"):
         """Load all cogs in a given directory.
 
-        Parameters:
-            directory (:class:`str`) : Name of the directory to load cogs from.
-                Defaults to ``cogs``.
+        Parameters
+        ----------
+        directory: :class:`str`
+            Name of the directory to load cogs from.
+            Defaults to ``cogs``.
         """
         for filename in os.listdir(f"./{directory}"):
             if filename.endswith(".py"):

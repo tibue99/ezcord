@@ -27,6 +27,8 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
+    "sphinx_autodoc_typehints",
+    "sphinx_copybutton",
 ]
 
 intersphinx_mapping = {
@@ -43,4 +45,4 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'furo'
-html_static_path = ['_static']
+html_static_path = []

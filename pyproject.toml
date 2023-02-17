@@ -17,16 +17,15 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Utilities",
-    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
-dependencies = ["py-cord", "colorama"]
+dependencies = {file = "requirements.txt"}
 
 [project.optional-dependencies]
-docs = ["sphinx", "furo"]
+docs = {file = "docs/requirements.txt"}
 
 [project.urls]
 "GitHub" = "https://github.com/tibue99/ezcord"

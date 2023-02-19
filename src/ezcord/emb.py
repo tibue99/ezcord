@@ -1,3 +1,19 @@
+"""Embed templates that can be used to send messages to users.
+These functions will generate embeds and send them as an ephemeral message to the user.
+
+Example
+-------
+.. code-block:: python
+
+    from ezcord import Bot, emb
+
+    bot = Bot()
+
+    @bot.slash_command()
+    async def hey(ctx):
+        await emb.success(ctx, "Success!")
+"""
+
 from typing import Union
 
 import discord

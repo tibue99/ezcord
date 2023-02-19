@@ -6,7 +6,7 @@ from .log import set_log
 
 
 class Bot(discord.Bot):
-    """Bot class.
+    """Bot class that extends from :class:`discord.Bot`.
 
     Parameters
     ----------

@@ -1,6 +1,6 @@
 API Reference
 =======================
-Here is an overview of all documented features.
+Here is an overview of all features.
 
 .. toctree::
    :maxdepth: 4

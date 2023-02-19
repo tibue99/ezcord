@@ -1,8 +1,8 @@
 """Some logging utilities that are used for bot logs.
 
-    .. note::
-        These utilities are not meant to be used directly, instead they should
-        be used through the :class:`ezcord.bot.Bot` class.
+.. note::
+    These utilities are not meant to be used directly, instead they should
+    be used through the :class:`ezcord.bot.Bot` class.
 """
 
 from colorama import Fore

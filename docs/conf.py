@@ -31,10 +31,14 @@ extensions = [
     "sphinx_copybutton",
 ]
 
+always_document_param_types = True
+simplify_optional_unions = True
+
 intersphinx_mapping = {
     "py": ("https://docs.python.org/3", None),
     "aio": ("https://docs.aiohttp.org/en/stable/", None),
     "req": ("https://requests.readthedocs.io/en/latest/", None),
+    "dc": ("https://docs.pycord.dev/en/stable/", None),
 }
 
 templates_path = ['_templates']

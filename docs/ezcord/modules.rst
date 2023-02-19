@@ -6,3 +6,4 @@ Here is an overview of all documented features.
    :maxdepth: 4
 
    bot
+   embed

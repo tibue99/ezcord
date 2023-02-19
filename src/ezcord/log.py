@@ -1,6 +1,6 @@
 """Some logging utilities that are used for bot logs.
 
-    .. warning::
+    .. note::
         These utilities are not meant to be used directly, instead they should
         be used through the :class:`ezcord.bot.Bot` class.
 """
@@ -14,9 +14,6 @@ import sys
 
 class ColorFormatter(logging.Formatter):
     """A logging formatter that adds colors to the output.
-
-    .. note::
-        This class is used through the :func:`set_log` function.
 
     Parameters
     ----------

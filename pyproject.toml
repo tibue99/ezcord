@@ -22,9 +22,12 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
+dynamic = ["dependencies", "optional-dependencies"]
+
+[tool.setuptools.dynamic]
 dependencies = {file = "requirements.txt"}
 
-[project.optional-dependencies]
+[tool.setuptools.dynamic.optional-dependencies]
 docs = {file = "docs/requirements.txt"}
 
 [project.urls]

@@ -25,10 +25,10 @@ class Bot(discord.Bot):
     """
     def __init__(
             self,
-            debug=True,
-            log_file=False,
-            error_handler=True,
-            error_webhook_url=None,
+            debug: bool = True,
+            log_file: bool = False,
+            error_handler: bool = True,
+            error_webhook_url: str = None,
             *args,
             **kwargs
     ):
@@ -41,7 +41,7 @@ class Bot(discord.Bot):
         elif error_webhook_url:
             self.logger.warning("You need to enable error_handler for the webhook to work.")
 
-    def load_cogs(self, directory="cogs"):
+    def load_cogs(self, directory: str = "cogs"):
         """Load all cogs in a given directory.
 
         Parameters
@@ -77,7 +77,7 @@ class Bot(discord.Bot):
         start_txt += f"╚{(len(longest) + 2) * '═'}╝"
         self.logger.info(start_txt)
 
-    async def error_event(self, ctx, error):
+    async def error_event(self, ctx: discord.ApplicationContext, error: discord.DiscordException):
         """The event that handles application command errors."""
         embed = discord.Embed(
             title="Error",
@@ -86,7 +86,7 @@ class Bot(discord.Bot):
         )
 
         if isinstance(error, commands.CommandOnCooldown):
-            seconds = ctx.command.get_cooldown_retry_after(ctx)
+            seconds = round(ctx.command.get_cooldown_retry_after(ctx))
             embed.description = f"Try again in `{convert_time(seconds)}`."
             await ctx.respond(embed=embed, ephemeral=True)
 

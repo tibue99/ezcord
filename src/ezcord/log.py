@@ -56,9 +56,9 @@ class ColorFormatter(logging.Formatter):
 
 
 def set_log(
-        name,
-        debug=True,
-        file=False,
+        name: str,
+        debug: bool = True,
+        file: bool = False,
         log_format: str = "[%(asctime)s] %(levelname)s: %(message)s",
         time_format: str = "%Y-%m-%d %H:%M:%S",
 ):

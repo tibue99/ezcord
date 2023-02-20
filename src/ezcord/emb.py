@@ -20,7 +20,11 @@ import discord
 from discord import Embed, Color
 
 
-async def _send_embed(ctx, embed, view):
+async def _send_embed(
+        ctx: Union[discord.ApplicationContext, discord.Interaction],
+        embed: discord.Embed,
+        view: discord.ui.View = None
+):
     if view is None:
         try:
             await ctx.response.send_message(embed=embed, ephemeral=True)

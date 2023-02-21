@@ -1,6 +1,7 @@
 import os
 import inspect
 from configparser import ConfigParser
+from pathlib import Path
 
 from .translation import *
 
@@ -17,7 +18,17 @@ def t(txt, *args):
 
 
 def get_lang():
+    parent = Path(__file__).parent.absolute()
     config = ConfigParser()
-    config.read("config.ini")
+    config.read(os.path.join(parent, "config.ini"))
 
     return config["DEFAULT"]["lang"]
+
+
+def set_lang(lang):
+    parent = Path(__file__).parent.absolute()
+    config = ConfigParser()
+    config["DEFAULT"] = {"lang": lang}
+
+    with open(os.path.join(parent, "config.ini"), "w") as f:
+        config.write(f)

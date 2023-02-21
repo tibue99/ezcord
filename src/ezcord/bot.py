@@ -1,7 +1,6 @@
 import os
 import traceback
 from typing import Literal
-from configparser import ConfigParser
 
 import discord
 from discord.ext import commands
@@ -9,7 +8,7 @@ import aiohttp
 
 from .log import set_log
 from .times import convert_time
-from .utils import t
+from .utils import t, set_lang
 
 
 class Bot(discord.Bot):
@@ -45,13 +44,12 @@ class Bot(discord.Bot):
         self.logger = set_log(__name__, debug=debug, file=log_file)
         self.error_webhook_url = error_webhook_url
         self.lang = language
+        set_lang(language)
 
         if error_handler:
             self.add_listener(self.error_event, "on_application_command_error")
         elif error_webhook_url:
             self.logger.warning("You need to enable error_handler for the webhook to work.")
-
-        self._create_config(language)
 
     def load_cogs(self, directory: str = "cogs"):
         """Load all cogs in a given directory.
@@ -65,13 +63,6 @@ class Bot(discord.Bot):
         for filename in os.listdir(f"./{directory}"):
             if filename.endswith(".py"):
                 self.load_extension(f'{directory}.{filename[:-3]}')
-
-    @staticmethod
-    def _create_config(lang):
-        config = ConfigParser()
-        config["DEFAULT"] = {"lang": lang}
-        with open("config.ini", "w") as f:
-            config.write(f)
 
     async def on_ready(self):
         """

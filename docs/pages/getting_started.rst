@@ -4,9 +4,15 @@ This page shows how to quickly get started with **EzCord**.
 
 Installing
 -----------
+Python 3.8 or higher is required.
 ::
 
     pip install ezcord
+
+You can also install the latest version from GitHub. Note that this version may be unstable.
+::
+
+    pip install git+https://github.com/tibue99/ezcord
 
 
 First Steps

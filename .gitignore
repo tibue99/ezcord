@@ -5,6 +5,7 @@ venv
 .env
 *.db
 *.log
+*.ini
 
 # Packaging
 build/

@@ -1,5 +1,6 @@
 from datetime import timezone, datetime
 
+from .utils import t
 
 def set_utc(dt: datetime):
     """Set the timezone of a datetime object to UTC.
@@ -29,12 +30,12 @@ def convert_time(seconds: int) -> str:
     :class:`str`
     """
     if seconds < 60:
-        return f"{round(seconds)} seconds"
+        return f"{round(seconds)} {t('sec')}"
     minutes = seconds / 60
     if minutes < 60:
-        return f"{round(minutes)} minutes"
+        return f"{round(minutes)} {t('min')}"
     hours = minutes / 60
     if hours < 24:
-        return f"{round(hours)} hours"
+        return f"{round(hours)} {t('hour')}"
     days = hours / 24
-    return f"{round(days)} {'day' if round(days) == 1 else 'days'}"
+    return f"{round(days)} {t('day')}"

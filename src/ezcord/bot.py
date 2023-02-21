@@ -1,5 +1,7 @@
 import os
 import traceback
+from typing import Literal
+from configparser import ConfigParser
 
 import discord
 from discord.ext import commands
@@ -7,6 +9,7 @@ import aiohttp
 
 from .log import set_log
 from .times import convert_time
+from .utils import t
 
 
 class Bot(discord.Bot):
@@ -21,7 +24,12 @@ class Bot(discord.Bot):
     error_handler: :class:`bool`
         Enable the error handler. Defaults to ``True``.
     error_webhook_url: :class:`str`
-        The webhook URL to send error messages to.
+        The webhook URL to send error messages to. Defaults to ``None``.
+    language: :class:`str`
+        The language to use for the bot. Defaults to ``en``.
+
+        .. note::
+            Supported languages: ``en``, ``de``
     """
     def __init__(
             self,
@@ -29,17 +37,21 @@ class Bot(discord.Bot):
             log_file: bool = False,
             error_handler: bool = True,
             error_webhook_url: str = None,
+            language: Literal["en", "de"] = "en",
             *args,
             **kwargs
     ):
         super().__init__(*args, **kwargs)
         self.logger = set_log(__name__, debug=debug, file=log_file)
         self.error_webhook_url = error_webhook_url
+        self.lang = language
 
         if error_handler:
             self.add_listener(self.error_event, "on_application_command_error")
         elif error_webhook_url:
             self.logger.warning("You need to enable error_handler for the webhook to work.")
+
+        self._create_config(language)
 
     def load_cogs(self, directory: str = "cogs"):
         """Load all cogs in a given directory.
@@ -53,6 +65,13 @@ class Bot(discord.Bot):
         for filename in os.listdir(f"./{directory}"):
             if filename.endswith(".py"):
                 self.load_extension(f'{directory}.{filename[:-3]}')
+
+    @staticmethod
+    def _create_config(lang):
+        config = ConfigParser()
+        config["DEFAULT"] = {"lang": lang}
+        with open("config.ini", "w") as f:
+            config.write(f)
 
     async def on_ready(self):
         """
@@ -81,19 +100,19 @@ class Bot(discord.Bot):
         """The event that handles application command errors."""
         embed = discord.Embed(
             title="Error",
-            description=f"The following error occurred: ```{error}```",
+            description=f"{t('error')}: ```{error}```",
             color=discord.Color.red()
         )
 
         if isinstance(error, commands.CommandOnCooldown):
             seconds = round(ctx.command.get_cooldown_retry_after(ctx))
-            embed.description = f"Try again in `{convert_time(seconds)}`."
+            embed.description = t("cooldown", convert_time(seconds))
             await ctx.respond(embed=embed, ephemeral=True)
 
         elif isinstance(error, commands.BotMissingPermissions):
             perms = "\n".join(error.missing_permissions)
-            embed.title = "Missing permission"
-            embed.description = f"I'm missing the following permissions to execute this command." \
+            embed.title = t("no_perm_title")
+            embed.description = f"{t('no_perm_desc')}" \
                                 f"```\n{perms}```"
             await ctx.respond(embed=embed, ephemeral=True)
 

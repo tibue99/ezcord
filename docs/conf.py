@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath('../src'))
 project = 'Ezcord'
 copyright = '2023, tibue99'
 author = 'tibue99'
-release = '0.1.0'
+release = '0.1.1'
 
 
 # General configuration

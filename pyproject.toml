@@ -1,6 +1,5 @@
 [project]
 name = "ezcord"
-version = "0.1.0"
 description = "An easy-to-use extension for the Pycord library"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -22,10 +21,11 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
-dynamic = ["dependencies", "optional-dependencies"]
+dynamic = ["dependencies", "optional-dependencies", "version"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = "requirements.txt"}
+version = {attr = "ezcord.__version__"}
 
 [tool.setuptools.dynamic.optional-dependencies]
 docs = {file = "docs/requirements.txt"}

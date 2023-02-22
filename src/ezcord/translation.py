@@ -1,9 +1,9 @@
 de = {
     "times": {
-        "min": "Minuten",
-        "sec": "Sekunden",
-        "hour": "Stunden",
-        "day": "Tage",
+        "min": "Minute",
+        "sec": "Sekunde",
+        "hour": "Stunde",
+        "day": "Tag",
     },
     "bot": {
         "error": "Der folgende Fehler ist aufgetreten",
@@ -15,10 +15,10 @@ de = {
 
 en = {
     "times": {
-        "min": "minutes",
-        "sec": "seconds",
-        "hour": "hours",
-        "day": "days",
+        "min": "minute",
+        "sec": "second",
+        "hour": "hour",
+        "day": "day",
     },
     "bot": {
         "error": "The following error occurred",

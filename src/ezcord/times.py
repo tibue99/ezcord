@@ -1,4 +1,7 @@
-from datetime import timezone, datetime
+from datetime import timezone, datetime, timedelta
+from typing import Literal
+
+from discord.utils import format_dt, utcnow
 
 from .utils import tp
 
@@ -46,3 +49,24 @@ def convert_time(seconds: int, relative=True) -> str:
         return f"{round(hours)} {tp('hour', round(hours))}"
     days = hours / 24
     return f"{round(days)} {tp('day', round(days), relative=relative)}"
+
+
+def dc_timestamp(
+        seconds: int,
+        style: Literal["t", "T", "d", "D", "f", "F", "R"] = "R"
+) -> str:
+    """Convert seconds to a Discord timestamp.
+
+    Parameters
+    ----------
+    seconds: :class:`int`
+        The amount of seconds to convert.
+    style: :class:`str`
+        The style of the timestamp. Defaults to ``R``.
+
+    Returns
+    -------
+    :class:`str`
+    """
+    dt = utcnow() + timedelta(seconds=seconds)
+    return format_dt(dt, style)

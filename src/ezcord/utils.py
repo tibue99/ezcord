@@ -1,5 +1,7 @@
 """
-These utilities are only used by the library itself and are not meant to be used directly.
+.. warning::
+    These utilities are only used by the library itself and
+    are **not** meant to be used directly.
 """
 import os
 import inspect
@@ -56,12 +58,12 @@ def plural_en(amount, word) -> str:
     return word
 
 
-def tp(txt, amount, *args, relative=True) -> str:
+def tp(key, amount, *args, relative=True) -> str:
     """Load a string in the selected language and pluralize it.
 
     Parameters
     ----------
-    txt: :class:`str`
+    key: :class:`str`
         The text to load.
     amount: :class:`int`
         The amount to check.
@@ -70,7 +72,7 @@ def tp(txt, amount, *args, relative=True) -> str:
     relative: :class:`bool`
         Whether to use relative time. Defaults to ``True``.
     """
-    word = t(txt, *args)
+    word = t(key, *args)
     lang = get_lang()
 
     if lang == "de":
@@ -79,26 +81,29 @@ def tp(txt, amount, *args, relative=True) -> str:
         return plural_en(amount, word)
 
 
-def t(txt, *args):
+def t(key, *args):
     """Load a string in the selected language.
 
     Parameters
     ----------
-    txt: :class:`str`
+    key: :class:`str`
         The text to load.
     *args: :class:`str`
         The arguments to format the string with.
     """
-    origin_file = os.path.basename(inspect.stack()[1].filename)[:-3]
-    if origin_file == Path(__file__).stem:
-        origin_file = os.path.basename(inspect.stack()[2].filename)[:-3]
+    n = 1
+    origin_file = Path(inspect.stack()[n].filename).stem
+
+    while origin_file == Path(__file__).stem:
+        n += 1
+        origin_file = Path(inspect.stack()[n].filename).stem
 
     lang = get_lang()
 
     if lang == "de":
-        return de[origin_file][txt].format(*args)
+        return de[origin_file][key].format(*args)
     else:
-        return en[origin_file][txt].format(*args)
+        return en[origin_file][key].format(*args)
 
 
 def get_lang():

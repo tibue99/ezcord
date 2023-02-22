@@ -43,11 +43,10 @@ class Bot(discord.Bot):
         super().__init__(*args, **kwargs)
         self.logger = set_log(__name__, debug=debug, file=log_file)
         self.error_webhook_url = error_webhook_url
-        self.lang = language
         set_lang(language)
 
         if error_handler:
-            self.add_listener(self.error_event, "on_application_command_error")
+            self.add_listener(self._error_event, "on_application_command_error")
         elif error_webhook_url:
             self.logger.warning("You need to enable error_handler for the webhook to work.")
 
@@ -65,13 +64,11 @@ class Bot(discord.Bot):
                 self.load_extension(f'{directory}.{filename[:-3]}')
 
     async def on_ready(self):
-        """
-        Prints the bot's information when it's ready.
-        """
+        """Prints the bot's information when it's ready."""
         infos = [
-            f"Pycord: {discord.__version__}",
             f"User: {self.user}",
             f"ID: {self.user.id}",
+            f"Pycord: {discord.__version__}",
             f"Commands: {len(self.commands):,}",
             f"Guilds: {len(self.guilds):,}",
             f"Latency: {round(self.latency * 1000):,}ms"
@@ -87,7 +84,7 @@ class Bot(discord.Bot):
         start_txt += f"╚{(len(longest) + 2) * '═'}╝"
         self.logger.info(start_txt)
 
-    async def error_event(self, ctx: discord.ApplicationContext, error: discord.DiscordException):
+    async def _error_event(self, ctx: discord.ApplicationContext, error: discord.DiscordException):
         """The event that handles application command errors."""
         embed = discord.Embed(
             title="Error",
@@ -97,6 +94,7 @@ class Bot(discord.Bot):
 
         if isinstance(error, commands.CommandOnCooldown):
             seconds = round(ctx.command.get_cooldown_retry_after(ctx))
+            embed.title = "Cooldown"
             embed.description = t("cooldown", convert_time(seconds))
             await ctx.respond(embed=embed, ephemeral=True)
 

@@ -34,6 +34,8 @@ extensions = [
 always_document_param_types = True
 simplify_optional_unions = True
 
+autodoc_member_order = "bysource"
+
 intersphinx_mapping = {
     "py": ("https://docs.python.org/3", None),
     "aio": ("https://docs.aiohttp.org/en/stable/", None),
@@ -52,6 +54,6 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 html_theme = 'furo'
 html_static_path = ['_static']
 
-html_title = f"<h3>{release}</h3>"
+html_title = f"<h3 align='center'>{release}</h3>"
 html_logo = "_static/ezcord.png"
 html_favicon = "_static/favicon.ico"

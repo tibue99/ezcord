@@ -8,3 +8,4 @@ Here is an overview of all features.
    bot
    embed
    times
+   utils

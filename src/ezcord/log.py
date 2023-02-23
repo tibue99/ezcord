@@ -77,9 +77,6 @@ def set_log(
     time_format: :class:`str`
         The time format. Defaults to ``%Y-%m-%d %H:%M:%S``.
     """
-    if not os.path.exists('logs'):
-        os.mkdir('logs')
-
     logger = logging.getLogger(name)
     if debug:
         logger.setLevel(logging.DEBUG)
@@ -87,6 +84,8 @@ def set_log(
         logger.setLevel(logging.WARNING)
 
     if file:
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
         filename = name.split(".")[-1]
         handler = logging.FileHandler(f"logs/{filename}.log", mode="w", encoding='utf-8')
     else:

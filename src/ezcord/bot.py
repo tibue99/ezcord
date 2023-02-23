@@ -1,6 +1,6 @@
 import os
 import traceback
-from typing import Literal
+from typing import Literal, List, Any
 
 import discord
 from discord.ext import commands
@@ -24,6 +24,8 @@ class Bot(discord.Bot):
         Enable the error handler. Defaults to ``True``.
     error_webhook_url: :class:`str`
         The webhook URL to send error messages to. Defaults to ``None``.
+    ignored_errors: :class:`list`
+        A list of error types to ignore. Defaults to ``None``.
     language: :class:`str`
         The language to use for the bot. Defaults to ``en``.
 
@@ -36,6 +38,7 @@ class Bot(discord.Bot):
             log_file: bool = False,
             error_handler: bool = True,
             error_webhook_url: str = None,
+            ignored_errors: List[Any] = None,
             language: Literal["en", "de"] = "en",
             *args,
             **kwargs
@@ -43,6 +46,7 @@ class Bot(discord.Bot):
         super().__init__(*args, **kwargs)
         self.logger = set_log(__name__, debug=debug, file=log_file)
         self.error_webhook_url = error_webhook_url
+        self.ignored_errors = ignored_errors or []
         set_lang(language)
 
         if error_handler:
@@ -85,6 +89,9 @@ class Bot(discord.Bot):
         self.logger.info(start_txt)
 
     async def _error_event(self, ctx: discord.ApplicationContext, error: discord.DiscordException):
+        if type(error) in self.ignored_errors:
+            return
+
         """The event that handles application command errors."""
         embed = discord.Embed(
             title="Error",

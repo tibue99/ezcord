@@ -30,7 +30,10 @@ class Bot(discord.Bot):
         A list of cogs to ignore. Defaults to ``None``.
     language: :class:`str`
         The language to use for the bot. Defaults to ``en``.
-
+    log_format: :class:`str`
+        The log format. Defaults to ``[%(asctime)s] %(levelname)s: %(message)s``.
+    time_format: :class:`str`
+        The time format. Defaults to ``%Y-%m-%d %H:%M:%S``.
         .. note::
             Supported languages: ``en``, ``de``
     """
@@ -43,11 +46,13 @@ class Bot(discord.Bot):
             ignored_errors: List[Any] = None,
             ignored_cogs: List[str] = None,
             language: Literal["en", "de"] = "en",
+            log_format: str = "[%(asctime)s] %(levelname)s: %(message)s",
+            time_format: str = "%Y-%m-%d %H:%M:%S",
             *args,
             **kwargs
     ):
         super().__init__(*args, **kwargs)
-        self.logger = set_log(__name__, debug=debug, file=log_file)
+        self.logger = set_log(__name__, debug=debug, file=log_file, log_format=log_format, time_format=time_format)
         self.error_webhook_url = error_webhook_url
         self.ignored_errors = ignored_errors or []
         self.ignored_cogs = ignored_cogs or []

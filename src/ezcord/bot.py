@@ -54,7 +54,7 @@ class Bot(discord.Bot):
         elif error_webhook_url:
             self.logger.warning("You need to enable error_handler for the webhook to work.")
 
-    def load_cogs(self, directory: str = "cogs"):
+    def load_cogs(self, directory: str = "cogs", subdirectories: bool = False):
         """Load all cogs in a given directory.
 
         Parameters
@@ -62,10 +62,22 @@ class Bot(discord.Bot):
         directory: :class:`str`
             Name of the directory to load cogs from.
             Defaults to ``cogs``.
+        subdirectories: :class:`bool`
+            Whether to load cogs from subdirectories.
+            Defaults to ``False``.
         """
-        for filename in os.listdir(f"./{directory}"):
-            if filename.endswith(".py"):
-                self.load_extension(f'{directory}.{filename[:-3]}')
+        if subdirectories is False:
+            for filename in os.listdir(f"./{directory}"):
+                if filename.endswith(".py"):
+                    self.load_extension(f'{directory}.{filename[:-3]}')
+
+        elif subdirectories is True:
+            for path, subs, files in os.walk(f"./{directory}"):
+                for name in files:
+                    if name.endswith(".py"):
+                        p_str = path.replace("\\", ".")
+                        p_str = p_str.replace("/", ".")
+                        self.load_extension(f'{p_str}.{name[:-3]}')
 
     async def on_ready(self):
         """Prints the bot's information when it's ready."""

@@ -26,6 +26,8 @@ class Bot(discord.Bot):
         The webhook URL to send error messages to. Defaults to ``None``.
     ignored_errors: :class:`list`
         A list of error types to ignore. Defaults to ``None``.
+    ignored_cogs: :class:`list`
+        A list of cogs to ignore. Defaults to ``None``.
     language: :class:`str`
         The language to use for the bot. Defaults to ``en``.
 
@@ -39,6 +41,7 @@ class Bot(discord.Bot):
             error_handler: bool = True,
             error_webhook_url: str = None,
             ignored_errors: List[Any] = None,
+            ignored_cogs: List[str] = None,
             language: Literal["en", "de"] = "en",
             *args,
             **kwargs
@@ -47,6 +50,7 @@ class Bot(discord.Bot):
         self.logger = set_log(__name__, debug=debug, file=log_file)
         self.error_webhook_url = error_webhook_url
         self.ignored_errors = ignored_errors or []
+        self.ignored_cogs = ignored_cogs or []
         set_lang(language)
 
         if error_handler:
@@ -74,7 +78,7 @@ class Bot(discord.Bot):
         elif subdirectories is True:
             for path, subs, files in os.walk(f"./{directory}"):
                 for name in files:
-                    if name.endswith(".py"):
+                    if name.endswith(".py") and name not in self.ignored_cogs:
                         p_str = path.replace("\\", ".")
                         p_str = p_str.replace("/", ".")
                         self.load_extension(f'{p_str}.{name[:-3]}')

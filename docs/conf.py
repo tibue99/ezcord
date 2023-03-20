@@ -8,14 +8,18 @@
 
 import os
 import sys
-from importlib.metadata import version as get_version
+from datetime import date
 
 sys.path.insert(0, os.path.abspath('../src'))
 
+from src.ezcord import __version__
+
 project = 'Ezcord'
-copyright = '2023, tibue99'
+copyright = f'{date.today().year}, tibue99'
 author = 'tibue99'
-release = get_version('ezcord')
+release = __version__
+
+version = __version__
 
 
 # General configuration

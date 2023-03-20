@@ -79,10 +79,8 @@ class Bot(discord.Bot):
             for filename in os.listdir(f"./{directory}"):
                 if filename.endswith(".py") and filename not in self.ignored_cogs:
                     self.load_extension(f'{directory}.{filename[:-3]}')
-
         else:
             for element in os.scandir(directory):
-                print(element)
                 if element.is_dir():
                     for sub_file in os.scandir(element.path):
                         if sub_file.name.endswith(".py") and sub_file.name not in self.ignored_cogs:

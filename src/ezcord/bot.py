@@ -75,18 +75,18 @@ class Bot(discord.Bot):
             Whether to load cogs from subdirectories.
             Defaults to ``False``.
         """
-        if subdirectories is False:
+        if not subdirectories:
             for filename in os.listdir(f"./{directory}"):
-                if filename.endswith(".py"):
+                if filename.endswith(".py") and filename not in self.ignored_cogs:
                     self.load_extension(f'{directory}.{filename[:-3]}')
 
-        elif subdirectories is True:
-            for path, subs, files in os.walk(f"./{directory}"):
-                for name in files:
-                    if name.endswith(".py") and name not in self.ignored_cogs:
-                        p_str = path.replace("\\", ".")
-                        p_str = p_str.replace("/", ".")
-                        self.load_extension(f'{p_str}.{name[:-3]}')
+        else:
+            for element in os.scandir(directory):
+                print(element)
+                if element.is_dir():
+                    for sub_file in os.scandir(element.path):
+                        if sub_file.name.endswith(".py") and sub_file.name not in self.ignored_cogs:
+                            self.load_extension(f"{directory}.{element.name}.{sub_file.name[:-3]}")
 
     async def on_ready(self):
         """Prints the bot's information when it's ready."""

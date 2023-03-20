@@ -73,9 +73,6 @@ def dc_timestamp(
     return format_dt(dt, style)
 
 
-UNITS = {'s': 'seconds', 'm': 'minutes', 'h': 'hours', 'd': 'days', 'w': 'weeks'}
-
-
 def convert_to_seconds(s):
     """Convert a string to seconds.
 
@@ -89,7 +86,8 @@ def convert_to_seconds(s):
     -------
     :class:`int`
     """
+    units = {'s': 'seconds', 'm': 'minutes', 'h': 'hours', 'd': 'days', 'w': 'weeks'}
     return int(timedelta(**{
-        UNITS.get(m.group('unit').lower(), 'seconds'): float(m.group('val'))
+        units.get(m.group('unit').lower(), 'seconds'): float(m.group('val'))
         for m in re.finditer(r'(?P<val>\d+(\.\d+)?)(?P<unit>[smhdw]?)', s, flags=re.I)
     }).total_seconds())

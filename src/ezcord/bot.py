@@ -26,9 +26,14 @@ class Bot(discord.Bot):
         The webhook URL to send error messages to. Defaults to ``None``.
     ignored_errors: :class:`list`
         A list of error types to ignore. Defaults to ``None``.
+    ignored_cogs: :class:`list`
+        A list of cogs to ignore. Defaults to ``None``.
     language: :class:`str`
         The language to use for the bot. Defaults to ``en``.
-
+    log_format: :class:`str`
+        The log format. Defaults to ``[%(asctime)s] %(levelname)s: %(message)s``.
+    time_format: :class:`str`
+        The time format. Defaults to ``%Y-%m-%d %H:%M:%S``.
         .. note::
             Supported languages: ``en``, ``de``
     """
@@ -39,14 +44,18 @@ class Bot(discord.Bot):
             error_handler: bool = True,
             error_webhook_url: str = None,
             ignored_errors: List[Any] = None,
+            ignored_cogs: List[str] = None,
             language: Literal["en", "de"] = "en",
+            log_format: str = "[%(asctime)s] %(levelname)s: %(message)s",
+            time_format: str = "%Y-%m-%d %H:%M:%S",
             *args,
             **kwargs
     ):
         super().__init__(*args, **kwargs)
-        self.logger = set_log(__name__, debug=debug, file=log_file)
+        self.logger = set_log(__name__, debug=debug, file=log_file, log_format=log_format, time_format=time_format)
         self.error_webhook_url = error_webhook_url
         self.ignored_errors = ignored_errors or []
+        self.ignored_cogs = ignored_cogs or []
         set_lang(language)
 
         if error_handler:
@@ -54,7 +63,7 @@ class Bot(discord.Bot):
         elif error_webhook_url:
             self.logger.warning("You need to enable error_handler for the webhook to work.")
 
-    def load_cogs(self, directory: str = "cogs"):
+    def load_cogs(self, directory: str = "cogs", subdirectories: bool = False):
         """Load all cogs in a given directory.
 
         Parameters
@@ -62,10 +71,20 @@ class Bot(discord.Bot):
         directory: :class:`str`
             Name of the directory to load cogs from.
             Defaults to ``cogs``.
+        subdirectories: :class:`bool`
+            Whether to load cogs from subdirectories.
+            Defaults to ``False``.
         """
-        for filename in os.listdir(f"./{directory}"):
-            if filename.endswith(".py"):
-                self.load_extension(f'{directory}.{filename[:-3]}')
+        if not subdirectories:
+            for filename in os.listdir(f"./{directory}"):
+                if filename.endswith(".py") and filename not in self.ignored_cogs:
+                    self.load_extension(f'{directory}.{filename[:-3]}')
+        else:
+            for element in os.scandir(directory):
+                if element.is_dir():
+                    for sub_file in os.scandir(element.path):
+                        if sub_file.name.endswith(".py") and sub_file.name not in self.ignored_cogs:
+                            self.load_extension(f"{directory}.{element.name}.{sub_file.name[:-3]}")
 
     async def on_ready(self):
         """Prints the bot's information when it's ready."""

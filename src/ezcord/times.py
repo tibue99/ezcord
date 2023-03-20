@@ -1,5 +1,6 @@
 from datetime import timezone, datetime, timedelta
 from typing import Literal
+import re
 
 from discord.utils import format_dt, utcnow
 
@@ -70,3 +71,23 @@ def dc_timestamp(
     """
     dt = utcnow() + timedelta(seconds=seconds)
     return format_dt(dt, style)
+
+
+def convert_to_seconds(s):
+    """Convert a string to seconds.
+
+    Parameters
+    ----------
+    s: :class:`str`
+        The string to convert.
+
+
+    Returns
+    -------
+    :class:`int`
+    """
+    units = {'s': 'seconds', 'm': 'minutes', 'h': 'hours', 'd': 'days', 'w': 'weeks'}
+    return int(timedelta(**{
+        units.get(m.group('unit').lower(), 'seconds'): float(m.group('val'))
+        for m in re.finditer(r'(?P<val>\d+(\.\d+)?)(?P<unit>[smhdw]?)', s, flags=re.I)
+    }).total_seconds())

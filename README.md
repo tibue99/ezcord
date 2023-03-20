@@ -36,7 +36,7 @@ if __name__ == "__main__":
     bot.run("TOKEN")
 ```
 **Note:** It's recommended to load the token from a [`.env`](https://pypi.org/project/python-dotenv/) file
-instead of hardcoding it. You can find a detailed guide how to create a bot with `.env` files [here]((https://pypi.org/project/python-dotenv/)).
+instead of hardcoding it. You can find a detailed guide how to create a bot with `.env` files [here](https://guide.pycord.dev/getting-started/creating-your-first-bot#protecting-tokens).
 
 ## Contributing
 I am always happy to receive contributions. Here is how to do it:

@@ -16,26 +16,26 @@ class Bot(discord.Bot):
 
     Parameters
     ----------
-    debug: :class:`bool`
+    debug:
         Enable debug logs. Defaults to ``True``.
-    log_file: :class:`bool`
+    log_file:
         Log to file instead of console. Defaults to ``False``.
-    error_handler: :class:`bool`
+    error_handler:
         Enable the error handler. Defaults to ``True``.
-    error_webhook_url: :class:`str`
+    error_webhook_url:
         The webhook URL to send error messages to. Defaults to ``None``.
-    ignored_errors: :class:`list`
-        A list of error types to ignore. Defaults to ``None``.
-    ignored_cogs: :class:`list`
-        A list of cogs to ignore. Defaults to ``None``.
-    language: :class:`str`
-        The language to use for the bot. Defaults to ``en``.
 
         .. note::
-            Supported languages: ``en``, ``de``
-    log_format: :class:`str`
+            You need to enable the error handler for the webhook to work.
+    ignored_errors:
+        A list of error types to ignore. Defaults to ``None``.
+    ignored_cogs:
+        A list of cogs to ignore. Defaults to ``None``.
+    language:
+        The language to use for the bot. Defaults to ``en``.
+    log_format:
         The log format. Defaults to ``[%(asctime)s] %(levelname)s: %(message)s``.
-    time_format: :class:`str`
+    time_format:
         The time format. Defaults to ``%Y-%m-%d %H:%M:%S``.
     """
     def __init__(
@@ -69,10 +69,10 @@ class Bot(discord.Bot):
 
         Parameters
         ----------
-        directory: :class:`str`
+        directory:
             Name of the directory to load cogs from.
             Defaults to ``cogs``.
-        subdirectories: :class:`bool`
+        subdirectories:
             Whether to load cogs from subdirectories.
             Defaults to ``False``.
         """

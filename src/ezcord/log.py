@@ -17,11 +17,11 @@ class ColorFormatter(logging.Formatter):
 
     Parameters
     ----------
-    file: :class:`bool`
+    file:
         Whether to log to a file.
-    log_format: :class:`str`
+    log_format:
         The log format.
-    time_format: :class:`str`
+    time_format:
         The time format.
     """
     def __init__(
@@ -66,15 +66,15 @@ def set_log(
 
     Parameters
     ----------
-    name: :class:`str`
+    name:
         The name of the logger.
-    debug: :class:`bool`
+    debug:
         Whether to enable debug logs. Defaults to ``True``.
-    file: :class:`bool`
+    file:
         Whether to log to a file. Defaults to ``False``.
-    log_format: :class:`str`
+    log_format:
         The log format. Defaults to ``[%(asctime)s] %(levelname)s: %(message)s``.
-    time_format: :class:`str`
+    time_format:
         The time format. Defaults to ``%Y-%m-%d %H:%M:%S``.
     """
     logger = logging.getLogger(name)

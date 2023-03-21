@@ -12,16 +12,16 @@ from pathlib import Path
 from .translation import *
 
 
-def plural_de(amount, word, relative=True) -> str:
+def plural_de(amount: int, word: str, relative: bool = True) -> str:
     """Pluralize a given word (German).
 
     Parameters
     ----------
-    amount: :class:`int`
+    amount:
         The amount to check.
-    word: :class:`str`
+    word:
         The word to pluralize.
-    relative: :class:`bool`
+    relative:
         Whether to use relative time. Defaults to ``True``.
 
     Examples
@@ -43,33 +43,38 @@ def plural_de(amount, word, relative=True) -> str:
     return word
 
 
-def plural_en(amount, word) -> str:
+def plural_en(amount: int, word: str) -> str:
     """Pluralize a given word (English).
 
     Parameters
     ----------
-    amount: :class:`int`
+    amount:
         The amount to check.
-    word: :class:`str`
+    word:
         The word to pluralize.
+
+    Returns
+    -------
+    :class:`str`
+        The pluralized word.
     """
     if amount != 1:
         return f"{word}s"
     return word
 
 
-def tp(key, amount, *args, relative=True) -> str:
+def tp(key: str, amount: int, *args: str, relative: bool = True) -> str:
     """Load a string in the selected language and pluralize it.
 
     Parameters
     ----------
-    key: :class:`str`
+    key:
         The text to load.
-    amount: :class:`int`
+    amount:
         The amount to check.
-    *args: :class:`str`
+    *args:
         The arguments to format the string with.
-    relative: :class:`bool`
+    relative:
         Whether to use relative time. Defaults to ``True``.
     """
     word = t(key, *args)
@@ -81,14 +86,14 @@ def tp(key, amount, *args, relative=True) -> str:
         return plural_en(amount, word)
 
 
-def t(key, *args):
+def t(key: str, *args: str):
     """Load a string in the selected language.
 
     Parameters
     ----------
-    key: :class:`str`
+    key:
         The text to load.
-    *args: :class:`str`
+    *args:
         The arguments to format the string with.
     """
     n = 1

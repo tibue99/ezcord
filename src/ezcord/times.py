@@ -22,12 +22,12 @@ def set_utc(dt: datetime) -> datetime:
     return dt.replace(tzinfo=timezone.utc)
 
 
-def convert_time(seconds: int, relative=True) -> str:
+def convert_time(seconds: int, relative: bool = True) -> str:
     """Convert seconds to a human-readable time.
 
     Parameters
     ----------
-    seconds: :class:`int`
+    seconds:
         The amount of seconds to convert.
     relative: :class:`bool`
         Whether to use relative time. Defaults to ``True``.
@@ -39,6 +39,7 @@ def convert_time(seconds: int, relative=True) -> str:
     Returns
     -------
     :class:`str`
+        A human-readable time.
     """
     if seconds < 60:
         return f"{round(seconds)} {tp('sec', round(seconds))}"
@@ -60,31 +61,33 @@ def dc_timestamp(
 
     Parameters
     ----------
-    seconds: :class:`int`
+    seconds:
         The amount of seconds to convert.
     style: :class:`str`
         The style of the timestamp. Defaults to ``R``.
+        For more information, see :func:`discord.utils.format_dt`.
 
     Returns
     -------
     :class:`str`
+        A Discord timestamp.
     """
     dt = utcnow() + timedelta(seconds=seconds)
     return format_dt(dt, style)
 
 
-def convert_to_seconds(s):
+def convert_to_seconds(s: str):
     """Convert a string to seconds.
 
     Parameters
     ----------
-    s: :class:`str`
+    s:
         The string to convert.
-
 
     Returns
     -------
     :class:`int`
+        The amount of seconds.
     """
     units = {'s': 'seconds', 'm': 'minutes', 'h': 'hours', 'd': 'days', 'w': 'weeks'}
     return int(timedelta(**{

@@ -30,12 +30,13 @@ class Bot(discord.Bot):
         A list of cogs to ignore. Defaults to ``None``.
     language: :class:`str`
         The language to use for the bot. Defaults to ``en``.
+
+        .. note::
+            Supported languages: ``en``, ``de``
     log_format: :class:`str`
         The log format. Defaults to ``[%(asctime)s] %(levelname)s: %(message)s``.
     time_format: :class:`str`
         The time format. Defaults to ``%Y-%m-%d %H:%M:%S``.
-        .. note::
-            Supported languages: ``en``, ``de``
     """
     def __init__(
             self,

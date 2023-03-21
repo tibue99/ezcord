@@ -12,7 +12,7 @@ from datetime import date
 
 sys.path.insert(0, os.path.abspath('../src'))
 
-from src.ezcord import __version__
+from ezcord import __version__
 
 project = 'Ezcord'
 copyright = f'{date.today().year}, tibue99'

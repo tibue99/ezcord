@@ -2,6 +2,7 @@
 [![](https://img.shields.io/discord/1010915072694046794?label=discord&style=for-the-badge&logo=discord&color=5865F2&logoColor=white)](https://discord.gg/zfvbjTEzv6)
 [![](https://img.shields.io/pypi/v/ezcord.svg?style=for-the-badge&logo=pypi&color=yellow&logoColor=white)](https://pypi.org/project/ezcord/)
 [![](https://img.shields.io/pypi/l/ezcord?style=for-the-badge)]()
+[![](https://aschey.tech/tokei/github/tibue99/ezcord?style=for-the-badge)](https://github.com/tibue99/ezcord)
 
 An easy-to-use extension for the [Pycord](https://github.com/Pycord-Development/pycord) library with some utility functions.
 

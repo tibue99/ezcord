@@ -81,7 +81,7 @@ def set_log(
     if debug:
         logger.setLevel(logging.DEBUG)
     else:
-        logger.setLevel(logging.WARNING)
+        logger.setLevel(logging.INFO)
 
     if file:
         if not os.path.exists('logs'):

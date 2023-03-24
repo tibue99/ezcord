@@ -4,10 +4,9 @@ from typing import Literal, List, Any
 
 import discord
 from discord.ext import commands
-import aiohttp
 
 from .log import set_log
-from .times import convert_time
+from .times import dc_timestamp
 from .utils import t, set_lang
 
 
@@ -22,8 +21,8 @@ class Bot(discord.Bot):
         Log to file instead of console. Defaults to ``False``.
     error_handler:
         Enable the error handler. Defaults to ``True``.
-    error_webhook_url:
-        The webhook URL to send error messages to. Defaults to ``None``.
+    error_channel:
+        The channel to send error messages to. Defaults to ``None``.
 
         .. note::
             You need to enable the error handler for the webhook to work.
@@ -43,7 +42,7 @@ class Bot(discord.Bot):
             debug: bool = True,
             log_file: bool = False,
             error_handler: bool = True,
-            error_webhook_url: str = None,
+            error_channel: int = None,
             ignored_errors: List[Any] = None,
             ignored_cogs: List[str] = None,
             language: Literal["en", "de"] = "en",
@@ -54,15 +53,15 @@ class Bot(discord.Bot):
     ):
         super().__init__(*args, **kwargs)
         self.logger = set_log(__name__, debug=debug, file=log_file, log_format=log_format, time_format=time_format)
-        self.error_webhook_url = error_webhook_url
+        self.error_channel = error_channel
         self.ignored_errors = ignored_errors or []
         self.ignored_cogs = ignored_cogs or []
         set_lang(language)
 
         if error_handler:
             self.add_listener(self._error_event, "on_application_command_error")
-        elif error_webhook_url:
-            self.logger.warning("You need to enable error_handler for the webhook to work.")
+        elif error_channel:
+            self.logger.warning("You need to enable error_handler for the error_channel to work.")
 
     def load_cogs(self, directory: str = "cogs", subdirectories: bool = False):
         """Load all cogs in a given directory.
@@ -122,7 +121,7 @@ class Bot(discord.Bot):
         if isinstance(error, commands.CommandOnCooldown):
             seconds = round(ctx.command.get_cooldown_retry_after(ctx))
             embed.title = "Cooldown"
-            embed.description = t("cooldown", convert_time(seconds))
+            embed.description = t("cooldown", dc_timestamp(seconds))
             await ctx.respond(embed=embed, ephemeral=True)
 
         elif isinstance(error, commands.BotMissingPermissions):
@@ -135,22 +134,17 @@ class Bot(discord.Bot):
         else:
             await ctx.respond(embed=embed, ephemeral=True)
 
-            if self.error_webhook_url:
-                async with aiohttp.ClientSession() as session:
-                    webhook = discord.Webhook.from_url(
-                        self.error_webhook_url,
-                        session=session,
-                        bot_token=self.http.token
-                    )
-                    error_txt = "".join(traceback.format_exception(type(error), error, error.__traceback__))
-                    guild_txt = f"\n\n`Guild:` {ctx.guild.name} ({ctx.guild.id})" if ctx.guild else ""
+            if self.error_channel:
+                error_channel = self.get_channel(self.error_channel)
+                error_txt = "".join(traceback.format_exception(type(error), error, error.__traceback__))
+                guild_txt = f"\n\n`Guild:` {ctx.guild.name} ({ctx.guild.id})" if ctx.guild else ""
 
-                    embed = discord.Embed(
-                        title="Error Report",
-                        description=f"`Command:` /{ctx.command.name}"
-                                    f"{guild_txt}"
-                                    f"```{error_txt}```",
-                        color=discord.Color.orange()
-                    )
-                    await webhook.send(embed=embed)
+                embed = discord.Embed(
+                    title="Error Report",
+                    description=f"`Command:` /{ctx.command.name}"
+                                f"{guild_txt}"
+                                f"```{error_txt}```",
+                    color=discord.Color.orange()
+                )
+                await error_channel.send(embed=embed)
             raise error

@@ -149,8 +149,12 @@ class Bot(discord.Bot):
                         title="Error Report",
                         description=f"`Command:` /{ctx.command.name}"
                                     f"{guild_txt}"
-                                    f"```{error_txt}```",
+                                    f"```{error_txt[:3500]}```",
                         color=discord.Color.orange()
                     )
-                    await webhook.send(embed=embed)
+                    await webhook.send(
+                        embed=embed,
+                        username=f"{self.user.name} Error Report",
+                        avatar_url=self.user.display_avatar.url,
+                    )
             raise error

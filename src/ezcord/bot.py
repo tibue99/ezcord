@@ -29,8 +29,6 @@ class Bot(discord.Bot):
             You need to enable the error handler for the webhook to work.
     ignored_errors:
         A list of error types to ignore. Defaults to ``None``.
-    ignored_cogs:
-        A list of cogs to ignore. Defaults to ``None``.
     language:
         The language to use for the bot. Defaults to ``en``.
     log_format:
@@ -45,7 +43,6 @@ class Bot(discord.Bot):
             error_handler: bool = True,
             error_webhook_url: str = None,
             ignored_errors: List[Any] = None,
-            ignored_cogs: List[str] = None,
             language: Literal["en", "de"] = "en",
             log_format: str = "[%(asctime)s] %(levelname)s: %(message)s",
             time_format: str = "%Y-%m-%d %H:%M:%S",
@@ -56,7 +53,6 @@ class Bot(discord.Bot):
         self.logger = set_log(__name__, debug=debug, file=log_file, log_format=log_format, time_format=time_format)
         self.error_webhook_url = error_webhook_url
         self.ignored_errors = ignored_errors or []
-        self.ignored_cogs = ignored_cogs or []
         set_lang(language)
 
         if error_handler:
@@ -64,38 +60,45 @@ class Bot(discord.Bot):
         elif error_webhook_url:
             self.logger.warning("You need to enable error_handler for the webhook to work.")
 
-    def load_cogs(self, directory: str = "cogs", subdirectories: bool = False):
-        """Load all cogs in a given directory.
+    def load_cogs(self, *directories: str, subdirectories: bool = False, ignored_cogs: List[str] = None):
+        """Load all cogs in the given directories.
 
         Parameters
         ----------
-        directory:
-            Name of the directory to load cogs from.
+        *directories:
+            Names of the directories to load cogs from.
             Defaults to ``cogs``.
         subdirectories:
             Whether to load cogs from subdirectories.
             Defaults to ``False``.
+        ignored_cogs:
+            A list of cogs to ignore. Defaults to ``None``.
         """
-        if not subdirectories:
-            for filename in os.listdir(f"./{directory}"):
-                if filename.endswith(".py") and filename not in self.ignored_cogs:
-                    self.load_extension(f'{directory}.{filename[:-3]}')
-        else:
-            for element in os.scandir(directory):
-                if element.is_dir():
-                    for sub_file in os.scandir(element.path):
-                        if sub_file.name.endswith(".py") and sub_file.name not in self.ignored_cogs:
-                            self.load_extension(f"{directory}.{element.name}.{sub_file.name[:-3]}")
+        ignored_cogs = ignored_cogs or []
+        if not directories:
+            directories = ["cogs"]
+
+        for directory in directories:
+            if not subdirectories:
+                for filename in os.listdir(f"./{directory}"):
+                    if filename.endswith(".py") and filename not in ignored_cogs:
+                        self.load_extension(f'{directory}.{filename[:-3]}')
+            else:
+                for element in os.scandir(directory):
+                    if element.is_dir():
+                        for sub_file in os.scandir(element.path):
+                            if sub_file.name.endswith(".py") and sub_file.name not in ignored_cogs:
+                                self.load_extension(f"{directory}.{element.name}.{sub_file.name[:-3]}")
 
     async def on_ready(self):
         """Prints the bot's information when it's ready."""
         infos = [
-            f"User: {self.user}",
-            f"ID: {self.user.id}",
-            f"Pycord: {discord.__version__}",
+            f"User:     {self.user}",
+            f"ID:       {self.user.id}",
+            f"Pycord:   {discord.__version__}",
             f"Commands: {len(self.commands):,}",
-            f"Guilds: {len(self.guilds):,}",
-            f"Latency: {round(self.latency * 1000):,}ms"
+            f"Guilds:   {len(self.guilds):,}",
+            f"Latency:  {round(self.latency * 1000):,}ms"
         ]
 
         longest = max([str(i) for i in infos], key=len)

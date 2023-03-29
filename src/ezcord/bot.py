@@ -136,7 +136,10 @@ class Bot(discord.Bot):
             await ctx.respond(embed=embed, ephemeral=True)
 
         else:
-            await ctx.respond(embed=embed, ephemeral=True)
+            try:
+                await ctx.respond(embed=embed, ephemeral=True)
+            except discord.HTTPException:
+                raise error
 
             if self.error_webhook_url:
                 async with aiohttp.ClientSession() as session:
@@ -147,13 +150,14 @@ class Bot(discord.Bot):
                     )
                     error_txt = "".join(traceback.format_exception(type(error), error, error.__traceback__))
                     guild_txt = f"\n\n`Guild:` {ctx.guild.name} ({ctx.guild.id})" if ctx.guild else ""
+                    user_txt = f"\n\n`User:` {ctx.author} ({ctx.author.id})" if ctx.author else ""
 
                     embed = discord.Embed(
                         title="Error Report",
                         description=f"`Command:` /{ctx.command.name}"
-                                    f"{guild_txt}"
+                                    f"{guild_txt}{user_txt}"
                                     f"```{error_txt[:3500]}```",
-                        color=discord.Color.orange()
+                        color=discord.Color.red()
                     )
                     await webhook.send(
                         embed=embed,

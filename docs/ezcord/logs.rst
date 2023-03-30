@@ -1,6 +1,6 @@
-Time
+Logs
 =======================
 
-.. automodule:: ezcord.times
+.. automodule:: ezcord.logs
    :members:
    :undoc-members:

@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 import aiohttp
 
-from .log import set_log
+from .logs import set_log, DEFAULT_LOG
 from .times import convert_time
 from .utils import t, set_lang
 
@@ -47,9 +47,9 @@ class Bot(discord.Bot):
         super().__init__(*args, **kwargs)
 
         if debug:
-            self.logger = set_log("ezcord", file=log_file)
+            self.logger = set_log(DEFAULT_LOG, file=log_file)
         else:
-            self.logger = logging.getLogger("ezcord")
+            self.logger = logging.getLogger(DEFAULT_LOG)
             self.logger.addHandler(logging.NullHandler())
 
         self.error_webhook_url = error_webhook_url

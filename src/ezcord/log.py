@@ -1,9 +1,4 @@
-"""Some logging utilities that are used for bot logs.
-
-.. note::
-    These utilities are not meant to be used directly, instead they should
-    be used through the :class:`ezcord.bot.Bot` class.
-"""
+"""Some logging utilities that are used for bot logs."""
 
 from colorama import Fore
 
@@ -46,7 +41,7 @@ class ColorFormatter(logging.Formatter):
         self.COLOR_FORMATS = color_formats
 
     def format(self, record):
-        """Checks if the log is being sent to a file or not and formats it accordingly."""
+        """Check if the log is being sent to a file or not and format it accordingly."""
         if self.file:
             formatter = logging.Formatter(self.LOG_FORMAT, self.TIME_FORMAT)
         else:
@@ -57,7 +52,7 @@ class ColorFormatter(logging.Formatter):
 
 def set_log(
         name: str,
-        debug: bool = True,
+        log_level: int = logging.DEBUG,
         file: bool = False,
         log_format: str = "[%(asctime)s] %(levelname)s: %(message)s",
         time_format: str = "%Y-%m-%d %H:%M:%S",
@@ -68,8 +63,8 @@ def set_log(
     ----------
     name:
         The name of the logger.
-    debug:
-        Whether to enable debug logs. Defaults to ``True``.
+    log_level:
+        Whether to enable debug logs. Defaults to ``logging.DEBUG``.
     file:
         Whether to log to a file. Defaults to ``False``.
     log_format:
@@ -78,10 +73,10 @@ def set_log(
         The time format. Defaults to ``%Y-%m-%d %H:%M:%S``.
     """
     logger = logging.getLogger(name)
-    if debug:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.WARNING)
+    if logger.handlers:
+        return logger
+
+    logger.setLevel(log_level)
 
     if file:
         if not os.path.exists('logs'):
@@ -94,3 +89,6 @@ def set_log(
     handler.setFormatter(ColorFormatter(file, log_format, time_format))
     logger.addHandler(handler)
     return logger
+
+
+log = logging.getLogger("ezcord")

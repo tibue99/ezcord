@@ -1,3 +1,4 @@
+import logging
 import os
 import traceback
 from typing import Literal, List, Any
@@ -31,10 +32,6 @@ class Bot(discord.Bot):
         A list of error types to ignore. Defaults to ``None``.
     language:
         The language to use for the bot. Defaults to ``en``.
-    log_format:
-        The log format. Defaults to ``[%(asctime)s] %(levelname)s: %(message)s``.
-    time_format:
-        The time format. Defaults to ``%Y-%m-%d %H:%M:%S``.
     """
     def __init__(
             self,
@@ -44,13 +41,17 @@ class Bot(discord.Bot):
             error_webhook_url: str = None,
             ignored_errors: List[Any] = None,
             language: Literal["en", "de"] = "en",
-            log_format: str = "[%(asctime)s] %(levelname)s: %(message)s",
-            time_format: str = "%Y-%m-%d %H:%M:%S",
             *args,
             **kwargs
     ):
         super().__init__(*args, **kwargs)
-        self.logger = set_log(__name__, debug=debug, file=log_file, log_format=log_format, time_format=time_format)
+
+        if debug:
+            self.logger = set_log("ezcord", file=log_file)
+        else:
+            self.logger = logging.getLogger("ezcord")
+            self.logger.addHandler(logging.NullHandler())
+
         self.error_webhook_url = error_webhook_url
         self.ignored_errors = ignored_errors or []
         set_lang(language)
@@ -112,10 +113,10 @@ class Bot(discord.Bot):
         self.logger.info(start_txt)
 
     async def _error_event(self, ctx: discord.ApplicationContext, error: discord.DiscordException):
+        """The event that handles application command errors."""
         if type(error) in self.ignored_errors:
             return
 
-        """The event that handles application command errors."""
         embed = discord.Embed(
             title="Error",
             description=f"{t('error')}: ```{error}```",

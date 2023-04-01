@@ -2,6 +2,7 @@ import logging
 import os
 import traceback
 from typing import Literal, List, Any
+import warnings
 
 import discord
 from discord.ext import commands
@@ -17,10 +18,10 @@ class Bot(discord.Bot):
 
     Parameters
     ----------
+    intents:
+        The intents to use for the bot. Defaults to :meth:`discord.Intents.default()`.
     debug:
         Enable debug logs. Defaults to ``True``.
-    log_file:
-        Log to file instead of console. Defaults to ``False``.
     error_handler:
         Enable the error handler. Defaults to ``True``.
     error_webhook_url:
@@ -35,8 +36,8 @@ class Bot(discord.Bot):
     """
     def __init__(
             self,
+            intents: discord.Intents = discord.Intents.default(),
             debug: bool = True,
-            log_file: bool = False,
             error_handler: bool = True,
             error_webhook_url: str = None,
             ignored_errors: List[Any] = None,
@@ -44,10 +45,10 @@ class Bot(discord.Bot):
             *args,
             **kwargs
     ):
-        super().__init__(*args, **kwargs)
+        super().__init__(intents=intents, *args, **kwargs)
 
         if debug:
-            self.logger = set_log(DEFAULT_LOG, file=log_file)
+            self.logger = set_log(DEFAULT_LOG)
         else:
             self.logger = logging.getLogger(DEFAULT_LOG)
             self.logger.addHandler(logging.NullHandler())
@@ -59,7 +60,7 @@ class Bot(discord.Bot):
         if error_handler:
             self.add_listener(self._error_event, "on_application_command_error")
         elif error_webhook_url:
-            self.logger.warning("You need to enable error_handler for the webhook to work.")
+            warnings.warn("You need to enable the error handler for the webhook to work.")
 
     def load_cogs(self, *directories: str, subdirectories: bool = False, ignored_cogs: List[str] = None):
         """Load all cogs in the given directories.

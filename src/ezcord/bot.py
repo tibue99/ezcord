@@ -2,6 +2,7 @@ import logging
 import os
 import traceback
 from typing import Literal, List, Any
+from pathlib import Path
 import warnings
 
 import discord
@@ -81,16 +82,20 @@ class Bot(discord.Bot):
             directories = ["cogs"]
 
         for directory in directories:
-            if not subdirectories:
-                for filename in os.listdir(f"./{directory}"):
-                    if filename.endswith(".py") and filename not in ignored_cogs:
-                        self.load_extension(f'{directory}.{filename[:-3]}')
-            else:
+            path = Path(directory)
+
+            for filename in os.listdir(directory):
+                if filename.endswith(".py") and filename not in ignored_cogs:
+                    self.load_extension(f"{'.'.join(path.parts)}.{filename[:-3]}")
+                    self.logger.debug(f"Loaded {filename[:-3]}")
+
+            if subdirectories:
                 for element in os.scandir(directory):
                     if element.is_dir():
                         for sub_file in os.scandir(element.path):
                             if sub_file.name.endswith(".py") and sub_file.name not in ignored_cogs:
-                                self.load_extension(f"{directory}.{element.name}.{sub_file.name[:-3]}")
+                                self.load_extension(f"{'.'.join(path.parts)}.{element.name}.{sub_file.name[:-3]}")
+                                self.logger.debug(f"Loaded {element.name}.{sub_file.name[:-3]}")
 
     async def on_ready(self):
         """Prints the bot's information when it's ready."""

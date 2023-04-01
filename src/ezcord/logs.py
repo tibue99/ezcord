@@ -101,7 +101,7 @@ class ColorFormatter(logging.Formatter):
 
 def set_log(
         name: str = DEFAULT_LOG,
-        log_level: int = logging.DEBUG,
+        log_level: int = logging.INFO,
         file: bool = False,
         log_format: Union[str, LogFormat] = LogFormat.default,
         time_format: str = "%Y-%m-%d %H:%M:%S",
@@ -114,7 +114,7 @@ def set_log(
     name:
         The name of the logger.
     log_level:
-        Whether to enable debug logs. Defaults to ``logging.DEBUG``.
+        Whether to enable debug logs. Defaults to ``logging.INFO``.
     file:
         Whether to log to a file. Defaults to ``False``.
     log_format:

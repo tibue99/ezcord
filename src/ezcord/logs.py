@@ -35,7 +35,9 @@ class LogFormat(str, Enum):
         return self.value
 
 
-def _format_colors(log_format: str, colors: [Union[Dict[int, str], str]] = None):
+def _format_colors(log_format: str, colors: Union[Dict[int, str], str] = None):
+    """Overwrite the default colors for the given log levels in the given format."""
+
     final_colors = DEFAULT_LOG_COLORS.copy()
     if colors is None:
         colors = final_colors
@@ -58,7 +60,7 @@ def _format_colors(log_format: str, colors: [Union[Dict[int, str], str]] = None)
 
 
 class ColorFormatter(logging.Formatter):
-    """A logging formatter that adds colors to the output.
+    """A logging formatter that adds colors to the output. This is used by :func:`set_log`.
 
     Parameters
     ----------
@@ -68,13 +70,15 @@ class ColorFormatter(logging.Formatter):
         The log format.
     time_format:
         The time format.
+    colors:
+        Colors for the log levels.
     """
     def __init__(
             self,
             file: bool,
             log_format: str,
             time_format: str,
-            colors: [Union[Dict[int, str], str]] = None,
+            colors: Union[Dict[int, str], str] = None,
             *args,
             **kwargs
     ):
@@ -101,7 +105,7 @@ def set_log(
         file: bool = False,
         log_format: Union[str, LogFormat] = LogFormat.default,
         time_format: str = "%Y-%m-%d %H:%M:%S",
-        colors: [Union[Dict[int, str], str]] = None
+        colors: Union[Dict[int, str], str] = None
 ):
     """Creates a logger. If this logger already exists, it will return the existing logger.
 
@@ -114,13 +118,27 @@ def set_log(
     file:
         Whether to log to a file. Defaults to ``False``.
     log_format:
-        The log format. Can be a :class:`str` or :class:`LogFormat`
-        Defaults to :attr:`LogFormat.default`.
+        The log format. Defaults to :attr:`LogFormat.default`.
     time_format:
         The time format. Defaults to ``%Y-%m-%d %H:%M:%S``.
     colors:
         A dictionary of log levels and their corresponding colors. If only one color is given,
         all log levels will be colored with that color.
+
+        Example
+        -------
+        .. code-block:: python
+
+            import logging
+            from colorama import Fore
+            import ezcord
+
+            colors = {
+                logging.DEBUG: Fore.GREEN,
+                logging.INFO: Fore.CYAN,
+            }
+
+            ezcord.set_log(colors=colors)
     """
     logger = logging.getLogger(name)
     if logger.handlers:

@@ -14,33 +14,41 @@ Example
         await emb.success(ctx, "Success!")
 """
 
-from typing import Optional, Union
+from typing import Union
 
 import discord
 from discord import Color, Embed
 
 
 async def _send_embed(
-    ctx: Union[discord.ApplicationContext, discord.Interaction],
+    interaction: Union[discord.ApplicationContext, discord.Interaction],
     embed: discord.Embed,
-    view: Optional[discord.ui.View] = None,
+    ephemeral: bool = True,
+    **kwargs,
 ):
-    if view is None:
-        try:
-            await ctx.response.send_message(embed=embed, ephemeral=True)
-        except discord.InteractionResponded:
-            await ctx.followup.send(embed=embed, ephemeral=True)
-    else:
-        try:
-            await ctx.response.send_message(embed=embed, ephemeral=True, view=view)
-        except discord.InteractionResponded:
-            await ctx.followup.send(embed=embed, ephemeral=True, view=view)
+    """Send an embed to the user. If the interaction has already been responded to,
+    the message will be sent as a followup.
+
+    Parameters
+    ----------
+    interaction:
+        The application context or the interaction to send the message to.
+    embed:
+        The embed to send.
+    ephemeral:
+        Whether the message should be ephemeral.
+    """
+    try:
+        await interaction.response.send_message(embed=embed, ephemeral=ephemeral, **kwargs)
+    except discord.InteractionResponded:
+        await interaction.followup.send(embed=embed, ephemeral=ephemeral, **kwargs)
 
 
 async def error(
     ctx: Union[discord.ApplicationContext, discord.Interaction],
     txt: str,
-    view: Optional[discord.ui.View] = None,
+    ephemeral: bool = True,
+    **kwargs,
 ):
     """Send an error message.
 
@@ -50,18 +58,18 @@ async def error(
         The application context or the interaction to send the message to.
     txt:
         The text to send.
-    view:
-        The view to send with the message.
-
+    ephemeral:
+        Whether the message should be ephemeral.
     """
     embed = Embed(description=txt, color=Color.red())
-    await _send_embed(ctx, embed, view)
+    await _send_embed(ctx, embed, ephemeral, **kwargs)
 
 
 async def success(
     ctx: Union[discord.ApplicationContext, discord.Interaction],
     txt: str,
-    view: Optional[discord.ui.View] = None,
+    ephemeral: bool = True,
+    **kwargs,
 ):
     """Send a success message.
 
@@ -71,9 +79,8 @@ async def success(
         The application context or the interaction to send the message to.
     txt:
         The text to send.
-    view:
-        The view to send with the message.
-
+    ephemeral:
+        Whether the message should be ephemeral.
     """
     embed = Embed(description=txt, color=Color.green())
-    await _send_embed(ctx, embed, view)
+    await _send_embed(ctx, embed, ephemeral, **kwargs)

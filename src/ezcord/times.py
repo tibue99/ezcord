@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta, timezone
-from typing import Literal
+from typing import Literal, Union
 
 from discord.utils import format_dt, utcnow
 
@@ -22,7 +22,7 @@ def set_utc(dt: datetime) -> datetime:
     return dt.replace(tzinfo=timezone.utc)
 
 
-def convert_time(seconds: int, relative: bool = True) -> str:
+def convert_time(seconds: Union[int, float], relative: bool = True) -> str:
     """Convert seconds to a human-readable time.
 
     Parameters
@@ -51,6 +51,30 @@ def convert_time(seconds: int, relative: bool = True) -> str:
         return f"{round(hours)} {tp('hour', round(hours))}"
     days = hours / 24
     return f"{round(days)} {tp('day', round(days), relative=relative)}"
+
+
+def convert_dt(dt: Union[datetime, timedelta], relative: bool = True) -> str:
+    """Convert :class:`datetime` or :class:`timedelta` to a human-readable relative time.
+
+    This function calls :func:`convert_time`.
+
+    Parameters
+    ----------
+    dt:
+        The datetime or timedelta object to convert.
+    relative: :class:`bool`
+        Whether to use relative time. Defaults to ``True``.
+
+    Returns
+    -------
+    :class:`str`
+        A human-readable time.
+    """
+    if isinstance(dt, timedelta):
+        return convert_time(abs(dt.total_seconds()), relative)
+
+    if isinstance(dt, datetime):
+        return convert_time(abs((dt - utcnow()).total_seconds()), relative)
 
 
 def dc_timestamp(seconds: int, style: Literal["t", "T", "d", "D", "f", "F", "R"] = "R") -> str:

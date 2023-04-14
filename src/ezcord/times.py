@@ -4,7 +4,7 @@ from typing import Literal
 
 from discord.utils import format_dt, utcnow
 
-from .utils import tp
+from .internal.translation import tp
 
 
 def set_utc(dt: datetime) -> datetime:

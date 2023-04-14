@@ -9,7 +9,7 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import Literal
 
-from .translation import *
+from .languages import *
 
 
 def plural_de(amount: int, word: str, relative: bool = True) -> str:

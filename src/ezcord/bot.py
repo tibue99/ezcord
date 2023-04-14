@@ -9,9 +9,9 @@ import aiohttp
 import discord
 from discord.ext import commands
 
+from .internal.translation import set_lang, t
 from .logs import DEFAULT_LOG, set_log
 from .times import convert_time
-from .utils import set_lang, t
 
 
 class Bot(discord.Bot):

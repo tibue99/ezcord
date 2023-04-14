@@ -9,4 +9,3 @@ Here is an overview of all features.
    embed
    times
    logs
-   utils

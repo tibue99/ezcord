@@ -175,9 +175,15 @@ class Bot(discord.Bot):
                         f"```{error_txt[:3500]}```",
                         color=discord.Color.red(),
                     )
-                    await webhook.send(
-                        embed=embed,
-                        username=f"{self.user.name} Error Report",
-                        avatar_url=self.user.display_avatar.url,
-                    )
+                    try:
+                        await webhook.send(
+                            embed=embed,
+                            username=f"{self.user.name} Error Report",
+                            avatar_url=self.user.display_avatar.url,
+                        )
+                    except discord.HTTPException:
+                        self.logger.error(
+                            "Error while sending error report to webhook. "
+                            "Please check if you the URL is correct."
+                        )
             raise error

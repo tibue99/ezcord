@@ -64,6 +64,8 @@ class Bot(discord.Bot):
         elif error_webhook_url:
             warnings.warn("You need to enable the error handler for the webhook to work.")
 
+        self.add_listener(self.ready_event, "on_ready")
+
     def load_cogs(
         self,
         *directories: str,
@@ -105,7 +107,7 @@ class Bot(discord.Bot):
                                 )
                                 self.logger.debug(f"Loaded {element.name}.{sub_file.name[:-3]}")
 
-    async def on_ready(self):
+    async def ready_event(self):
         """Prints the bot's information when it's ready."""
         infos = [
             f"User:     {self.user}",

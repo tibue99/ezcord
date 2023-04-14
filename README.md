@@ -11,7 +11,7 @@ Python 3.8 or higher is required.
 ```
 pip install ezcord
 ```
-You can also install the latest version from GitHub. Note that this version may be unstable 
+You can also install the latest version from GitHub. Note that this version may be unstable
 and requires [git](https://git-scm.com/downloads) to be installed.
 ```
 pip install git+https://github.com/tibue99/ezcord

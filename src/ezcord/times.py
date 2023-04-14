@@ -1,6 +1,6 @@
-from datetime import timezone, datetime, timedelta
-from typing import Literal
 import re
+from datetime import datetime, timedelta, timezone
+from typing import Literal
 
 from discord.utils import format_dt, utcnow
 
@@ -53,10 +53,7 @@ def convert_time(seconds: int, relative: bool = True) -> str:
     return f"{round(days)} {tp('day', round(days), relative=relative)}"
 
 
-def dc_timestamp(
-        seconds: int,
-        style: Literal["t", "T", "d", "D", "f", "F", "R"] = "R"
-) -> str:
+def dc_timestamp(seconds: int, style: Literal["t", "T", "d", "D", "f", "F", "R"] = "R") -> str:
     """Convert seconds to a Discord timestamp.
 
     Parameters
@@ -89,8 +86,12 @@ def convert_to_seconds(s: str):
     :class:`int`
         The amount of seconds.
     """
-    units = {'s': 'seconds', 'm': 'minutes', 'h': 'hours', 'd': 'days', 'w': 'weeks'}
-    return int(timedelta(**{
-        units.get(m.group('unit').lower(), 'seconds'): float(m.group('val'))
-        for m in re.finditer(r'(?P<val>\d+(\.\d+)?)(?P<unit>[smhdw]?)', s, flags=re.I)
-    }).total_seconds())
+    units = {"s": "seconds", "m": "minutes", "h": "hours", "d": "days", "w": "weeks"}
+    return int(
+        timedelta(
+            **{
+                units.get(m.group("unit").lower(), "seconds"): float(m.group("val"))
+                for m in re.finditer(r"(?P<val>\d+(\.\d+)?)(?P<unit>[smhdw]?)", s, flags=re.I)
+            }
+        ).total_seconds()
+    )

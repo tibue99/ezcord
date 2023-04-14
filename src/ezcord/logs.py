@@ -1,18 +1,18 @@
 """Some logging utilities that are used for bot logs."""
 
-from typing import Union, Dict
-from colorama import Fore
-from enum import Enum
-
 import logging
 import os
 import sys
+from enum import Enum
+from typing import Dict, Optional, Union
+
+from colorama import Fore
 
 DEFAULT_LOG = "ezcord"
 log = logging.getLogger(DEFAULT_LOG)
 
 
-DEFAULT_LOG_COLORS = {
+DEFAULT_LOG_COLORS: Dict[int, str] = {
     logging.DEBUG: Fore.WHITE,
     logging.INFO: Fore.CYAN,
     logging.WARNING: Fore.YELLOW,
@@ -27,6 +27,7 @@ class LogFormat(str, Enum):
     ``{color_start}`` and ``{color_end}`` are used to add colors to parts of the log message.
     If they are not used, the whole log message will be colored.
     """
+
     default = "[%(asctime)s] %(levelname)s: %(message)s"
     color_level = "[{color_start}%(name)s{color_end}] %(message)s"
     color_name = "[{color_start}%(levelname)s{color_end}] %(message)s"
@@ -35,22 +36,25 @@ class LogFormat(str, Enum):
         return self.value
 
 
-def _format_colors(log_format: str, colors: Union[Dict[int, str], str] = None):
+def _format_colors(log_format: str, colors: Optional[Union[Dict[int, str], str]] = None):
     """Overwrite the default colors for the given log levels in the given format."""
 
     final_colors = DEFAULT_LOG_COLORS.copy()
     if colors is None:
         colors = final_colors
 
-    for level in colors:
-        final_colors[level] = colors[level]
+    if isinstance(colors, str):
+        for level in final_colors:
+            final_colors[level] = colors
+    else:
+        for level in colors:
+            final_colors[level] = colors[level]
 
     color_formats = {}
     if "{color_start}" in log_format and "{color_end}" in log_format:
         for level in final_colors:
             color_formats[level] = log_format.format(
-                color_start=final_colors[level],
-                color_end=Fore.RESET
+                color_start=final_colors[level], color_end=Fore.RESET
             )
     else:
         for level in final_colors:
@@ -73,14 +77,15 @@ class ColorFormatter(logging.Formatter):
     colors:
         Colors for the log levels.
     """
+
     def __init__(
-            self,
-            file: bool,
-            log_format: str,
-            time_format: str,
-            colors: Union[Dict[int, str], str] = None,
-            *args,
-            **kwargs
+        self,
+        file: bool,
+        log_format: str,
+        time_format: str,
+        colors: Optional[Union[Dict[int, str], str]] = None,
+        *args,
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
 
@@ -100,12 +105,12 @@ class ColorFormatter(logging.Formatter):
 
 
 def set_log(
-        name: str = DEFAULT_LOG,
-        log_level: int = logging.INFO,
-        file: bool = False,
-        log_format: Union[str, LogFormat] = LogFormat.default,
-        time_format: str = "%Y-%m-%d %H:%M:%S",
-        colors: Union[Dict[int, str], str] = None
+    name: str = DEFAULT_LOG,
+    log_level: int = logging.INFO,
+    file: bool = False,
+    log_format: Union[str, LogFormat] = LogFormat.default,
+    time_format: str = "%Y-%m-%d %H:%M:%S",
+    colors: Optional[Union[Dict[int, str], str]] = None,
 ):
     """Creates a logger. If this logger already exists, it will return the existing logger.
 
@@ -146,11 +151,12 @@ def set_log(
 
     logger.setLevel(log_level)
 
+    handler: Union[logging.FileHandler, logging.StreamHandler]
     if file:
-        if not os.path.exists('logs'):
-            os.mkdir('logs')
+        if not os.path.exists("logs"):
+            os.mkdir("logs")
         filename = name.split(".")[-1]
-        handler = logging.FileHandler(f"logs/{filename}.log", mode="w", encoding='utf-8')
+        handler = logging.FileHandler(f"logs/{filename}.log", mode="w", encoding="utf-8")
     else:
         handler = logging.StreamHandler(sys.stdout)
 

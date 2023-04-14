@@ -14,16 +14,16 @@ Example
         await emb.success(ctx, "Success!")
 """
 
-from typing import Union
+from typing import Optional, Union
 
 import discord
-from discord import Embed, Color
+from discord import Color, Embed
 
 
 async def _send_embed(
-        ctx: Union[discord.ApplicationContext, discord.Interaction],
-        embed: discord.Embed,
-        view: discord.ui.View = None
+    ctx: Union[discord.ApplicationContext, discord.Interaction],
+    embed: discord.Embed,
+    view: Optional[discord.ui.View] = None,
 ):
     if view is None:
         try:
@@ -38,9 +38,9 @@ async def _send_embed(
 
 
 async def error(
-        ctx: Union[discord.ApplicationContext, discord.Interaction],
-        txt: str,
-        view: discord.ui.View = None
+    ctx: Union[discord.ApplicationContext, discord.Interaction],
+    txt: str,
+    view: Optional[discord.ui.View] = None,
 ):
     """Send an error message.
 
@@ -54,17 +54,14 @@ async def error(
         The view to send with the message.
 
     """
-    embed = Embed(
-        description=txt,
-        color=Color.red()
-    )
+    embed = Embed(description=txt, color=Color.red())
     await _send_embed(ctx, embed, view)
 
 
 async def success(
-        ctx: Union[discord.ApplicationContext, discord.Interaction],
-        txt: str,
-        view: discord.ui.View = None
+    ctx: Union[discord.ApplicationContext, discord.Interaction],
+    txt: str,
+    view: Optional[discord.ui.View] = None,
 ):
     """Send a success message.
 
@@ -78,8 +75,5 @@ async def success(
         The view to send with the message.
 
     """
-    embed = Embed(
-        description=txt,
-        color=Color.green()
-    )
+    embed = Embed(description=txt, color=Color.green())
     await _send_embed(ctx, embed, view)

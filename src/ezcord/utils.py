@@ -3,11 +3,11 @@
     These utilities are only used by the library itself and
     are **not** meant to be used directly.
 """
-import os
 import inspect
-from typing import Literal
+import os
 from configparser import ConfigParser
 from pathlib import Path
+from typing import Literal
 
 from .translation import *
 

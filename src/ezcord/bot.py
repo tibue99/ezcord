@@ -1,17 +1,17 @@
 import logging
 import os
 import traceback
-from typing import Literal, List, Any
-from pathlib import Path
 import warnings
+from pathlib import Path
+from typing import Any, List, Literal, Optional
 
+import aiohttp
 import discord
 from discord.ext import commands
-import aiohttp
 
-from .logs import set_log, DEFAULT_LOG
+from .logs import DEFAULT_LOG, set_log
 from .times import convert_time
-from .utils import t, set_lang
+from .utils import set_lang, t
 
 
 class Bot(discord.Bot):
@@ -35,16 +35,17 @@ class Bot(discord.Bot):
     language:
         The language to use for the bot. Defaults to ``en``.
     """
+
     def __init__(
-            self,
-            intents: discord.Intents = discord.Intents.default(),
-            debug: bool = True,
-            error_handler: bool = True,
-            error_webhook_url: str = None,
-            ignored_errors: List[Any] = None,
-            language: Literal["en", "de"] = "en",
-            *args,
-            **kwargs
+        self,
+        intents: discord.Intents = discord.Intents.default(),
+        debug: bool = True,
+        error_handler: bool = True,
+        error_webhook_url: Optional[str] = None,
+        ignored_errors: Optional[List[Any]] = None,
+        language: Literal["en", "de"] = "en",
+        *args,
+        **kwargs,
     ):
         super().__init__(intents=intents, *args, **kwargs)
 
@@ -63,7 +64,12 @@ class Bot(discord.Bot):
         elif error_webhook_url:
             warnings.warn("You need to enable the error handler for the webhook to work.")
 
-    def load_cogs(self, *directories: str, subdirectories: bool = False, ignored_cogs: List[str] = None):
+    def load_cogs(
+        self,
+        *directories: str,
+        subdirectories: bool = False,
+        ignored_cogs: Optional[List[str]] = None,
+    ):
         """Load all cogs in the given directories.
 
         Parameters
@@ -79,7 +85,7 @@ class Bot(discord.Bot):
         """
         ignored_cogs = ignored_cogs or []
         if not directories:
-            directories = ["cogs"]
+            directories = ("cogs",)
 
         for directory in directories:
             path = Path(directory)
@@ -94,7 +100,9 @@ class Bot(discord.Bot):
                     if element.is_dir():
                         for sub_file in os.scandir(element.path):
                             if sub_file.name.endswith(".py") and sub_file.name not in ignored_cogs:
-                                self.load_extension(f"{'.'.join(path.parts)}.{element.name}.{sub_file.name[:-3]}")
+                                self.load_extension(
+                                    f"{'.'.join(path.parts)}.{element.name}.{sub_file.name[:-3]}"
+                                )
                                 self.logger.debug(f"Loaded {element.name}.{sub_file.name[:-3]}")
 
     async def on_ready(self):
@@ -105,7 +113,7 @@ class Bot(discord.Bot):
             f"Pycord:   {discord.__version__}",
             f"Commands: {len(self.commands):,}",
             f"Guilds:   {len(self.guilds):,}",
-            f"Latency:  {round(self.latency * 1000):,}ms"
+            f"Latency:  {round(self.latency * 1000):,}ms",
         ]
 
         longest = max([str(i) for i in infos], key=len)
@@ -124,9 +132,7 @@ class Bot(discord.Bot):
             return
 
         embed = discord.Embed(
-            title="Error",
-            description=f"{t('error')}: ```{error}```",
-            color=discord.Color.red()
+            title="Error", description=f"{t('error')}: ```{error}```", color=discord.Color.red()
         )
 
         if isinstance(error, commands.CommandOnCooldown):
@@ -138,8 +144,7 @@ class Bot(discord.Bot):
         elif isinstance(error, commands.BotMissingPermissions):
             perms = "\n".join(error.missing_permissions)
             embed.title = t("no_perm_title")
-            embed.description = f"{t('no_perm_desc')}" \
-                                f"```\n{perms}```"
+            embed.description = f"{t('no_perm_desc')} ```\n{perms}```"
             await ctx.respond(embed=embed, ephemeral=True)
 
         else:
@@ -151,20 +156,22 @@ class Bot(discord.Bot):
             if self.error_webhook_url:
                 async with aiohttp.ClientSession() as session:
                     webhook = discord.Webhook.from_url(
-                        self.error_webhook_url,
-                        session=session,
-                        bot_token=self.http.token
+                        self.error_webhook_url, session=session, bot_token=self.http.token
                     )
-                    error_txt = "".join(traceback.format_exception(type(error), error, error.__traceback__))
-                    guild_txt = f"\n\n`Guild:` {ctx.guild.name} ({ctx.guild.id})" if ctx.guild else ""
+                    error_txt = "".join(
+                        traceback.format_exception(type(error), error, error.__traceback__)
+                    )
+                    guild_txt = (
+                        f"\n\n`Guild:` {ctx.guild.name} ({ctx.guild.id})" if ctx.guild else ""
+                    )
                     user_txt = f"\n\n`User:` {ctx.author} ({ctx.author.id})" if ctx.author else ""
 
                     embed = discord.Embed(
                         title="Error Report",
                         description=f"`Command:` /{ctx.command.name}"
-                                    f"{guild_txt}{user_txt}"
-                                    f"```{error_txt[:3500]}```",
-                        color=discord.Color.red()
+                        f"{guild_txt}{user_txt}"
+                        f"```{error_txt[:3500]}```",
+                        color=discord.Color.red(),
                     )
                     await webhook.send(
                         embed=embed,

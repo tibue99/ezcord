@@ -14,14 +14,14 @@ Example
         await emb.success(ctx, "Success!")
 """
 
-from typing import Union
+from __future__ import annotations
 
 import discord
 from discord import Color, Embed
 
 
 async def _send_embed(
-    interaction: Union[discord.ApplicationContext, discord.Interaction],
+    interaction: discord.ApplicationContext | discord.Interaction,
     embed: discord.Embed,
     ephemeral: bool = True,
     **kwargs,
@@ -45,7 +45,7 @@ async def _send_embed(
 
 
 async def error(
-    ctx: Union[discord.ApplicationContext, discord.Interaction],
+    ctx: discord.ApplicationContext | discord.Interaction,
     txt: str,
     ephemeral: bool = True,
     **kwargs,
@@ -66,7 +66,7 @@ async def error(
 
 
 async def success(
-    ctx: Union[discord.ApplicationContext, discord.Interaction],
+    ctx: discord.ApplicationContext | discord.Interaction,
     txt: str,
     ephemeral: bool = True,
     **kwargs,

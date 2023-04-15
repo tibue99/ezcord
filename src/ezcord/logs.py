@@ -1,10 +1,11 @@
 """Some logging utilities that are used for bot logs."""
 
+from __future__ import annotations
+
 import logging
 import os
 import sys
 from enum import Enum
-from typing import Dict, Optional, Union
 
 from colorama import Fore
 
@@ -12,7 +13,7 @@ DEFAULT_LOG = "ezcord"
 log = logging.getLogger(DEFAULT_LOG)
 
 
-DEFAULT_LOG_COLORS: Dict[int, str] = {
+DEFAULT_LOG_COLORS: dict[int, str] = {
     logging.DEBUG: Fore.WHITE,
     logging.INFO: Fore.CYAN,
     logging.WARNING: Fore.YELLOW,
@@ -36,7 +37,7 @@ class LogFormat(str, Enum):
         return self.value
 
 
-def _format_colors(log_format: str, colors: Optional[Union[Dict[int, str], str]] = None):
+def _format_colors(log_format: str, colors: dict[int, str] | str | None = None):
     """Overwrite the default colors for the given log levels in the given format."""
 
     final_colors = DEFAULT_LOG_COLORS.copy()
@@ -83,7 +84,7 @@ class ColorFormatter(logging.Formatter):
         file: bool,
         log_format: str,
         time_format: str,
-        colors: Optional[Union[Dict[int, str], str]] = None,
+        colors: dict[int, str] | str | None = None,
         *args,
         **kwargs,
     ):
@@ -108,9 +109,9 @@ def set_log(
     name: str = DEFAULT_LOG,
     log_level: int = logging.INFO,
     file: bool = False,
-    log_format: Union[str, LogFormat] = LogFormat.default,
+    log_format: str | LogFormat = LogFormat.default,
     time_format: str = "%Y-%m-%d %H:%M:%S",
-    colors: Optional[Union[Dict[int, str], str]] = None,
+    colors: dict[int, str] | str | None = None,
 ):
     """Creates a logger. If this logger already exists, it will return the existing logger.
 
@@ -151,7 +152,7 @@ def set_log(
 
     logger.setLevel(log_level)
 
-    handler: Union[logging.FileHandler, logging.StreamHandler]
+    handler: logging.FileHandler | logging.StreamHandler
     if file:
         if not os.path.exists("logs"):
             os.mkdir("logs")

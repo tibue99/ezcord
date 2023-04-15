@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import logging
 import os
 import traceback
 import warnings
 from pathlib import Path
-from typing import Any, List, Literal, Optional
+from typing import Any, Literal
 
 import aiohttp
 import discord
@@ -41,8 +43,8 @@ class Bot(discord.Bot):
         intents: discord.Intents = discord.Intents.default(),
         debug: bool = True,
         error_handler: bool = True,
-        error_webhook_url: Optional[str] = None,
-        ignored_errors: Optional[List[Any]] = None,
+        error_webhook_url: str | None = None,
+        ignored_errors: list[Any] | None = None,
         language: Literal["en", "de"] = "en",
         *args,
         **kwargs,
@@ -70,7 +72,7 @@ class Bot(discord.Bot):
         self,
         *directories: str,
         subdirectories: bool = False,
-        ignored_cogs: Optional[List[str]] = None,
+        ignored_cogs: list[str] | None = None,
     ):
         """Load all cogs in the given directories.
 

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import re
 from datetime import datetime, timedelta, timezone
-from typing import Literal, Union
+from typing import Literal
 
 from discord.utils import format_dt, utcnow
 
@@ -22,7 +24,7 @@ def set_utc(dt: datetime) -> datetime:
     return dt.replace(tzinfo=timezone.utc)
 
 
-def convert_time(seconds: Union[int, float], relative: bool = True) -> str:
+def convert_time(seconds: int | float, relative: bool = True) -> str:
     """Convert seconds to a human-readable time.
 
     Parameters
@@ -53,7 +55,7 @@ def convert_time(seconds: Union[int, float], relative: bool = True) -> str:
     return f"{round(days)} {tp('day', round(days), relative=relative)}"
 
 
-def convert_dt(dt: Union[datetime, timedelta], relative: bool = True) -> str:
+def convert_dt(dt: datetime | timedelta, relative: bool = True) -> str:
     """Convert :class:`datetime` or :class:`timedelta` to a human-readable relative time.
 
     This function calls :func:`convert_time`.

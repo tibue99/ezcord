@@ -1,8 +1,5 @@
-"""
-.. warning::
-    These utilities are only used by the library itself and
-    are **not** meant to be used directly.
-"""
+"""Internal language utilities for the library."""
+
 import inspect
 import os
 from configparser import ConfigParser

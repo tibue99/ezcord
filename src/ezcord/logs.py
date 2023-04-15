@@ -145,6 +145,10 @@ def set_log(
             }
 
             ezcord.set_log(colors=colors)
+
+    Returns
+    -------
+    :class:`logging.Logger`
     """
     logger = logging.getLogger(name)
     if logger.handlers:

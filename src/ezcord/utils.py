@@ -17,9 +17,14 @@ def create_json_file(dictionary: Dict, filename: str = "data.json", **kwargs):
     filename:
         The filename to use for the JSON file.
     **kwargs:
-        Keyword arguments for :class:`discord.File`."""
+        Keyword arguments for :class:`discord.File`.
+
+    Returns
+    -------
+    :class:`discord.File`
+    """
     content = json.dumps(dictionary, indent=2).encode()
-    file = discord.File(io.BytesIO(content), filename=filename)
+    file = discord.File(io.BytesIO(content), filename=filename, **kwargs)
     return file
 
 
@@ -34,5 +39,9 @@ def create_text_file(text: str, filename: str = "data.txt", **kwargs):
         The filename to use for the text file.
     **kwargs:
         Keyword arguments for :class:`discord.File`.
+
+    Returns
+    -------
+    :class:`discord.File`
     """
-    return discord.File(io.BytesIO(text.encode()), filename=filename)
+    return discord.File(io.BytesIO(text.encode()), filename=filename, **kwargs)

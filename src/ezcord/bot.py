@@ -11,9 +11,10 @@ import aiohttp
 import discord
 from discord.ext import commands
 
+from .emb import error as error_emb
 from .internal.translation import set_lang, t
 from .logs import DEFAULT_LOG, set_log
-from .times import convert_time
+from .times import dc_timestamp
 
 
 class Bot(discord.Bot):
@@ -135,25 +136,20 @@ class Bot(discord.Bot):
         if type(error) in self.ignored_errors:
             return
 
-        embed = discord.Embed(
-            title="Error", description=f"{t('error')}: ```{error}```", color=discord.Color.red()
-        )
-
         if isinstance(error, commands.CommandOnCooldown):
             seconds = round(ctx.command.get_cooldown_retry_after(ctx))
-            embed.title = "Cooldown"
-            embed.description = t("cooldown", convert_time(seconds))
-            await ctx.respond(embed=embed, ephemeral=True)
+            cooldown_txt = t("cooldown", dc_timestamp(seconds))
+            await error_emb(ctx, cooldown_txt, title="Cooldown")
 
         elif isinstance(error, commands.BotMissingPermissions):
             perms = "\n".join(error.missing_permissions)
-            embed.title = t("no_perm_title")
-            embed.description = f"{t('no_perm_desc')} ```\n{perms}```"
-            await ctx.respond(embed=embed, ephemeral=True)
+            perm_txt = f"{t('no_perm_desc')} ```\n{perms}```"
+            await error_emb(ctx, perm_txt, title=t("no_perm_title"))
 
         else:
+            error_txt = f"{t('error')}: ```{error}```"
             try:
-                await ctx.respond(embed=embed, ephemeral=True)
+                await error_emb(ctx, error_txt, title="Error")
             except discord.HTTPException:
                 raise error
 

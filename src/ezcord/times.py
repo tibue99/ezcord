@@ -79,7 +79,9 @@ def convert_dt(dt: datetime | timedelta, relative: bool = True) -> str:
         return convert_time(abs((dt - utcnow()).total_seconds()), relative)
 
 
-def dc_timestamp(seconds: int, style: Literal["t", "T", "d", "D", "f", "F", "R"] = "R") -> str:
+def dc_timestamp(
+    seconds: int | float, style: Literal["t", "T", "d", "D", "f", "F", "R"] = "R"
+) -> str:
     """Convert seconds to a Discord timestamp.
 
     Parameters

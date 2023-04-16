@@ -87,6 +87,33 @@ async def _send_embed(
         await interaction.send(embed=embed, **kwargs)
 
 
+async def _process_message(
+    ctx: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
+    embed: discord.Embed,
+    txt: str,
+    ephemeral: bool,
+    *,
+    title: str | None = None,
+    **kwargs,
+):
+    """Adds embed attributes to the embed before sending it.
+
+    Parameters
+    ----------
+    ctx:
+        The application context or the interaction to send the message to.
+    txt:
+        The text to send.
+    ephemeral:
+        Whether the message should be ephemeral.
+    """
+    embed.description = txt
+    if title is not None:
+        embed.title = title
+
+    await _send_embed(ctx, embed, ephemeral, **kwargs)
+
+
 async def error(
     ctx: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     txt: str,
@@ -105,8 +132,7 @@ async def error(
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("error")
-    embed.description = txt
-    await _send_embed(ctx, embed, ephemeral, **kwargs)
+    await _process_message(ctx, embed, txt, ephemeral, **kwargs)
 
 
 async def success(
@@ -127,5 +153,4 @@ async def success(
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("success")
-    embed.description = txt
-    await _send_embed(ctx, embed, ephemeral, **kwargs)
+    await _process_message(ctx, embed, txt, ephemeral, **kwargs)

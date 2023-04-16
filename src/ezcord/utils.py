@@ -24,8 +24,7 @@ def create_json_file(dictionary: Dict, filename: str = "data.json", **kwargs):
     :class:`discord.File`
     """
     content = json.dumps(dictionary, indent=2).encode()
-    file = discord.File(io.BytesIO(content), filename=filename, **kwargs)
-    return file
+    return discord.File(io.BytesIO(content), filename=filename, **kwargs)
 
 
 def create_text_file(text: str, filename: str = "data.txt", **kwargs):

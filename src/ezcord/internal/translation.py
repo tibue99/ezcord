@@ -3,6 +3,7 @@
 import inspect
 import os
 from configparser import ConfigParser
+from functools import cache
 from pathlib import Path
 from typing import Literal
 
@@ -108,6 +109,7 @@ def t(key: str, *args: str):
         return en[origin_file][key].format(*args)
 
 
+@cache
 def get_lang():
     """Get the language from the config file."""
     parent = Path(__file__).parent.absolute()

@@ -17,7 +17,42 @@ Example
 from __future__ import annotations
 
 import discord
-from discord import Color, Embed
+
+from .internal.embed_templates import load_embed, save_embeds
+
+
+def override_embeds(
+    *,
+    error_embed: discord.Embed | None = None,
+    success_embed: discord.Embed | None = None,
+    **kwargs: discord.Embed,
+):
+    """Override the default embeds with custom ones.
+
+    This must be called before the first embed template is used.
+
+    Parameters
+    ----------
+    error_embed:
+        The embed to use for error messages.
+    success_embed:
+        The embed to use for success messages.
+    **kwargs:
+        Additional embed templates.
+
+    Example
+    -------
+    .. code-block:: python
+
+        from ezcord import emb
+
+        embed = discord.Embed(
+            title="Error",
+            color=discord.Color.orange()
+        )
+        emb.override_embeds(error_embed=embed)
+    """
+    save_embeds(error_embed=error_embed, success_embed=success_embed, **kwargs)
 
 
 async def _send_embed(
@@ -61,7 +96,8 @@ async def error(
     ephemeral:
         Whether the message should be ephemeral.
     """
-    embed = Embed(description=txt, color=Color.red())
+    embed = load_embed("error")
+    embed.description = txt
     await _send_embed(ctx, embed, ephemeral, **kwargs)
 
 
@@ -82,5 +118,6 @@ async def success(
     ephemeral:
         Whether the message should be ephemeral.
     """
-    embed = Embed(description=txt, color=Color.green())
+    embed = load_embed("success")
+    embed.description = txt
     await _send_embed(ctx, embed, ephemeral, **kwargs)

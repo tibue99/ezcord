@@ -1,5 +1,5 @@
-"""Embed templates that can be used to send messages to users.
-These functions will generate embeds and send them as an ephemeral message to the user.
+"""Embed templates that can be used to send messages.
+These functions will generate embeds and send them to the desired target.
 
 Example
 -------
@@ -29,7 +29,8 @@ def override_embeds(
 ):
     """Override the default embeds with custom ones.
 
-    This must be called before the first embed template is used.
+    This must be called before the first embed template is used. The description
+    of the embeds will be replaced with the given text.
 
     Parameters
     ----------
@@ -56,12 +57,14 @@ def override_embeds(
 
 
 async def _send_embed(
-    interaction: discord.ApplicationContext | discord.Interaction,
+    interaction: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     embed: discord.Embed,
     ephemeral: bool = True,
     **kwargs,
 ):
-    """Send an embed to the user. If the interaction has already been responded to,
+    """Respond to an interaction or send an embed to a target.
+
+    If the interaction has already been responded to,
     the message will be sent as a followup.
 
     Parameters
@@ -71,21 +74,26 @@ async def _send_embed(
     embed:
         The embed to send.
     ephemeral:
-        Whether the message should be ephemeral.
+        Whether the message should be ephemeral. Defaults to ``True``.
     """
-    try:
-        await interaction.response.send_message(embed=embed, ephemeral=ephemeral, **kwargs)
-    except discord.InteractionResponded:
-        await interaction.followup.send(embed=embed, ephemeral=ephemeral, **kwargs)
+    if isinstance(interaction, discord.ApplicationContext) or isinstance(
+        interaction, discord.Interaction
+    ):
+        if not interaction.response.is_done():
+            await interaction.response.send_message(embed=embed, ephemeral=ephemeral, **kwargs)
+        else:
+            await interaction.followup.send(embed=embed, ephemeral=ephemeral, **kwargs)
+    else:
+        await interaction.send(embed=embed, **kwargs)
 
 
 async def error(
-    ctx: discord.ApplicationContext | discord.Interaction,
+    ctx: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     txt: str,
     ephemeral: bool = True,
     **kwargs,
 ):
-    """Send an error message.
+    """Send an error message. By default, this is a red embed.
 
     Parameters
     ----------
@@ -94,7 +102,7 @@ async def error(
     txt:
         The text to send.
     ephemeral:
-        Whether the message should be ephemeral.
+        Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("error")
     embed.description = txt
@@ -102,12 +110,12 @@ async def error(
 
 
 async def success(
-    ctx: discord.ApplicationContext | discord.Interaction,
+    ctx: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     txt: str,
     ephemeral: bool = True,
     **kwargs,
 ):
-    """Send a success message.
+    """Send a success message. By default, this is a green embed.
 
     Parameters
     ----------
@@ -116,7 +124,7 @@ async def success(
     txt:
         The text to send.
     ephemeral:
-        Whether the message should be ephemeral.
+        Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("success")
     embed.description = txt

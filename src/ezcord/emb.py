@@ -21,10 +21,12 @@ import discord
 from .internal.embed_templates import load_embed, save_embeds
 
 
-def override_embeds(
+def set_embed_templates(
     *,
     error_embed: discord.Embed | None = None,
     success_embed: discord.Embed | None = None,
+    warn_embed: discord.Embed | None = None,
+    info_embed: discord.Embed | None = None,
     **kwargs: discord.Embed,
 ):
     """Override the default embeds with custom ones.
@@ -38,8 +40,12 @@ def override_embeds(
         The embed to use for error messages.
     success_embed:
         The embed to use for success messages.
+    warn_embed:
+        The embed to use for warning messages.
+    info_embed:
+        The embed to use for info messages.
     **kwargs:
-        Additional embed templates.
+        Additional embed templates. Can be used with :func:`send`.
 
     Example
     -------
@@ -53,7 +59,13 @@ def override_embeds(
         )
         emb.override_embeds(error_embed=embed)
     """
-    save_embeds(error_embed=error_embed, success_embed=success_embed, **kwargs)
+    save_embeds(
+        error_embed=error_embed,
+        success_embed=success_embed,
+        warn_embed=warn_embed,
+        info_embed=info_embed,
+        **kwargs,
+    )
 
 
 async def _send_embed(
@@ -125,13 +137,13 @@ async def error(
     Parameters
     ----------
     ctx:
-        The application context or the interaction to send the message to.
+        The target to send the message to.
     txt:
         The text to send.
     ephemeral:
         Whether the message should be ephemeral. Defaults to ``True``.
     """
-    embed = load_embed("error")
+    embed = load_embed("error_embed")
     await _process_message(ctx, embed, txt, ephemeral, **kwargs)
 
 
@@ -146,11 +158,77 @@ async def success(
     Parameters
     ----------
     ctx:
-        The application context or the interaction to send the message to.
+        The target to send the message to.
     txt:
         The text to send.
     ephemeral:
         Whether the message should be ephemeral. Defaults to ``True``.
     """
-    embed = load_embed("success")
+    embed = load_embed("success_embed")
+    await _process_message(ctx, embed, txt, ephemeral, **kwargs)
+
+
+async def warn(
+    ctx: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
+    txt: str,
+    ephemeral: bool = True,
+    **kwargs,
+):
+    """Send a warning message. By default, this is an orange embed.
+
+    Parameters
+    ----------
+    ctx:
+        The target to send the message to.
+    txt:
+        The text to send.
+    ephemeral:
+        Whether the message should be ephemeral. Defaults to ``True``.
+    """
+    embed = load_embed("warn_embed")
+    await _process_message(ctx, embed, txt, ephemeral, **kwargs)
+
+
+async def info(
+    ctx: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
+    txt: str,
+    ephemeral: bool = True,
+    **kwargs,
+):
+    """Send an info message. By default, this is a blue embed.
+
+    Parameters
+    ----------
+    ctx:
+        The target to send the message to.
+    txt:
+        The text to send.
+    ephemeral:
+        Whether the message should be ephemeral. Defaults to ``True``.
+    """
+    embed = load_embed("info_embed")
+    await _process_message(ctx, embed, txt, ephemeral, **kwargs)
+
+
+async def send(
+    template: str,
+    ctx: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
+    txt: str,
+    ephemeral: bool = True,
+    **kwargs,
+):
+    """Send a custom embed template. This needs to be set up with :func:`set_embed_templates`.
+
+    Parameters
+    ----------
+    template:
+        The name of the template that was used in :func:`set_embed_templates`.
+    ctx:
+        The target to send the message to.
+    txt:
+        The text to send.
+    ephemeral:
+        Whether the message should be ephemeral. Defaults to ``True``.
+    """
+    embed = load_embed(template)
     await _process_message(ctx, embed, txt, ephemeral, **kwargs)

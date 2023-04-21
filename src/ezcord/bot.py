@@ -13,7 +13,7 @@ from discord.ext import commands
 
 from .emb import error as error_emb
 from .internal.translation import set_lang, t
-from .logs import DEFAULT_LOG, set_log
+from .logs import DEFAULT_LOG, custom_log, set_log
 from .times import dc_timestamp
 
 
@@ -74,6 +74,7 @@ class Bot(discord.Bot):
         *directories: str,
         subdirectories: bool = False,
         ignored_cogs: list[str] | None = None,
+        custom_logs: bool = True,
     ):
         """Load all cogs in the given directories.
 
@@ -87,6 +88,8 @@ class Bot(discord.Bot):
             Defaults to ``False``.
         ignored_cogs:
             A list of cogs to ignore. Defaults to ``None``.
+        custom_logs:
+            Whether to use a custom logs format for cogs. Defaults to ``True``.
         """
         ignored_cogs = ignored_cogs or []
         if not directories:
@@ -98,7 +101,10 @@ class Bot(discord.Bot):
             for filename in os.listdir(directory):
                 if filename.endswith(".py") and filename not in ignored_cogs:
                     self.load_extension(f"{'.'.join(path.parts)}.{filename[:-3]}")
-                    self.logger.debug(f"Loaded {filename[:-3]}")
+                    if custom_logs:
+                        custom_log("COG", f"Loaded {filename[:-3]}")
+                    else:
+                        self.logger.debug(f"Loaded {filename[:-3]}")
 
             if subdirectories:
                 for element in os.scandir(directory):
@@ -108,7 +114,10 @@ class Bot(discord.Bot):
                                 self.load_extension(
                                     f"{'.'.join(path.parts)}.{element.name}.{sub_file.name[:-3]}"
                                 )
-                                self.logger.debug(f"Loaded {element.name}.{sub_file.name[:-3]}")
+                                if custom_logs:
+                                    custom_log("COG", f"Loaded {element.name}.{sub_file.name[:-3]}")
+                                else:
+                                    self.logger.debug(f"Loaded {element.name}.{sub_file.name[:-3]}")
 
     async def ready_event(self):
         """Prints the bot's information when it's ready."""
@@ -184,4 +193,4 @@ class Bot(discord.Bot):
                             "Error while sending error report to webhook. "
                             "Please check if you the URL is correct."
                         )
-            raise error
+            self.logger.exception(f"Error while executing /{ctx.command.name}", exc_info=error)

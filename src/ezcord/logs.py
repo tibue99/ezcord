@@ -14,7 +14,7 @@ log = logging.getLogger(DEFAULT_LOG)
 
 
 DEFAULT_LOG_COLORS: dict[int, str] = {
-    logging.DEBUG: Fore.WHITE,
+    logging.DEBUG: Fore.GREEN,
     logging.INFO: Fore.CYAN,
     logging.WARNING: Fore.YELLOW,
     logging.ERROR: Fore.LIGHTRED_EX,
@@ -29,15 +29,50 @@ class LogFormat(str, Enum):
     If they are not used, the whole log message will be colored.
     """
 
-    default = "[%(asctime)s] %(levelname)s: %(message)s"
-    color_level = "[{color_start}%(name)s{color_end}] %(message)s"
-    color_name = "[{color_start}%(levelname)s{color_end}] %(message)s"
+    full_color = "[%(levelname)s] %(message)s"
+    full_color_time = "[%(asctime)s] %(levelname)s: %(message)s"
+    color_level = "[{color_start}%(levelname)s{color_end}] %(message)s"
+    default = color_level
 
     def __str__(self):
         return self.value
 
 
-def _format_colors(log_format: str, colors: dict[int, str] | str | None = None):
+def custom_log(key: str, message: str, *, color: str = Fore.MAGENTA, level: int = 20):
+    """Log a message with a custom log level. This works only when using :attr:`LogFormat.default`.
+
+    Parameters
+    ----------
+    key:
+        The key of the custom log level.
+    message:
+        The message to log.
+    color:
+        The color to use for the log level.
+    level:
+        The log level.
+    """
+    logging.getLogger(DEFAULT_LOG).log(level, message, extra={"key": key, "color": color})
+
+
+def _format_log_colors(log_format, file, final_colors):
+    color_formats = {}
+    if "{color_start}" in log_format and "{color_end}" in log_format:
+        for level in final_colors:
+            if file:
+                color_formats[level] = log_format.format(color_start="", color_end="")
+            else:
+                color_formats[level] = log_format.format(
+                    color_start=final_colors[level], color_end=Fore.RESET
+                )
+    else:
+        for level in final_colors:
+            color_formats[level] = final_colors[level] + log_format + Fore.RESET
+
+    return color_formats
+
+
+def _format_colors(colors: dict[int, str] | str | None = None):
     """Overwrite the default colors for the given log levels in the given format."""
 
     final_colors = DEFAULT_LOG_COLORS.copy()
@@ -51,17 +86,7 @@ def _format_colors(log_format: str, colors: dict[int, str] | str | None = None):
         for level in colors:
             final_colors[level] = colors[level]
 
-    color_formats = {}
-    if "{color_start}" in log_format and "{color_end}" in log_format:
-        for level in final_colors:
-            color_formats[level] = log_format.format(
-                color_start=final_colors[level], color_end=Fore.RESET
-            )
-    else:
-        for level in final_colors:
-            color_formats[level] = final_colors[level] + log_format + Fore.RESET
-
-    return color_formats
+    return final_colors
 
 
 class ColorFormatter(logging.Formatter):
@@ -91,23 +116,39 @@ class ColorFormatter(logging.Formatter):
         super().__init__(*args, **kwargs)
 
         self.file = file
+        self.colors = colors
         self.LOG_FORMAT = log_format
         self.TIME_FORMAT = time_format
-        self.COLOR_FORMATS = _format_colors(log_format, colors)
 
-    def format(self, record):
-        """Check if the log is being sent to a file or not and format it accordingly."""
-        if self.file:
-            formatter = logging.Formatter(self.LOG_FORMAT, self.TIME_FORMAT)
+    def format(self, record: logging.LogRecord):
+        if "color" in record.__dict__:
+            colors = record.__dict__["color"]
         else:
-            log_format = self.COLOR_FORMATS.get(record.levelno)
-            formatter = logging.Formatter(log_format, self.TIME_FORMAT)
+            colors = self.colors
+
+        color_formats = _format_colors(colors)
+
+        if record.levelno not in color_formats:
+            if "color" in record.__dict__:
+                # if a custom leg level is used by .custom_log()
+                color_formats[record.levelno] = colors
+            else:
+                # if no color is set for a custom log level used by .log()
+                color_formats[record.levelno] = Fore.MAGENTA
+
+        color_log_formats = _format_log_colors(self.LOG_FORMAT, self.file, color_formats)
+
+        log_format = color_log_formats.get(record.levelno)
+        if "key" in record.__dict__ and log_format:
+            log_format = log_format.replace("%(levelname)s", record.__dict__["key"])
+
+        formatter = logging.Formatter(log_format, self.TIME_FORMAT)
         return formatter.format(record)
 
 
 def set_log(
     name: str = DEFAULT_LOG,
-    log_level: int = logging.INFO,
+    log_level: int = logging.DEBUG,
     file: bool = False,
     log_format: str | LogFormat = LogFormat.default,
     time_format: str = "%Y-%m-%d %H:%M:%S",

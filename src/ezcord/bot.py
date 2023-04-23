@@ -99,25 +99,27 @@ class Bot(discord.Bot):
             path = Path(directory)
 
             for filename in os.listdir(directory):
-                if filename.endswith(".py") and filename not in ignored_cogs:
-                    self.load_extension(f"{'.'.join(path.parts)}.{filename[:-3]}")
+                name = filename[:-3]
+                if filename.endswith(".py") and name not in ignored_cogs:
+                    self.load_extension(f"{'.'.join(path.parts)}.{name}")
                     if custom_logs:
-                        custom_log("COG", f"Loaded {filename[:-3]}")
+                        custom_log("COG", f"Loaded {name}")
                     else:
-                        self.logger.debug(f"Loaded {filename[:-3]}")
+                        self.logger.debug(f"Loaded {name}")
 
             if subdirectories:
                 for element in os.scandir(directory):
-                    if element.is_dir():
-                        for sub_file in os.scandir(element.path):
-                            if sub_file.name.endswith(".py") and sub_file.name not in ignored_cogs:
-                                self.load_extension(
-                                    f"{'.'.join(path.parts)}.{element.name}.{sub_file.name[:-3]}"
-                                )
-                                if custom_logs:
-                                    custom_log("COG", f"Loaded {element.name}.{sub_file.name[:-3]}")
-                                else:
-                                    self.logger.debug(f"Loaded {element.name}.{sub_file.name[:-3]}")
+                    if not element.is_dir():
+                        continue
+
+                    for sub_file in os.scandir(element.path):
+                        name = sub_file.name[:-3]
+                        if sub_file.name.endswith(".py") and name not in ignored_cogs:
+                            self.load_extension(f"{'.'.join(path.parts)}.{element.name}.{name}")
+                            if custom_logs:
+                                custom_log("COG", f"Loaded {element.name}.{name}")
+                            else:
+                                self.logger.debug(f"Loaded {element.name}.{name}")
 
     async def ready_event(self):
         """Prints the bot's information when it's ready."""

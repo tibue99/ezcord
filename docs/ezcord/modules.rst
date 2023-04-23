@@ -10,3 +10,4 @@ Here is an overview of all features.
    utils
    times
    logs
+   enums

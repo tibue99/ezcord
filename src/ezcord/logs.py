@@ -5,9 +5,10 @@ from __future__ import annotations
 import logging
 import os
 import sys
-from enum import Enum
 
 from colorama import Fore
+
+from .enums import LogFormat
 
 DEFAULT_LOG = "ezcord"
 log = logging.getLogger(DEFAULT_LOG)
@@ -22,23 +23,7 @@ DEFAULT_LOG_COLORS: dict[int, str] = {
 }
 
 
-class LogFormat(str, Enum):
-    """Presets for logging formats that can be used in :func:`set_log`.
-
-    ``{color_start}`` and ``{color_end}`` are used to add colors to parts of the log message.
-    If they are not used, the whole log message will be colored.
-    """
-
-    full_color = "[%(levelname)s] %(message)s"
-    full_color_time = "[%(asctime)s] %(levelname)s: %(message)s"
-    color_level = "[{color_start}%(levelname)s{color_end}] %(message)s"
-    default = color_level
-
-    def __str__(self):
-        return self.value
-
-
-def custom_log(key: str, message: str, *, color: str = Fore.MAGENTA, level: int = 20):
+def custom_log(key: str, message: str, *, color: str = Fore.MAGENTA, level: int = logging.INFO):
     """Log a message with a custom log level. This works only when using :attr:`LogFormat.default`.
 
     Parameters

@@ -9,6 +9,7 @@ import sys
 from colorama import Fore
 
 from .enums import LogFormat
+from .internal.colors import get_escape_code
 
 DEFAULT_LOG = "ezcord"
 log = logging.getLogger(DEFAULT_LOG)
@@ -23,24 +24,28 @@ DEFAULT_LOG_COLORS: dict[int, str] = {
 }
 
 
-def custom_log(key: str, message: str, *, color: str = Fore.MAGENTA, level: int = logging.INFO):
-    """Log a message with a custom log level. This works only when using :attr:`LogFormat.default`.
+def custom_log(
+    key: str, message: str, *, color: str | bool = Fore.MAGENTA, level: int = logging.INFO
+):
+    """Log a message with a custom log level. This works only when using :attr:`ezcord.LogFormat.default`.
 
     Parameters
     ----------
     key:
-        The key of the custom log level.
+        The name of the custom log level.
     message:
         The message to log.
     color:
-        The color to use for the log level.
+        The color to use for the log level. Defaults to ``Fore.MAGENTA``.
     level:
-        The log level.
+        The log level. Defaults to ``logging.INFO``.
     """
+    color = get_escape_code(color)
     logging.getLogger(DEFAULT_LOG).log(level, message, extra={"key": key, "color": color})
 
 
-def _format_log_colors(log_format, file, final_colors):
+def _format_log_colors(log_format: str, file: bool, final_colors: dict[int, str]) -> dict[int, str]:
+    """Checks if the is sent to a file and formats the colors accordingly."""
     color_formats = {}
     if "{color_start}" in log_format and "{color_end}" in log_format:
         for level in final_colors:
@@ -57,7 +62,7 @@ def _format_log_colors(log_format, file, final_colors):
     return color_formats
 
 
-def _format_colors(colors: dict[int, str] | str | None = None):
+def _format_colors(colors: dict[int, str] | str | None = None) -> dict[int, str]:
     """Overwrite the default colors for the given log levels in the given format."""
 
     final_colors = DEFAULT_LOG_COLORS.copy()
@@ -65,11 +70,12 @@ def _format_colors(colors: dict[int, str] | str | None = None):
         colors = final_colors
 
     if isinstance(colors, str):
+        colors = get_escape_code(colors)
         for level in final_colors:
             final_colors[level] = colors
     else:
         for level in colors:
-            final_colors[level] = colors[level]
+            final_colors[level] = get_escape_code(colors[level])
 
     return final_colors
 
@@ -106,6 +112,9 @@ class ColorFormatter(logging.Formatter):
         self.TIME_FORMAT = time_format
 
     def format(self, record: logging.LogRecord):
+        """Adds colors to log messages and formats them accordingly.
+        Can be used with :func:`set_log`.
+        """
         if "color" in record.__dict__:
             colors = record.__dict__["color"]
         else:

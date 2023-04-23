@@ -9,4 +9,4 @@ bot = ezcord.Bot(
 
 if __name__ == "__main__":
     bot.load_cogs("cogs")  # Load all cogs in the "cogs" folder
-    bot.run("TOKEN")  # Replace with your webhook URL
+    bot.run("TOKEN")  # Replace with your bot token

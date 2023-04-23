@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from colorama import Fore
 
+DEFAULT_COLOR = Fore.MAGENTA
+
 
 def get_escape_code(color_string: str | bool) -> str:
     """Converts a color string to an ansi escape code using colorama.
@@ -9,7 +11,7 @@ def get_escape_code(color_string: str | bool) -> str:
     If the string already is an escape code, it will be returned.
     """
     if not isinstance(color_string, str):
-        return Fore.MAGENTA
+        return DEFAULT_COLOR
 
     if color_string.startswith("\x1b["):
         return color_string

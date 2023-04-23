@@ -9,7 +9,7 @@ import sys
 from colorama import Fore
 
 from .enums import LogFormat
-from .internal.colors import get_escape_code
+from .internal.colors import DEFAULT_COLOR, get_escape_code
 
 DEFAULT_LOG = "ezcord"
 log = logging.getLogger(DEFAULT_LOG)
@@ -25,7 +25,7 @@ DEFAULT_LOG_COLORS: dict[int, str] = {
 
 
 def custom_log(
-    key: str, message: str, *, color: str | bool = Fore.MAGENTA, level: int = logging.INFO
+    key: str, message: str, *, color: str | bool = DEFAULT_COLOR, level: int = logging.INFO
 ):
     """Log a message with a custom log level. This works only when using :attr:`ezcord.LogFormat.default`.
 
@@ -114,6 +114,11 @@ class ColorFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord):
         """Adds colors to log messages and formats them accordingly.
         Can be used with :func:`set_log`.
+
+        Parameters
+        ----------
+        record:
+            The log record to format.
         """
         if "color" in record.__dict__:
             colors = record.__dict__["color"]
@@ -124,7 +129,7 @@ class ColorFormatter(logging.Formatter):
 
         if record.levelno not in color_formats:
             if "color" in record.__dict__:
-                # if a custom leg level is used by .custom_log()
+                # if a custom log level is used by .custom_log()
                 color_formats[record.levelno] = colors
             else:
                 # if no color is set for a custom log level used by .log()
@@ -175,8 +180,8 @@ def set_log(
             import ezcord
 
             colors = {
-                logging.DEBUG: Fore.GREEN,
-                logging.INFO: Fore.CYAN,
+                logging.DEBUG: "blue",
+                logging.INFO: Fore.MAGENTA,
             }
 
             ezcord.set_log(colors=colors)

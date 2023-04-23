@@ -56,7 +56,7 @@ def convert_time(seconds: int | float, relative: bool = True) -> str:
 
 
 def convert_dt(dt: datetime | timedelta, relative: bool = True) -> str:
-    """Convert :class:`datetime` or :class:`timedelta` to a human-readable relative time.
+    """Convert :class:`datetime` or :class:`timedelta` to a human-readable time.
 
     This function calls :func:`convert_time`.
 

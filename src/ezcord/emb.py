@@ -57,7 +57,7 @@ def set_embed_templates(
             title="Error",
             color=discord.Color.orange()
         )
-        emb.override_embeds(error_embed=embed)
+        emb.set_embed_templates(error_embed=embed)
     """
     save_embeds(
         error_embed=error_embed,

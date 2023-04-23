@@ -6,6 +6,7 @@ import ezcord
 from ezcord import log
 
 # overwrite colors for specific log levels
+# this can be done with strings or with colorama
 colors = {
     logging.DEBUG: "blue",
     logging.INFO: Fore.MAGENTA,

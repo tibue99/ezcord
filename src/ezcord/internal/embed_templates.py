@@ -20,7 +20,9 @@ def save_embeds(**kwargs: Embed):
     If one of the default values is not included, a default template will be saved.
     """
     embeds = {}
-    for name, embed in kwargs.items():
+    overrides = TEMPLATES if len(kwargs) == 0 else kwargs
+
+    for name, embed in overrides.items():
         if embed is None:
             embeds[name] = TEMPLATES[name].to_dict()
         else:
@@ -35,10 +37,18 @@ def save_embeds(**kwargs: Embed):
 def load_embed(name: str) -> Embed:
     """Load an embed template from a JSON file."""
     parent = Path(__file__).parent.absolute()
+    json_path = parent.joinpath("embeds.json")
+    if not json_path.exists():
+        save_embeds()
+
     with open(os.path.join(parent, "embeds.json")) as file:
         embeds = json.load(file)
 
     try:
         return Embed.from_dict(embeds[name])
     except KeyError:
-        raise ValueError(f"Embed template '{name}' not found.")
+        if name in TEMPLATES.keys():
+            save_embeds()
+            return load_embed()
+        else:
+            raise ValueError(f"Embed template '{name}' not found.")

@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import sys
 
+import aiohttp
+import discord
 from colorama import Fore
 
 from .enums import LogFormat
@@ -80,7 +83,7 @@ def _format_colors(colors: dict[int, str] | str | None = None) -> dict[int, str]
     return final_colors
 
 
-class ColorFormatter(logging.Formatter):
+class _ColorFormatter(logging.Formatter):
     """A logging formatter that adds colors to the output. This is used by :func:`set_log`.
 
     Parameters
@@ -145,12 +148,47 @@ class ColorFormatter(logging.Formatter):
         return formatter.format(record)
 
 
+class _DiscordHandler(logging.Handler):
+    def __init__(self, discord_log_level: int, webhook_url: str | None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.webhook_url = webhook_url
+        self.discord_log_level = discord_log_level
+
+    def emit(self, record: logging.LogRecord):
+        if "webhook" in record.__dict__:
+            return
+
+        if record.levelno >= self.discord_log_level and self.webhook_url:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                loop.create_task(_send_discord_log(self.webhook_url, record))
+            else:
+                loop.run_until_complete(_send_discord_log(self.webhook_url, record))
+
+
+async def _send_discord_log(webhook_url: str, record: logging.LogRecord):
+    async with aiohttp.ClientSession() as session:
+        webhook = discord.Webhook.from_url(webhook_url, session=session)
+        name = "EzCord" if record.name == DEFAULT_LOG else record.name
+        try:
+            await webhook.send(
+                content=record.message,
+                username=f"{name}: {record.levelname}",
+            )
+        except discord.HTTPException:
+            log.error(
+                "Error while sending log message to webhook. " "Please check if the URL is correct."
+            )
+
+
 def set_log(
     name: str = DEFAULT_LOG,
     log_level: int = logging.DEBUG,
     file: bool = False,
     log_format: str | LogFormat = LogFormat.default,
     time_format: str = "%Y-%m-%d %H:%M:%S",
+    discord_log_level: int = logging.WARNING,
+    webhook_url: str | None = None,
     colors: dict[int, str] | str | None = None,
 ):
     """Creates a logger. If this logger already exists, it will return the existing logger.
@@ -167,6 +205,10 @@ def set_log(
         The log format. Defaults to :attr:`LogFormat.default`.
     time_format:
         The time format. Defaults to ``%Y-%m-%d %H:%M:%S``.
+    discord_log_level:
+        The log level for the discord.py logger. Defaults to ``logging.WARNING``.
+    webhook_url:
+        The discord webhook URL to send logs to. Defaults to ``None``.
     colors:
         A dictionary of log levels and their corresponding colors. If only one color is given,
         all log levels will be colored with that color.
@@ -205,6 +247,7 @@ def set_log(
     else:
         handler = logging.StreamHandler(sys.stdout)
 
-    handler.setFormatter(ColorFormatter(file, log_format, time_format, colors))
+    handler.setFormatter(_ColorFormatter(file, log_format, time_format, colors))
     logger.addHandler(handler)
+    logger.addHandler(_DiscordHandler(discord_log_level, webhook_url))
     return logger

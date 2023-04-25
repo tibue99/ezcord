@@ -161,7 +161,14 @@ class Bot(discord.Bot):
             await error_emb(ctx, perm_txt, title=t("no_perm_title"))
 
         else:
-            error_txt = f"{t('error')}: ```{error}```"
+            if "original" in error.__dict__:
+                original_error = error.__dict__["original"]
+                error_msg = f"{original_error.__class__.__name__}: {error.__cause__}"
+                error = original_error
+            else:
+                error_msg = f"{error}"
+
+            error_txt = f"{t('error')}: ```{error_msg}```"
             try:
                 await error_emb(ctx, error_txt, title="Error")
             except discord.HTTPException:
@@ -176,15 +183,17 @@ class Bot(discord.Bot):
                         traceback.format_exception(type(error), error, error.__traceback__)
                     )
                     guild_txt = (
-                        f"\n\n`Guild:` {ctx.guild.name} ({ctx.guild.id})" if ctx.guild else ""
+                        f"\n- **Guild:** {ctx.guild.name} - `{ctx.guild.id}`" if ctx.guild else ""
                     )
-                    user_txt = f"\n\n`User:` {ctx.author} ({ctx.author.id})" if ctx.author else ""
+                    user_txt = (
+                        f"\n- **User:** {ctx.author} - `{ctx.author.id}`" if ctx.author else ""
+                    )
 
                     embed = discord.Embed(
                         title="Error Report",
-                        description=f"`Command:` /{ctx.command.name}"
+                        description=f"- **Command:** /{ctx.command.qualified_name}"
                         f"{guild_txt}{user_txt}"
-                        f"```{error_txt[:3500]}```",
+                        f"\n```{error_txt[:3500]}```",
                         color=discord.Color.red(),
                     )
                     try:
@@ -196,6 +205,18 @@ class Bot(discord.Bot):
                     except discord.HTTPException:
                         self.logger.error(
                             "Error while sending error report to webhook. "
-                            "Please check if you the URL is correct."
+                            "Please check if the URL is correct."
                         )
-            self.logger.exception(f"Error while executing /{ctx.command.name}", exc_info=error)
+
+                trace = traceback.extract_tb(error.__traceback__)
+                self.logger.error(
+                    f"Error while executing /{ctx.command.qualified_name}: "
+                    f"Line {trace[-1].lineno} in {Path(trace[-1].filename).name}"
+                    f"\n{error_msg}",
+                    extra={"webhook": False},
+                )
+            else:
+                self.logger.exception(
+                    f"Error while executing /{ctx.command.qualified_name}: {error_msg}",
+                    exc_info=error,
+                )

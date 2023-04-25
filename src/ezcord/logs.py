@@ -149,14 +149,16 @@ class _ColorFormatter(logging.Formatter):
 
 
 class _DiscordHandler(logging.Handler):
+    """A logging handler that sends logs to a Discord webhook."""
+
     def __init__(self, discord_log_level: int, webhook_url: str | None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.webhook_url = webhook_url
         self.discord_log_level = discord_log_level
 
     def emit(self, record: logging.LogRecord):
-        if "webhook" in record.__dict__:
-            return
+        if "discord" in record.__dict__:
+            record.message = record.__dict__["discord"]
 
         if record.levelno >= self.discord_log_level and self.webhook_url:
             loop = asyncio.get_event_loop()
@@ -179,6 +181,12 @@ async def _send_discord_log(webhook_url: str, record: logging.LogRecord):
             log.error(
                 "Error while sending log message to webhook. " "Please check if the URL is correct."
             )
+
+
+def _discord_filter(record):
+    if "webhook" in record.__dict__:
+        return False
+    return True
 
 
 def set_log(
@@ -249,5 +257,8 @@ def set_log(
 
     handler.setFormatter(_ColorFormatter(file, log_format, time_format, colors))
     logger.addHandler(handler)
-    logger.addHandler(_DiscordHandler(discord_log_level, webhook_url))
+
+    discord_handler = _DiscordHandler(discord_log_level, webhook_url)
+    discord_handler.addFilter(_discord_filter)
+    logger.addHandler(discord_handler)
     return logger

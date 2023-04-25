@@ -35,6 +35,9 @@ class Bot(discord.Bot):
             You need to enable the error handler for the webhook to work.
     ignored_errors:
         A list of error types to ignore. Defaults to ``None``.
+    full_error_traceback:
+        Whether to send the full error traceback. If this is ``False``,
+        only the most recent traceback will be sent. Defaults to ``False``.
     language:
         The language to use for the bot. Defaults to ``en``.
     """
@@ -42,15 +45,16 @@ class Bot(discord.Bot):
     def __init__(
         self,
         intents: discord.Intents = discord.Intents.default(),
+        *,
         debug: bool = True,
         error_handler: bool = True,
         error_webhook_url: str | None = None,
         ignored_errors: list[Any] | None = None,
+        full_error_traceback: bool = False,
         language: Literal["en", "de"] = "en",
-        *args,
         **kwargs,
     ):
-        super().__init__(intents=intents, *args, **kwargs)
+        super().__init__(intents=intents, **kwargs)
 
         if debug:
             self.logger = set_log(DEFAULT_LOG)
@@ -60,6 +64,7 @@ class Bot(discord.Bot):
 
         self.error_webhook_url = error_webhook_url
         self.ignored_errors = ignored_errors or []
+        self.full_error_traceback = full_error_traceback
         set_lang(language)
 
         if error_handler:
@@ -161,7 +166,7 @@ class Bot(discord.Bot):
             await error_emb(ctx, perm_txt, title=t("no_perm_title"))
 
         else:
-            if "original" in error.__dict__:
+            if "original" in error.__dict__ and not self.full_error_traceback:
                 original_error = error.__dict__["original"]
                 error_msg = f"{original_error.__class__.__name__}: {error.__cause__}"
                 error = original_error
@@ -217,6 +222,9 @@ class Bot(discord.Bot):
                 )
             else:
                 self.logger.exception(
-                    f"Error while executing /{ctx.command.qualified_name}: {error_msg}",
+                    f"Error while executing /{ctx.command.qualified_name}",
                     exc_info=error,
+                    extra={
+                        "discord": f"Error while executing **/{ctx.command.qualified_name}** ```{error_msg}```"
+                    },
                 )

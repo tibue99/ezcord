@@ -1,10 +1,19 @@
 from __future__ import annotations
 
+import logging
 import re
 
 from colorama import Fore
 
 DEFAULT_COLOR = Fore.MAGENTA
+
+DEFAULT_LOG_COLORS: dict[int, str] = {
+    logging.DEBUG: Fore.GREEN,
+    logging.INFO: Fore.CYAN,
+    logging.WARNING: Fore.YELLOW,
+    logging.ERROR: Fore.RED,
+    logging.CRITICAL: Fore.RED,
+}
 
 
 def get_escape_code(color_string: str | bool) -> str:
@@ -26,7 +35,7 @@ def get_escape_code(color_string: str | bool) -> str:
         )
 
 
-def replace_second(string: str, substring: str, color: str):
+def replace_second(string: str, substring: str, color: str) -> str:
     """Replaces custom formatters with ansi colors.
 
     Example
@@ -40,7 +49,7 @@ def replace_second(string: str, substring: str, color: str):
     return string
 
 
-def replace_dc_format(string: str, color: str | None = None):
+def replace_dc_format(string: str, color: str | None = None) -> str:
     """Replaces Discord markdown with ansi colors."""
     if color is None:
         color = DEFAULT_COLOR

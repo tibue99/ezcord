@@ -6,6 +6,7 @@ __version__ = "0.1.3"
 from . import emb, logs, times, utils
 from .bot import Bot
 from .emb import *
+from .enums import *
 from .logs import *
 from .times import *
 from .utils import *

@@ -177,8 +177,9 @@ class Bot(discord.Bot):
             try:
                 await error_emb(ctx, error_txt, title="Error")
             except discord.HTTPException:
-                raise error
+                pass
 
+            webhook_sent = False
             if self.error_webhook_url:
                 async with aiohttp.ClientSession() as session:
                     webhook = discord.Webhook.from_url(
@@ -198,7 +199,7 @@ class Bot(discord.Bot):
                         title="Error Report",
                         description=f"- **Command:** /{ctx.command.qualified_name}"
                         f"{guild_txt}{user_txt}"
-                        f"\n```{error_txt[:3500]}```",
+                        f"\n```py\n{error_txt[:3500]}```",
                         color=discord.Color.red(),
                     )
                     try:
@@ -212,19 +213,11 @@ class Bot(discord.Bot):
                             "Error while sending error report to webhook. "
                             "Please check if the URL is correct."
                         )
+                    else:
+                        webhook_sent = True
 
-                trace = traceback.extract_tb(error.__traceback__)
-                self.logger.error(
-                    f"Error while executing /{ctx.command.qualified_name}: "
-                    f"Line {trace[-1].lineno} in {Path(trace[-1].filename).name}"
-                    f"\n{error_msg}",
-                    extra={"webhook": False},
-                )
-            else:
-                self.logger.exception(
-                    f"Error while executing /{ctx.command.qualified_name}",
-                    exc_info=error,
-                    extra={
-                        "discord": f"Error while executing **/{ctx.command.qualified_name}** ```{error_msg}```"
-                    },
-                )
+            self.logger.exception(
+                f"Error while executing **/{ctx.command.qualified_name}** ```{error_msg}```",
+                exc_info=error,
+                extra={"webhook_sent": webhook_sent},
+            )

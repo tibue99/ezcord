@@ -12,7 +12,7 @@ import discord
 from colorama import Fore
 
 from .enums import LogFormat
-from .internal.colors import DEFAULT_COLOR, get_escape_code
+from .internal.colors import DEFAULT_COLOR, get_escape_code, replace_dc_format
 
 DEFAULT_LOG = "ezcord"
 log = logging.getLogger(DEFAULT_LOG)
@@ -136,7 +136,7 @@ class _ColorFormatter(logging.Formatter):
                 color_formats[record.levelno] = colors
             else:
                 # if no color is set for a custom log level used by .log()
-                color_formats[record.levelno] = Fore.MAGENTA
+                color_formats[record.levelno] = DEFAULT_COLOR
 
         color_log_formats = _format_log_colors(self.LOG_FORMAT, self.file, color_formats)
 
@@ -144,23 +144,23 @@ class _ColorFormatter(logging.Formatter):
         if "key" in record.__dict__ and log_format:
             log_format = log_format.replace("%(levelname)s", record.__dict__["key"])
 
+        current_level_color = color_formats.get(record.levelno)
+        new_record = logging.makeLogRecord(record.__dict__)
+        new_record.msg = replace_dc_format(new_record.msg, current_level_color)
+
         formatter = logging.Formatter(log_format, self.TIME_FORMAT)
-        return formatter.format(record)
+        return formatter.format(new_record)
 
 
 class _DiscordHandler(logging.Handler):
     """A logging handler that sends logs to a Discord webhook."""
 
-    def __init__(self, discord_log_level: int, webhook_url: str | None, *args, **kwargs):
+    def __init__(self, webhook_url: str | None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.webhook_url = webhook_url
-        self.discord_log_level = discord_log_level
 
     def emit(self, record: logging.LogRecord):
-        if "discord" in record.__dict__:
-            record.message = record.__dict__["discord"]
-
-        if record.levelno >= self.discord_log_level and self.webhook_url:
+        if self.webhook_url:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 loop.create_task(_send_discord_log(self.webhook_url, record))
@@ -174,24 +174,25 @@ async def _send_discord_log(webhook_url: str, record: logging.LogRecord):
         name = "EzCord" if record.name == DEFAULT_LOG else record.name
         try:
             await webhook.send(
-                content=record.message,
+                content=record.msg,
                 username=f"{name}: {record.levelname}",
             )
         except discord.HTTPException:
             log.error(
-                "Error while sending log message to webhook. " "Please check if the URL is correct."
+                "Error while sending log message to webhook. Please check if the URL is correct."
             )
 
 
 def _discord_filter(record):
-    if "webhook" in record.__dict__:
-        return False
+    if "webhook_sent" in record.__dict__:
+        return not record.__dict__["webhook_sent"]
     return True
 
 
 def set_log(
     name: str = DEFAULT_LOG,
     log_level: int = logging.DEBUG,
+    *,
     file: bool = False,
     log_format: str | LogFormat = LogFormat.default,
     time_format: str = "%Y-%m-%d %H:%M:%S",
@@ -241,10 +242,9 @@ def set_log(
     :class:`logging.Logger`
     """
     logger = logging.getLogger(name)
+    logger.setLevel(log_level)
     if logger.handlers:
         return logger
-
-    logger.setLevel(log_level)
 
     handler: logging.FileHandler | logging.StreamHandler
     if file:
@@ -256,9 +256,13 @@ def set_log(
         handler = logging.StreamHandler(sys.stdout)
 
     handler.setFormatter(_ColorFormatter(file, log_format, time_format, colors))
+    handler.setLevel(log_level)
     logger.addHandler(handler)
 
-    discord_handler = _DiscordHandler(discord_log_level, webhook_url)
+    discord_handler = _DiscordHandler(webhook_url)
+    discord_handler.setFormatter(logging.Formatter(log_format))
     discord_handler.addFilter(_discord_filter)
+    discord_handler.setLevel(discord_log_level)
     logger.addHandler(discord_handler)
+
     return logger

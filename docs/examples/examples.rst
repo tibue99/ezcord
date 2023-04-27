@@ -1,6 +1,6 @@
 Examples
 =======================
-Feel free to choose an example below. Here you can see the example for the main file
+Feel free to choose an example below. On this page, you can see an example for the main file.
 
 .. toctree::
    :maxdepth: 4

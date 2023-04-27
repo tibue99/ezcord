@@ -5,6 +5,7 @@ import ezcord
 bot = ezcord.Bot(
     intents=discord.Intents.default(),
     error_webhook_url="WEBHOOK_URL",  # Replace with your webhook URL
+    language="de",
 )
 
 if __name__ == "__main__":

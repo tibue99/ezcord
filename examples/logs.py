@@ -13,7 +13,11 @@ colors = {
 }
 
 # call this function before creating the bot
-ezcord.set_log(log_format=ezcord.LogFormat.default, colors=colors)
+ezcord.set_log(
+    log_format=ezcord.LogFormat.default,
+    colors=colors,
+    webhook_url="WEBHOOK_URL",  # Replace with your webhook URL
+)
 
 log.debug("This is a debug message")
 log.info("This is an info message")
@@ -23,4 +27,5 @@ ezcord.custom_log("CUSTOM", "This is a message with a custom log level")
 bot = ezcord.Bot()
 
 if __name__ == "__main__":
+    bot.load_cogs("cogs", custom_logs="magenta")  # Load all cogs with a custom log color
     bot.run("TOKEN")  # Replace with your bot token

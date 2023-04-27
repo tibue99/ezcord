@@ -94,7 +94,7 @@ class Bot(discord.Bot):
         ignored_cogs:
             A list of cogs to ignore. Defaults to ``None``.
         custom_logs:
-            Whether to use a custom logs format for cogs. Defaults to ``True``.
+            Whether to use a custom log format for cogs. Defaults to ``True``.
             You can also pass in a custom color.
         """
         ignored_cogs = ignored_cogs or []
@@ -109,7 +109,7 @@ class Bot(discord.Bot):
                 if filename.endswith(".py") and name not in ignored_cogs:
                     self.load_extension(f"{'.'.join(path.parts)}.{name}")
                     if custom_logs:
-                        custom_log("COG", f"Loaded {name}", color=custom_logs)
+                        custom_log("COG", f"Loaded {name}", color=custom_logs, level=logging.DEBUG)
                     else:
                         self.logger.debug(f"Loaded {name}")
 
@@ -124,7 +124,10 @@ class Bot(discord.Bot):
                             self.load_extension(f"{'.'.join(path.parts)}.{element.name}.{name}")
                             if custom_logs:
                                 custom_log(
-                                    "COG", f"Loaded {element.name}.{name}", color=custom_logs
+                                    "COG",
+                                    f"Loaded {element.name}.{name}",
+                                    color=custom_logs,
+                                    level=logging.DEBUG,
                                 )
                             else:
                                 self.logger.debug(f"Loaded {element.name}.{name}")

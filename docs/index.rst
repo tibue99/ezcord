@@ -8,6 +8,7 @@ This is the documentation for **EzCord**, an easy-to-use extension for the Pycor
    :caption: Contents
 
    pages/getting_started
+   examples/examples
    ezcord/modules
 
 Getting started

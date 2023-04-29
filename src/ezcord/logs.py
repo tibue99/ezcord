@@ -226,7 +226,7 @@ def set_log(
     name:
         The name of the logger.
     log_level:
-        Whether to enable debug logs. Defaults to ``logging.INFO``.
+        The log level for default log messages ``logging.DEBUG``.
     file:
         Whether to log to a file. Defaults to ``False``.
     log_format:

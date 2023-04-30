@@ -142,7 +142,7 @@ async def error(
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("error_embed")
-    await _process_message(target, embed, txt, ephemeral, **kwargs)
+    await _process_message(target, embed.copy(), txt, ephemeral, **kwargs)
 
 
 async def success(
@@ -163,7 +163,7 @@ async def success(
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("success_embed")
-    await _process_message(target, embed, txt, ephemeral, **kwargs)
+    await _process_message(target, embed.copy(), txt, ephemeral, **kwargs)
 
 
 async def warn(
@@ -172,7 +172,7 @@ async def warn(
     ephemeral: bool = True,
     **kwargs,
 ):
-    """Send a warning message. By default, this is an orange embed.
+    """Send a warning message. By default, this is a golden embed.
 
     Parameters
     ----------
@@ -184,7 +184,7 @@ async def warn(
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("warn_embed")
-    await _process_message(target, embed, txt, ephemeral, **kwargs)
+    await _process_message(target, embed.copy(), txt, ephemeral, **kwargs)
 
 
 async def info(
@@ -205,7 +205,7 @@ async def info(
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("info_embed")
-    await _process_message(target, embed, txt, ephemeral, **kwargs)
+    await _process_message(target, embed.copy(), txt, ephemeral, **kwargs)
 
 
 async def send(
@@ -229,4 +229,4 @@ async def send(
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed(template)
-    await _process_message(target, embed, txt, ephemeral, **kwargs)
+    await _process_message(target, embed.copy(), txt, ephemeral, **kwargs)

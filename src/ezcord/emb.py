@@ -19,6 +19,7 @@ from __future__ import annotations
 import discord
 
 from .internal.embed_templates import load_embed, save_embeds
+from .internal.funcutils import copy_kwargs
 
 
 def set_embed_templates(
@@ -101,9 +102,8 @@ async def _process_message(
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     embed: discord.Embed,
     txt: str,
+    title: str | None,
     ephemeral: bool,
-    *,
-    title: str | None = None,
     **kwargs,
 ):
     """Adds embed attributes to the embed before sending it.
@@ -114,6 +114,8 @@ async def _process_message(
         The target to send the message to.
     txt:
         The text to send.
+    title:
+        The title of the embed. Defaults to ``None``.
     ephemeral:
         Whether the message should be ephemeral.
     """
@@ -124,9 +126,12 @@ async def _process_message(
     await _send_embed(target, embed, ephemeral, **kwargs)
 
 
+@copy_kwargs(discord.InteractionResponse.send_message)
 async def error(
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     txt: str,
+    *,
+    title: str | None = None,
     ephemeral: bool = True,
     **kwargs,
 ):
@@ -137,17 +142,22 @@ async def error(
     target:
         The target to send the message to.
     txt:
-        The text to send.
+        The text for the embed description.
+    title:
+        The title of the embed. Defaults to ``None``.
     ephemeral:
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("error_embed")
-    await _process_message(target, embed.copy(), txt, ephemeral, **kwargs)
+    await _process_message(target, embed.copy(), txt, title, ephemeral, **kwargs)
 
 
+@copy_kwargs(discord.abc.Messageable.send)
 async def success(
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     txt: str,
+    *,
+    title: str | None = None,
     ephemeral: bool = True,
     **kwargs,
 ):
@@ -158,17 +168,22 @@ async def success(
     target:
         The target to send the message to.
     txt:
-        The text to send.
+        The text for the embed description.
+    title:
+        The title of the embed. Defaults to ``None``.
     ephemeral:
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("success_embed")
-    await _process_message(target, embed.copy(), txt, ephemeral, **kwargs)
+    await _process_message(target, embed.copy(), txt, title, ephemeral, **kwargs)
 
 
+@copy_kwargs(discord.abc.Messageable.send)
 async def warn(
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     txt: str,
+    *,
+    title: str | None = None,
     ephemeral: bool = True,
     **kwargs,
 ):
@@ -179,17 +194,22 @@ async def warn(
     target:
         The target to send the message to.
     txt:
-        The text to send.
+        The text for the embed description.
+    title:
+        The title of the embed. Defaults to ``None``.
     ephemeral:
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("warn_embed")
-    await _process_message(target, embed.copy(), txt, ephemeral, **kwargs)
+    await _process_message(target, embed.copy(), txt, title, ephemeral, **kwargs)
 
 
+@copy_kwargs(discord.abc.Messageable.send)
 async def info(
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     txt: str,
+    *,
+    title: str | None = None,
     ephemeral: bool = True,
     **kwargs,
 ):
@@ -201,17 +221,22 @@ async def info(
         The target to send the message to.
     txt:
         The text to send.
+    title:
+        The title of the embed. Defaults to ``None``.
     ephemeral:
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("info_embed")
-    await _process_message(target, embed.copy(), txt, ephemeral, **kwargs)
+    await _process_message(target, embed.copy(), txt, title, ephemeral, **kwargs)
 
 
+@copy_kwargs(discord.abc.Messageable.send)
 async def send(
     template: str,
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     txt: str,
+    *,
+    title: str | None,
     ephemeral: bool = True,
     **kwargs,
 ):
@@ -225,8 +250,10 @@ async def send(
         The target to send the message to.
     txt:
         The text to send.
+    title:
+        The title of the embed. Defaults to ``None``.
     ephemeral:
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed(template)
-    await _process_message(target, embed.copy(), txt, ephemeral, **kwargs)
+    await _process_message(target, embed.copy(), txt, title, ephemeral, **kwargs)

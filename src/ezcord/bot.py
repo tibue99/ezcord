@@ -12,7 +12,7 @@ import discord
 from discord.ext import commands
 
 from .emb import error as error_emb
-from .internal.translation import set_lang, t
+from .internal import set_lang, t
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .times import dc_timestamp
 

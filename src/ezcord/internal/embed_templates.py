@@ -2,11 +2,10 @@ import json
 import os
 from functools import cache
 from pathlib import Path
-from typing import Dict
 
 from discord import Color, Embed
 
-TEMPLATES: Dict[str, Embed] = {
+_TEMPLATES: dict[str, Embed] = {
     "success_embed": Embed(color=Color.green()),
     "error_embed": Embed(color=Color.red()),
     "warn_embed": Embed(color=Color.gold()),
@@ -20,11 +19,11 @@ def save_embeds(**kwargs: Embed):
     If one of the default values is not included, a default template will be saved.
     """
     embeds = {}
-    overrides = TEMPLATES if len(kwargs) == 0 else kwargs
+    overrides = _TEMPLATES if len(kwargs) == 0 else kwargs
 
     for name, embed in overrides.items():
         if embed is None:
-            embeds[name] = TEMPLATES[name].to_dict()
+            embeds[name] = _TEMPLATES[name].to_dict()
         else:
             embeds[name] = embed.to_dict()
 
@@ -47,7 +46,7 @@ def load_embed(name: str) -> Embed:
     try:
         return Embed.from_dict(embeds[name])
     except KeyError:
-        if name in TEMPLATES.keys():
+        if name in _TEMPLATES.keys():
             save_embeds()
             return load_embed()
         else:

@@ -2,12 +2,11 @@
 
 import io
 import json
-from typing import Dict
 
 import discord
 
 
-def create_json_file(dictionary: Dict, filename: str = "data.json", **kwargs):
+def create_json_file(dictionary: dict, filename: str = "data.json", **kwargs) -> discord.File:
     """Create a :class:`discord.File` object from a dictionary.
 
     Parameters
@@ -27,7 +26,7 @@ def create_json_file(dictionary: Dict, filename: str = "data.json", **kwargs):
     return discord.File(io.BytesIO(content), filename=filename, **kwargs)
 
 
-def create_text_file(text: str, filename: str = "data.txt", **kwargs):
+def create_text_file(text: str, filename: str = "data.txt", **kwargs) -> discord.File:
     """Create a :class:`discord.File` object from a string.
 
     Parameters

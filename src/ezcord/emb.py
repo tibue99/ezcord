@@ -18,8 +18,7 @@ from __future__ import annotations
 
 import discord
 
-from .internal.embed_templates import load_embed, save_embeds
-from .internal.funcutils import copy_kwargs
+from .internal import copy_kwargs, load_embed, save_embeds
 
 
 def set_embed_templates(
@@ -236,7 +235,7 @@ async def send(
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     txt: str,
     *,
-    title: str | None,
+    title: str | None = None,
     ephemeral: bool = True,
     **kwargs,
 ):

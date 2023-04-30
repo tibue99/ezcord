@@ -6,7 +6,7 @@ from typing import Literal
 
 from discord.utils import format_dt, utcnow
 
-from .internal.translation import tp
+from .internal import tp
 
 
 def set_utc(dt: datetime) -> datetime:
@@ -101,7 +101,7 @@ def dc_timestamp(
     return format_dt(dt, style)
 
 
-def convert_to_seconds(s: str):
+def convert_to_seconds(s: str) -> int:
     """Convert a string to seconds.
 
     Parameters

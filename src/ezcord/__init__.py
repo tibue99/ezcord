@@ -4,7 +4,7 @@ __license__ = "MIT"
 __version__ = "0.1.4"
 
 from . import emb, logs, times, utils
-from .bot import Bot
+from .bot import Bot, PrefixBot
 from .emb import *
 from .enums import *
 from .logs import *

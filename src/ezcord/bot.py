@@ -18,7 +18,12 @@ from .times import dc_timestamp
 
 
 class Bot(discord.Bot):
-    """Bot class that extends from :class:`discord.Bot`.
+    """The EzCord bot class. This is a subclass of :class:`discord.Bot`.
+
+    .. hint::
+
+        As this class extends from :class:`discord.Bot`, only slash commands are supported.
+        If you want to use prefix commands, use :class:`PrefixBot` instead.
 
     Parameters
     ----------
@@ -40,6 +45,8 @@ class Bot(discord.Bot):
         only the most recent traceback will be sent. Defaults to ``False``.
     language:
         The language to use for the bot. Defaults to ``en``.
+    **kwargs:
+        Additional keyword arguments for :class:`discord.Bot`.
     """
 
     def __init__(
@@ -224,3 +231,13 @@ class Bot(discord.Bot):
                 exc_info=error,
                 extra={"webhook_sent": webhook_sent},
             )
+
+
+class PrefixBot(Bot, commands.Bot):
+    """A subclass of :class:`discord.ext.commands.Bot` that implements the :class:`Bot` class.
+
+    This class can be used if you want to use EzCord with prefix commands.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

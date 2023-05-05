@@ -1,0 +1,17 @@
+name: Feature Request
+description: Request a feature that you would like to see in EzCord
+labels: [enhancement]
+
+body:
+- type: markdown
+  attributes:
+    value: |
+      - Check if the feature was already requested [here](https://github.com/tibue99/ezcord/issues).
+      - Include only one feature per issue.
+
+- type: textarea
+  attributes:
+    label: Feature Description
+    description: Please describe the feature as detailed as possible. Feel free to include examples.
+  validations:
+    required: true

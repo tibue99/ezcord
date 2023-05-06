@@ -230,7 +230,7 @@ def set_log(
     file:
         Whether to log to a file. Defaults to ``False``.
     log_format:
-        The log format. Defaults to :attr:`LogFormat.default`.
+        The log format. Defaults to :attr:`.LogFormat.default`.
     time_format:
         The time format. Defaults to ``%Y-%m-%d %H:%M:%S``.
     discord_log_level:

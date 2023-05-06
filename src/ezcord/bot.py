@@ -12,7 +12,8 @@ import discord
 from discord.ext import commands
 
 from .emb import error as error_emb
-from .internal import set_lang, t
+from .enums import ReadyEvent
+from .internal import print_ready, set_lang, t
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .times import dc_timestamp
 
@@ -45,6 +46,9 @@ class Bot(discord.Bot):
         only the most recent traceback will be sent. Defaults to ``False``.
     language:
         The language to use for the bot. Defaults to ``en``.
+    ready_event:
+        The style for :meth:`on_ready_event`. Defaults to :attr:`.ReadyEvent.default`.
+        If this is ``None``, the event will be disabled.
     **kwargs:
         Additional keyword arguments for :class:`discord.Bot`.
     """
@@ -59,6 +63,7 @@ class Bot(discord.Bot):
         ignored_errors: list[Any] | None = None,
         full_error_traceback: bool = False,
         language: Literal["en", "de"] = "en",
+        ready_event: ReadyEvent | None = ReadyEvent.default,
         **kwargs,
     ):
         super().__init__(intents=intents, **kwargs)
@@ -79,7 +84,9 @@ class Bot(discord.Bot):
         elif error_webhook_url:
             warnings.warn("You need to enable the error handler for the webhook to work.")
 
-        self.add_listener(self.ready_event, "on_ready")
+        self.ready_event = ready_event
+        if ready_event:
+            self.add_listener(self.on_ready_event, "on_ready")
 
     def load_cogs(
         self,
@@ -94,7 +101,7 @@ class Bot(discord.Bot):
         ----------
         *directories:
             Names of the directories to load cogs from.
-            Defaults to ``cogs``.
+            Defaults to ``"cogs"``.
         subdirectories:
             Whether to load cogs from subdirectories.
             Defaults to ``False``.
@@ -139,32 +146,9 @@ class Bot(discord.Bot):
                             else:
                                 self.logger.debug(f"Loaded {element.name}.{name}")
 
-    async def ready_event(self):
+    async def on_ready_event(self):
         """Prints the bot's information when it's ready."""
-        cmds = [
-            cmd
-            for cmd in self.walk_application_commands()
-            if type(cmd) != discord.SlashCommandGroup
-        ]
-
-        infos = [
-            f"User:     {self.user}",
-            f"ID:       {self.user.id}",
-            f"Pycord:   {discord.__version__}",
-            f"Commands: {len(cmds):,}",
-            f"Guilds:   {len(self.guilds):,}",
-            f"Latency:  {round(self.latency * 1000):,}ms",
-        ]
-
-        longest = max([str(i) for i in infos], key=len)
-        formatter = f"<{len(longest)}"
-
-        start_txt = "Bot is online!"
-        start_txt += f"\n╔{(len(longest) + 2) * '═'}╗\n"
-        for thing in infos:
-            start_txt += f"║ {thing:{formatter}} ║\n"
-        start_txt += f"╚{(len(longest) + 2) * '═'}╝"
-        self.logger.info(start_txt)
+        await print_ready(self, self.ready_event)
 
     async def _error_event(self, ctx: discord.ApplicationContext, error: discord.DiscordException):
         """The event that handles application command errors."""

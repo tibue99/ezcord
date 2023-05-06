@@ -11,3 +11,4 @@ Here is an overview of all features.
    times
    logs
    enums
+   components

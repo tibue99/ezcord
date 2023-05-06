@@ -141,11 +141,17 @@ class Bot(discord.Bot):
 
     async def ready_event(self):
         """Prints the bot's information when it's ready."""
+        cmds = [
+            cmd
+            for cmd in self.walk_application_commands()
+            if type(cmd) != discord.SlashCommandGroup
+        ]
+
         infos = [
             f"User:     {self.user}",
             f"ID:       {self.user.id}",
             f"Pycord:   {discord.__version__}",
-            f"Commands: {len(self.commands):,}",
+            f"Commands: {len(cmds):,}",
             f"Guilds:   {len(self.guilds):,}",
             f"Latency:  {round(self.latency * 1000):,}ms",
         ]

@@ -47,13 +47,13 @@ def custom_log(
 def _format_log_colors(log_format: str, file: bool, final_colors: dict[int, str]) -> dict[int, str]:
     """Checks if the is sent to a file and formats the colors accordingly."""
     color_formats = {}
-    if "{color_start}" in log_format and "{color_end}" in log_format:
+    if "{color}" in log_format and "{color_end}" in log_format:
         for level in final_colors:
             if file:
-                color_formats[level] = log_format.format(color_start="", color_end="")
+                color_formats[level] = log_format.format(color="", color_end="")
             else:
                 color_formats[level] = log_format.format(
-                    color_start=final_colors[level], color_end=Fore.RESET
+                    color=final_colors[level], color_end=Fore.RESET
                 )
     else:
         for level in final_colors:
@@ -145,6 +145,14 @@ class _ColorFormatter(logging.Formatter):
 
         current_level_color = color_formats.get(record.levelno)
         new_record = logging.makeLogRecord(record.__dict__)
+
+        # color new lines
+        if isinstance(log_format, str) and log_format.endswith("//"):
+            log_format = log_format.replace("//", "")
+            split = new_record.msg.split("\n", 1)
+            if len(split) > 1:
+                new_record.msg = split[0] + "\n**" + split[1] + "**"
+
         new_record.msg = replace_dc_format(new_record.msg, current_level_color)
 
         formatter = logging.Formatter(log_format, self.TIME_FORMAT)
@@ -202,6 +210,7 @@ async def _send_discord_log(webhook_url: str, record: logging.LogRecord, msg):
 
 
 def _discord_filter(record):
+    """A filter that blocks logs that have already been sent to a Discord webhook."""
     if "webhook_sent" in record.__dict__:
         return not record.__dict__["webhook_sent"]
     return True

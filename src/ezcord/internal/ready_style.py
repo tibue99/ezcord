@@ -1,6 +1,7 @@
 """Utility functions for the ready event."""
 
 import discord
+from colorama import Fore
 
 from ..enums import ReadyEvent
 from ..logs import log
@@ -24,13 +25,16 @@ class Bold(Style):
     TL, TR, BL, BR, H, V, M, L, R, T, B = "╔", "╗", "╚", "╝", "═", "║", "╬", "╠", "╣", "╦", "╩"
 
 
+COLORS = [Fore.CYAN, Fore.MAGENTA, Fore.YELLOW, Fore.GREEN, Fore.BLUE, Fore.RED]
+
+
 def print_ready(bot: discord.Bot, style: ReadyEvent):
     cmds = [
         cmd for cmd in bot.walk_application_commands() if type(cmd) != discord.SlashCommandGroup
     ]
 
     infos = {
-        "User": f"{bot.user}",
+        "Bot": f"{bot.user}",
         "ID": f"{bot.user.id}",
         "Pycord": discord.__version__,
         "Commands": f"{len(cmds):,}",
@@ -52,11 +56,17 @@ def print_ready(bot: discord.Bot, style: ReadyEvent):
         log.info(txt)
         logs(colon_infos)
     else:
+        color_table = {
+            key: COLORS[i] + value + Fore.RESET for i, (key, value) in enumerate(infos.items())
+        }
         if style == ReadyEvent.table or style == ReadyEvent.table_bold:
             info_list = [list(infos.keys()), list(infos.values())]
+            color_list = [list(color_table.keys()), list(color_table.values())]
         else:
             info_list = [list(item) for item in infos.items()]
-        txt += "\n" + tables(info_list, style_cls)
+            color_list = [list(item) for item in color_table.items()]
+
+        txt += f"\n{Fore.RESET}" + tables(info_list, color_list, style_cls)
         log.info(txt)
 
 
@@ -78,16 +88,17 @@ def logs(infos: dict[str, str]):
         log.info(f"{key} **{info}**")
 
 
-def tables(rows: list[list[str]], s: Style = Style()):
+def tables(rows: list[list[str]], color_rows: list[list[str]], s: Style = Style()):
     length = [max([len(value) for value in column]) for column in zip(*rows)]
     table = ""
-    for index, row in enumerate(rows):
+    for index, (row, color_row) in enumerate(zip(rows, color_rows)):
         table += s.V
 
         middle_row = ""
-        for max_length, content in zip(length, row):
+        for max_length, content, color_content in zip(length, row, color_row):
             space_content = f" {content} "
-            table += space_content + " " * (max_length - len(content)) + s.V
+            color_space_content = f" {color_content} "
+            table += color_space_content + " " * (max_length - len(content)) + s.V
             middle_row += s.H * (max_length - len(content) + len(space_content)) + s.M
 
         middle_row = middle_row[:-1]

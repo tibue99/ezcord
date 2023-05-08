@@ -32,7 +32,7 @@ class ReadyEvent(Enum):
     table_bold = 4
     table_vertical = 5
     table_vertical_bold = 6
-    default = box
+    default = table
 
     def __str__(self):
         return self.name

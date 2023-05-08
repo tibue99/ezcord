@@ -26,12 +26,10 @@ class ReadyEvent(Enum):
     """Styles for the ready event."""
 
     box = 0
-    box_color = 1
-    logs = 2
+    logs = 1
+    table = 2
+    table_horizontal = 3
     default = box
 
     def __str__(self):
         return self.name
-
-    def __int__(self):
-        return self.value

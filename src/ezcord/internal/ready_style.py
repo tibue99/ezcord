@@ -12,22 +12,30 @@ async def print_ready(bot: discord.Bot, style: ReadyEvent):
     ]
 
     infos = {
-        "User:": f"{bot.user}",
-        "ID:": f"{bot.user.id}",
-        "Pycord:": discord.__version__,
-        "Commands:": f"{len(cmds):,}",
-        "Guilds:": f"{len(bot.guilds):,}",
-        "Latency:": f"{round(bot.latency * 1000):,}ms",
+        "User": f"{bot.user}",
+        "ID": f"{bot.user.id}",
+        "Pycord": discord.__version__,
+        "Commands": f"{len(cmds):,}",
+        "Guilds": f"{len(bot.guilds):,}",
+        "Latency": f"{round(bot.latency * 1000):,}ms",
     }
 
-    txt = f"{bot.user} is online!"
+    txt = f"Bot is online!"
+    colon_infos = {key + ":": value for key, value in infos.items()}
 
     if style == ReadyEvent.box:
-        txt += box(infos)
+        txt += box(colon_infos)
         log.info(txt)
     elif style == ReadyEvent.logs:
         log.info(txt)
-        logs(infos)
+        logs(colon_infos)
+    else:
+        if style == ReadyEvent.table:
+            info_list = [list(item) for item in infos.items()]
+        else:
+            info_list = [list(infos.keys()), list(infos.values())]
+        txt += "\n" + tables(info_list)
+        log.info(txt)
 
 
 def box(infos):
@@ -46,3 +54,29 @@ def box(infos):
 def logs(infos):
     for key, info in infos.items():
         log.info(f"{key} **{info}**")
+
+
+def tables(rows: list[list[str]]):
+    length = [max([len(value) for value in column]) for column in zip(*rows)]
+    table = ""
+    for index, row in enumerate(rows):
+        table += "║"
+
+        middle_row = ""
+        for max_length, content in zip(length, row):
+            space_content = f" {content} "
+            table += space_content + " " * (max_length - len(content)) + "║"
+            middle_row += "═" * (max_length - len(content) + len(space_content)) + "╬"
+
+        middle_row = middle_row[:-1]
+        if index == 0:
+            top_row = middle_row.replace("╬", "╦")
+            table = "╔" + top_row + "╗\n" + table
+
+        if index != len(rows) - 1:
+            table += "\n║" + middle_row + "║\n"
+        else:
+            bottom_row = middle_row.replace("╬", "╩")
+            table += "\n╚" + bottom_row + "╝"
+
+    return table

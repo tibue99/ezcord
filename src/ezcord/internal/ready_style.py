@@ -6,7 +6,25 @@ from ..enums import ReadyEvent
 from ..logs import log
 
 
-async def print_ready(bot: discord.Bot, style: ReadyEvent):
+class Style:
+    TL = "╭"  # top left
+    TR = "╮"  # top right
+    BL = "╰"  # bottom left
+    BR = "╯"  # bottom right
+    H = "─"  # horizontal
+    V = "│"  # vertical
+    M = "┼"  # middle
+    L = "├"  # left
+    R = "┤"  # right
+    T = "┬"  # top
+    B = "┴"  # bottom
+
+
+class Bold(Style):
+    TL, TR, BL, BR, H, V, M, L, R, T, B = "╔", "╗", "╚", "╝", "═", "║", "╬", "╠", "╣", "╦", "╩"
+
+
+def print_ready(bot: discord.Bot, style: ReadyEvent):
     cmds = [
         cmd for cmd in bot.walk_application_commands() if type(cmd) != discord.SlashCommandGroup
     ]
@@ -23,60 +41,64 @@ async def print_ready(bot: discord.Bot, style: ReadyEvent):
     txt = f"Bot is online!"
     colon_infos = {key + ":": value for key, value in infos.items()}
 
-    if style == ReadyEvent.box:
-        txt += box(colon_infos)
+    style_cls = Style()
+    if "bold" in style.name:
+        style_cls = Bold()
+
+    if style == ReadyEvent.box or style == ReadyEvent.box_bold:
+        txt += box(colon_infos, style_cls)
         log.info(txt)
     elif style == ReadyEvent.logs:
         log.info(txt)
         logs(colon_infos)
     else:
-        if style == ReadyEvent.table:
-            info_list = [list(item) for item in infos.items()]
-        else:
+        if style == ReadyEvent.table or style == ReadyEvent.table_bold:
             info_list = [list(infos.keys()), list(infos.values())]
-        txt += "\n" + tables(info_list)
+        else:
+            info_list = [list(item) for item in infos.items()]
+        txt += "\n" + tables(info_list, style_cls)
         log.info(txt)
 
 
-def box(infos):
+def box(infos: dict[str, str], s: Style = Style()):
     longest = max([str(i) for i in infos.values()], key=len)
     formatter = f"<{len(longest)}"
-    longest_key = 10
+    longest_key = max([len(i) for i in infos.keys()]) + 1
 
-    txt = f"\n╔{(len(longest) + 2 + longest_key) * '═'}╗\n"
+    txt = f"\n{s.TL}{(len(longest) + 2 + longest_key) * s.H}{s.TR}\n"
     for key, info in infos.items():
         key = f"{key:<{longest_key}}"
-        txt += f"║ {key}{info:{formatter}} ║\n"
-    txt += f"╚{(len(longest) + 2 + longest_key) * '═'}╝"
+        txt += f"{s.V} {key}{info:{formatter}} {s.V}\n"
+    txt += f"{s.BL}{(len(longest) + 2 + longest_key) * s.H}{s.BR}"
     return txt
 
 
-def logs(infos):
+def logs(infos: dict[str, str]):
     for key, info in infos.items():
         log.info(f"{key} **{info}**")
 
 
-def tables(rows: list[list[str]]):
+def tables(rows: list[list[str]], s: Style = Style()):
     length = [max([len(value) for value in column]) for column in zip(*rows)]
     table = ""
     for index, row in enumerate(rows):
-        table += "║"
+        table += s.V
 
         middle_row = ""
         for max_length, content in zip(length, row):
             space_content = f" {content} "
-            table += space_content + " " * (max_length - len(content)) + "║"
-            middle_row += "═" * (max_length - len(content) + len(space_content)) + "╬"
+            table += space_content + " " * (max_length - len(content)) + s.V
+            middle_row += s.H * (max_length - len(content) + len(space_content)) + s.M
 
         middle_row = middle_row[:-1]
         if index == 0:
-            top_row = middle_row.replace("╬", "╦")
-            table = "╔" + top_row + "╗\n" + table
+            top_row = middle_row.replace(s.M, s.T)
+            table = s.TL + top_row + s.TR + "\n" + table
 
         if index != len(rows) - 1:
-            table += "\n║" + middle_row + "║\n"
+            table += "\n" + s.V + middle_row + s.V + "\n"
         else:
-            bottom_row = middle_row.replace("╬", "╩")
-            table += "\n╚" + bottom_row + "╝"
+            bottom_row = middle_row.replace(s.M, s.B)
+            table += "\n" + s.BL + bottom_row + s.BR
 
     return table

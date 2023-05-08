@@ -148,7 +148,7 @@ class Bot(discord.Bot):
 
     async def on_ready_event(self):
         """Prints the bot's information when it's ready."""
-        await print_ready(self, self.ready_event)
+        print_ready(self, self.ready_event)
 
     async def _error_event(self, ctx: discord.ApplicationContext, error: discord.DiscordException):
         """The event that handles application command errors."""

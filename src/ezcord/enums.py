@@ -26,9 +26,12 @@ class ReadyEvent(Enum):
     """Styles for the ready event."""
 
     box = 0
-    logs = 1
-    table = 2
-    table_horizontal = 3
+    box_bold = 1
+    logs = 2
+    table = 3
+    table_bold = 4
+    table_vertical = 5
+    table_vertical_bold = 6
     default = box
 
     def __str__(self):

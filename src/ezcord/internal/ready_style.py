@@ -88,7 +88,22 @@ def logs(infos: dict[str, str]):
         log.info(f"{key} **{info}**")
 
 
-def tables(rows: list[list[str]], color_rows: list[list[str]], s: Style = Style()):
+def tables(rows: list[list[str]], color_rows: list[list[str]] | None = None, s: Style = Style()):
+    """Create a table from a list of rows.
+
+    Parameters
+    ----------
+    rows:
+        The rows of the table. This is used to calculate the length of each column.
+    color_rows:
+        The rows of the table with color. This is used as the actual content of the table.
+        If this is None, the content of the table will be taken from ``rows``.
+    s:
+        The style of the table.
+    """
+    if color_rows is None:
+        color_rows = rows
+
     length = [max([len(value) for value in column]) for column in zip(*rows)]
     table = ""
     for index, (row, color_row) in enumerate(zip(rows, color_rows)):

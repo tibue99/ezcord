@@ -94,6 +94,7 @@ class Bot(discord.Bot):
         subdirectories: bool = False,
         ignored_cogs: list[str] | None = None,
         custom_logs: bool | str = True,
+        log_directories: bool = False,
     ):
         """Load all cogs in the given directories.
 
@@ -110,6 +111,8 @@ class Bot(discord.Bot):
         custom_logs:
             Whether to use a custom log format for cogs. Defaults to ``True``.
             You can also pass in a custom color.
+        log_directories:
+            Whether to log the directory of the loaded cogs. Defaults to ``False``.
         """
         ignored_cogs = ignored_cogs or []
         if not directories:
@@ -136,15 +139,16 @@ class Bot(discord.Bot):
                         name = sub_file.name[:-3]
                         if sub_file.name.endswith(".py") and name not in ignored_cogs:
                             self.load_extension(f"{'.'.join(path.parts)}.{element.name}.{name}")
+                            dirname = f"{element.name}." if log_directories else ""
                             if custom_logs:
                                 custom_log(
                                     "COG",
-                                    f"Loaded {element.name}.{name}",
+                                    f"Loaded {dirname}{name}",
                                     color=custom_logs,
                                     level=logging.DEBUG,
                                 )
                             else:
-                                self.logger.debug(f"Loaded {element.name}.{name}")
+                                self.logger.debug(f"Loaded {dirname}{name}")
 
     async def on_ready_event(self):
         """Prints the bot's information when it's ready."""

@@ -68,6 +68,9 @@ class Bot(discord.Bot):
     ):
         super().__init__(intents=intents, **kwargs)
 
+        if error_handler and error_webhook_url:
+            os.environ.setdefault("ERROR_WEBHOOK_URL", error_webhook_url)
+
         if debug:
             self.logger = set_log(DEFAULT_LOG)
         else:
@@ -185,46 +188,65 @@ class Bot(discord.Bot):
 
             webhook_sent = False
             if self.error_webhook_url:
-                async with aiohttp.ClientSession() as session:
-                    webhook = discord.Webhook.from_url(
-                        self.error_webhook_url, session=session, bot_token=self.http.token
-                    )
-                    error_txt = "".join(
-                        traceback.format_exception(type(error), error, error.__traceback__)
-                    )
-                    guild_txt = (
-                        f"\n- **Guild:** {ctx.guild.name} - `{ctx.guild.id}`" if ctx.guild else ""
-                    )
-                    user_txt = (
-                        f"\n- **User:** {ctx.author} - `{ctx.author.id}`" if ctx.author else ""
-                    )
-
-                    embed = discord.Embed(
-                        title="Error Report",
-                        description=f"- **Command:** /{ctx.command.qualified_name}"
-                        f"{guild_txt}{user_txt}"
-                        f"\n```py\n{error_txt[:3500]}```",
-                        color=discord.Color.red(),
-                    )
-                    try:
-                        await webhook.send(
-                            embed=embed,
-                            username=f"{self.user.name} Error Report",
-                            avatar_url=self.user.display_avatar.url,
-                        )
-                    except discord.HTTPException:
-                        self.logger.error(
-                            "Error while sending error report to webhook. "
-                            "Please check if the URL is correct."
-                        )
-                    else:
-                        webhook_sent = True
+                description = self.get_error_text(ctx, error)
+                webhook_sent = await self._send_error_webhook(description)
 
             self.logger.exception(
                 f"Error while executing **/{ctx.command.qualified_name}** ```{error_msg}```",
                 exc_info=error,
                 extra={"webhook_sent": webhook_sent},
             )
+
+    @staticmethod
+    def get_error_text(
+        ctx: discord.ApplicationContext | discord.Interaction,
+        error: Exception,
+        item: discord.ui.Item | discord.ui.Modal | None = None,
+    ):
+        if item:
+            if isinstance(item, discord.ui.Button) and item.label:
+                location = f"- **Button:** {item.label}"
+            elif ctx.type == discord.InteractionType.modal_submit:
+                location = f"- **Modal:** {type(item).__name__}"
+            else:
+                location = f"- **Select Menu:** {type(item.view).__name__}"
+        else:
+            location = f"- **Command:** /{ctx.command.qualified_name}"
+
+        error_txt = "".join(traceback.format_exception(type(error), error, error.__traceback__))
+        guild_txt = f"\n- **Guild:** {ctx.guild.name} - `{ctx.guild.id}`" if ctx.guild else ""
+        user_txt = f"\n- **User:** {ctx.user} - `{ctx.user.id}`" if ctx.user else ""
+
+        description = location + guild_txt + user_txt + f"\n```py\n{error_txt[:3500]}```"
+        return description
+
+    async def _send_error_webhook(self, description):
+        webhook_sent = False
+        async with aiohttp.ClientSession() as session:
+            webhook = discord.Webhook.from_url(
+                self.error_webhook_url, session=session, bot_token=self.http.token
+            )
+
+            embed = discord.Embed(
+                title="Error Report",
+                description=description,
+                color=discord.Color.red(),
+            )
+            try:
+                await webhook.send(
+                    embed=embed,
+                    username=f"{self.user.name} Error Report",
+                    avatar_url=self.user.display_avatar.url,
+                )
+            except discord.HTTPException:
+                self.logger.error(
+                    "Error while sending error report to webhook. "
+                    "Please check if the URL is correct."
+                )
+            else:
+                webhook_sent = True
+
+        return webhook_sent
 
 
 class PrefixBot(Bot, commands.Bot):

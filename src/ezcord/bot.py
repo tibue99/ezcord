@@ -9,7 +9,7 @@ from typing import Any
 
 import aiohttp
 import discord
-from discord.ext import commands
+from discord.ext import bridge, commands
 
 from .emb import error as error_emb
 from .enums import ReadyEvent
@@ -256,6 +256,16 @@ class PrefixBot(Bot, commands.Bot):
     """A subclass of :class:`discord.ext.commands.Bot` that implements the :class:`Bot` class.
 
     This class can be used if you want to use EzCord with prefix commands.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class BridgeBot(Bot, bridge.Bot):
+    """A subclass of :class:`discord.ext.bridge.Bot` that implements the :class:`Bot` class.
+
+    This class can be used if you want to use EzCord with bridge commands.
     """
 
     def __init__(self, *args, **kwargs):

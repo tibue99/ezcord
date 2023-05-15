@@ -1,0 +1,14 @@
+{
+  "times": {
+    "min": "Minute",
+    "sec": "Sekunde",
+    "hour": "Stunde",
+    "day": "Tag"
+  },
+  "bot": {
+    "error": "Der folgende Fehler ist aufgetreten: {}",
+    "cooldown": "Versuche es {} erneut.",
+    "no_perm_title": "Fehlende Berechtigung",
+    "no_perm_desc": "Mir fehlen die folgenden Berechtigungen, um diesen Befehl auszuführen."
+  }
+}

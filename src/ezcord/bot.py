@@ -180,7 +180,7 @@ class Bot(discord.Bot):
             else:
                 error_msg = f"{error}"
 
-            error_txt = f"{t('error')}: ```{error_msg}```"
+            error_txt = f"{t('error', f'```{error_msg}```')}"
             try:
                 await error_emb(ctx, error_txt, title="Error")
             except discord.HTTPException:

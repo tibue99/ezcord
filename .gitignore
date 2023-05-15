@@ -6,7 +6,7 @@ venv
 *.db
 *.log
 *.ini
-*.json
+embeds.json
 
 # Packaging
 build/

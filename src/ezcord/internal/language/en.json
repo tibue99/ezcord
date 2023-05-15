@@ -1,0 +1,14 @@
+{
+  "times": {
+    "min": "minute",
+    "sec": "second",
+    "hour": "hour",
+    "day": "day"
+  },
+  "bot": {
+    "error": "The following error occurred: {}",
+    "cooldown": "Try again {}.",
+    "no_perm_title": "Missing permission",
+    "no_perm_desc": "I'm missing the following permissions to execute this command."
+  }
+}

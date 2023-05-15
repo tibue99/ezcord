@@ -7,7 +7,7 @@ from functools import cache
 from pathlib import Path
 from typing import Literal
 
-from .languages import *
+from .language.languages import load_txt
 
 
 def plural_de(amount: int, word: str, relative: bool = True) -> str:
@@ -102,11 +102,7 @@ def t(key: str, *args: str):
         origin_file = Path(inspect.stack()[n].filename).stem
 
     lang = get_lang()
-
-    if lang == "de":
-        return de[origin_file][key].format(*args)
-    else:
-        return en[origin_file][key].format(*args)
+    return load_txt(lang)[origin_file][key].format(*args)
 
 
 @cache

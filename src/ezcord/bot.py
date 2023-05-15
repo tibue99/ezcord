@@ -5,7 +5,7 @@ import os
 import traceback
 import warnings
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 import aiohttp
 import discord
@@ -45,7 +45,10 @@ class Bot(discord.Bot):
         Whether to send the full error traceback. If this is ``False``,
         only the most recent traceback will be sent. Defaults to ``False``.
     language:
-        The language to use for the bot. Defaults to ``en``.
+        The language to use for user output.
+
+        The default languages are ``en`` and ``de``. If you add your own language file as
+        described in :doc:`the language example </examples/languages>`, you can use that language as well.
     ready_event:
         The style for :meth:`on_ready_event`. Defaults to :attr:`.ReadyEvent.default`.
         If this is ``None``, the event will be disabled.
@@ -62,7 +65,7 @@ class Bot(discord.Bot):
         error_webhook_url: str | None = None,
         ignored_errors: list[Any] | None = None,
         full_error_traceback: bool = False,
-        language: Literal["en", "de"] = "en",
+        language: str = "en",
         ready_event: ReadyEvent | None = ReadyEvent.default,
         **kwargs,
     ):

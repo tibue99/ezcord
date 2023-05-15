@@ -8,6 +8,7 @@ Feel free to choose an example below. On this page, you can see an example for t
    main
    logs
    embeds
+   languages
 
 
 Main Example

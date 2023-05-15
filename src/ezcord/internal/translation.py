@@ -5,7 +5,6 @@ import os
 from configparser import ConfigParser
 from functools import cache
 from pathlib import Path
-from typing import Literal
 
 from .language.languages import load_txt
 
@@ -115,7 +114,7 @@ def get_lang():
     return config["DEFAULT"]["lang"]
 
 
-def set_lang(lang: Literal["en", "de"]):
+def set_lang(lang: str):
     """Set the language in the config file.
 
     Parameters

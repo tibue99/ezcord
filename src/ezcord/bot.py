@@ -31,7 +31,7 @@ class Bot(discord.Bot):
     intents:
         The intents to use for the bot. Defaults to :meth:`discord.Intents.default()`.
     debug:
-        Enable debug logs. Defaults to ``True``.
+        Enable log messages. Defaults to ``True``.
     error_handler:
         Enable the error handler. Defaults to ``True``.
     error_webhook_url:
@@ -99,6 +99,7 @@ class Bot(discord.Bot):
         *directories: str,
         subdirectories: bool = False,
         ignored_cogs: list[str] | None = None,
+        log: bool = True,
         custom_logs: bool | str = True,
         log_directories: bool = False,
     ):
@@ -114,11 +115,13 @@ class Bot(discord.Bot):
             Defaults to ``False``.
         ignored_cogs:
             A list of cogs to ignore. Defaults to ``None``.
+        log:
+            Whether to log the loaded cogs. Defaults to ``True``.
         custom_logs:
             Whether to use a custom log format for cogs. Defaults to ``True``.
             You can also pass in a custom color.
         log_directories:
-            Whether to log the directory of the loaded cogs. Defaults to ``False``.
+            Whether to include the directory name in log messages. Defaults to ``False``.
         """
         ignored_cogs = ignored_cogs or []
         if not directories:
@@ -131,10 +134,12 @@ class Bot(discord.Bot):
                 name = filename[:-3]
                 if filename.endswith(".py") and name not in ignored_cogs:
                     self.load_extension(f"{'.'.join(path.parts)}.{name}")
+                    if not log:
+                        continue
                     if custom_logs:
-                        custom_log("COG", f"Loaded {name}", color=custom_logs, level=logging.DEBUG)
+                        custom_log("COG", f"Loaded {name}", color=custom_logs, level=logging.INFO)
                     else:
-                        self.logger.debug(f"Loaded {name}")
+                        self.logger.info(f"Loaded {name}")
 
             if subdirectories:
                 for element in os.scandir(directory):
@@ -146,15 +151,17 @@ class Bot(discord.Bot):
                         if sub_file.name.endswith(".py") and name not in ignored_cogs:
                             self.load_extension(f"{'.'.join(path.parts)}.{element.name}.{name}")
                             dirname = f"{element.name}." if log_directories else ""
+                            if not log:
+                                continue
                             if custom_logs:
                                 custom_log(
                                     "COG",
                                     f"Loaded {dirname}{name}",
                                     color=custom_logs,
-                                    level=logging.DEBUG,
+                                    level=logging.INFO,
                                 )
                             else:
-                                self.logger.debug(f"Loaded {dirname}{name}")
+                                self.logger.info(f"Loaded {dirname}{name}")
 
     async def on_ready_event(self):
         """Prints the bot's information when it's ready."""

@@ -31,7 +31,7 @@ def get_escape_code(color_string: str | bool) -> str:
         return getattr(Fore, color_string.upper())
     except AttributeError:
         raise ValueError(
-            f"{color_string} is not a valid color string. Use either the colorama library or a string like 'red'."
+            f"'{color_string}' is not a valid color string. Use either the colorama library or a string like 'red'."
         )
 
 

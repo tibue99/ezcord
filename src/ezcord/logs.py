@@ -218,7 +218,7 @@ def _discord_filter(record):
 
 def set_log(
     name: str = DEFAULT_LOG,
-    log_level: int = logging.DEBUG,
+    log_level: int = logging.INFO,
     *,
     file: bool = False,
     log_format: str | LogFormat = LogFormat.default,
@@ -235,7 +235,7 @@ def set_log(
     name:
         The name of the logger.
     log_level:
-        The log level for default log messages ``logging.DEBUG``.
+        The log level for default log messages ``logging.INFO``.
     file:
         Whether to log to a file. Defaults to ``False``.
     log_format:

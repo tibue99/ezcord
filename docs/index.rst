@@ -16,6 +16,7 @@ Getting started
 Here are some links to help you get started.
 
 - **First steps:** :doc:`/pages/getting_started`
+- **Code Examples:** :doc:`/examples/examples`
 - **API Reference:** :doc:`/ezcord/modules` | :doc:`/ezcord/bot`
 - **Pycord:** `Documentation <https://pycord.readthedocs.io/en/latest/>`_
   | `Guide <https://guide.pycord.dev/>`_

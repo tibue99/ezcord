@@ -94,6 +94,13 @@ class Bot(discord.Bot):
         if ready_event:
             self.add_listener(self.on_ready_event, "on_ready")
 
+    def _cog_log(self, name: str, custom_logs: bool | str):
+        """Sends a log message for a loaded cog."""
+        if custom_logs:
+            custom_log("COG", f"Loaded {name}", color=custom_logs, level=logging.INFO)
+        else:
+            self.logger.info(f"Loaded {name}")
+
     def load_cogs(
         self,
         *directories: str,
@@ -136,10 +143,7 @@ class Bot(discord.Bot):
                     self.load_extension(f"{'.'.join(path.parts)}.{name}")
                     if not log:
                         continue
-                    if custom_logs:
-                        custom_log("COG", f"Loaded {name}", color=custom_logs, level=logging.INFO)
-                    else:
-                        self.logger.info(f"Loaded {name}")
+                    self._cog_log(f"{name}", custom_logs)
 
             if subdirectories:
                 for element in os.scandir(directory):
@@ -153,15 +157,7 @@ class Bot(discord.Bot):
                             dirname = f"{element.name}." if log_directories else ""
                             if not log:
                                 continue
-                            if custom_logs:
-                                custom_log(
-                                    "COG",
-                                    f"Loaded {dirname}{name}",
-                                    color=custom_logs,
-                                    level=logging.INFO,
-                                )
-                            else:
-                                self.logger.info(f"Loaded {dirname}{name}")
+                            self._cog_log(f"{dirname}{name}", custom_logs)
 
     async def on_ready_event(self):
         """Prints the bot's information when it's ready."""

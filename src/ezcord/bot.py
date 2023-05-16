@@ -13,7 +13,7 @@ from discord.ext import bridge, commands
 
 from .emb import error as error_emb
 from .enums import ReadyEvent
-from .internal import print_ready, set_lang, t
+from .internal import load_lang, print_ready, set_lang, t
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .times import dc_timestamp
 
@@ -83,7 +83,8 @@ class Bot(discord.Bot):
         self.error_webhook_url = error_webhook_url
         self.ignored_errors = ignored_errors or []
         self.full_error_traceback = full_error_traceback
-        set_lang(language)
+        load_lang(language)
+        set_lang(language) if language != {} else set_lang("en")
 
         if error_handler:
             self.add_listener(self._error_event, "on_application_command_error")

@@ -275,9 +275,9 @@ def set_log(
     :class:`logging.Logger`
     """
     logger = logging.getLogger(name)
-    logger.setLevel(log_level)
     if logger.handlers:
         return logger
+    logger.setLevel(log_level)
 
     handler: logging.FileHandler | logging.StreamHandler
     if file:

@@ -3,6 +3,8 @@ import os
 from functools import cache
 from pathlib import Path
 
+from ...logs import log
+
 
 @cache
 def load_lang(language: str) -> dict:
@@ -24,10 +26,15 @@ def load_lang(language: str) -> dict:
             if filename != f"ez_{language}.json":
                 continue
 
+            log.debug(f"Custom language file loaded: **{filename}**")
+
             path = os.path.join(root, filename)
             with open(path, encoding="utf-8") as user_file:
                 user_dic = json.load(user_file)
                 for key, value in user_dic.items():
                     lang[key] = value
+
+    if lang == {}:
+        log.warn(f"Language file for language '{language}' not found. Falling back to 'en'.")
 
     return lang

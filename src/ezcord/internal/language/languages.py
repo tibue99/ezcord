@@ -5,8 +5,8 @@ from pathlib import Path
 
 
 @cache
-def load_txt(language: str) -> dict:
-    """Load default language files and check if the user provided custom language files."""
+def load_lang(language: str) -> dict:
+    """Loads the default language file and checks if the user provided a custom language file."""
 
     lang = {}
     parent = Path(__file__).parent.absolute()

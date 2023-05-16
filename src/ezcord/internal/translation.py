@@ -6,7 +6,8 @@ from configparser import ConfigParser
 from functools import cache
 from pathlib import Path
 
-from .language.languages import load_txt
+from ..logs import log
+from .language.languages import load_lang
 
 
 def plural_de(amount: int, word: str, relative: bool = True) -> str:
@@ -101,7 +102,14 @@ def t(key: str, *args: str):
         origin_file = Path(inspect.stack()[n].filename).stem
 
     lang = get_lang()
-    return load_txt(lang)[origin_file][key].format(*args)
+
+    try:
+        return load_lang(lang)[origin_file][key].format(*args)
+    except KeyError:
+        # fallback to english if the key is not in the custom language file
+        # provided by the user
+        log.warn(f"Key '{key}' not found in language file '{lang}'. Falling back to 'en'.")
+        return load_lang("en")[origin_file][key].format(*args)
 
 
 @cache

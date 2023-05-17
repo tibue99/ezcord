@@ -1,10 +1,13 @@
 """Utility functions for the ready event."""
 
+from itertools import cycle, islice
+
 import discord
 from colorama import Fore
 
 from ..enums import ReadyEvent
 from ..logs import log
+from .colors import get_escape_code
 
 
 class Style:
@@ -25,10 +28,11 @@ class Bold(Style):
     TL, TR, BL, BR, H, V, M, L, R, T, B = "╔", "╗", "╚", "╝", "═", "║", "╬", "╠", "╣", "╦", "╩"
 
 
-COLORS = [Fore.CYAN, Fore.MAGENTA, Fore.YELLOW, Fore.GREEN, Fore.BLUE, Fore.RED]
+READY_TITLE = "Bot is online!"
+DEFAULT_COLORS = [Fore.CYAN, Fore.MAGENTA, Fore.YELLOW, Fore.GREEN, Fore.BLUE, Fore.RED]
 
 
-def print_ready(bot: discord.Bot, style: ReadyEvent):
+def get_default_info(bot: discord.Bot):
     cmds = [
         cmd for cmd in bot.walk_application_commands() if type(cmd) != discord.SlashCommandGroup
     ]
@@ -42,13 +46,47 @@ def print_ready(bot: discord.Bot, style: ReadyEvent):
         "Latency": f"{round(bot.latency * 1000):,}ms",
     }
 
-    txt = f"Bot is online!"
+    return infos
+
+
+def print_custom_ready(
+    bot: discord.Bot,
+    title: str,
+    style: ReadyEvent = ReadyEvent.default,
+    default_info: bool = True,
+    new_info: dict | None = None,
+    colors: list[str] | None = None,
+):
+    infos = get_default_info(bot) if default_info else {}
+    colors = list(map(get_escape_code, colors or DEFAULT_COLORS))
+
+    if new_info:
+        for key, value in new_info.items():
+            infos[key] = value
+
+    print_ready(bot, style, infos, title, colors)
+
+
+def print_ready(
+    bot: discord.Bot,
+    style: ReadyEvent,
+    infos: dict[str, str] | None = None,
+    title: str = READY_TITLE,
+    colors: list[str] | None = None,
+):
+    infos = infos or get_default_info(bot)
+    colors = colors or DEFAULT_COLORS
+
+    info_count = len(infos.items())
+    colors = list(islice(cycle(colors), info_count))
+
     colon_infos = {key + ":": value for key, value in infos.items()}
 
     style_cls = Style()
     if "bold" in style.name:
         style_cls = Bold()
 
+    txt = title
     if style == ReadyEvent.box or style == ReadyEvent.box_bold:
         txt += box(colon_infos, style_cls)
         log.info(txt)
@@ -57,7 +95,7 @@ def print_ready(bot: discord.Bot, style: ReadyEvent):
         logs(colon_infos)
     else:
         color_table = {
-            key: COLORS[i] + value + Fore.RESET for i, (key, value) in enumerate(infos.items())
+            key: colors[i] + value + Fore.RESET for i, (key, value) in enumerate(infos.items())
         }
         if style == ReadyEvent.table or style == ReadyEvent.table_bold:
             info_list = [list(infos.keys()), list(infos.values())]

@@ -13,9 +13,17 @@ from discord.ext import bridge, commands
 
 from .emb import error as error_emb
 from .enums import ReadyEvent
-from .internal import load_lang, print_ready, set_lang, t
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .times import dc_timestamp
+
+from .internal import (  # isort: skip
+    READY_TITLE,
+    load_lang,
+    print_custom_ready,
+    print_ready,
+    set_lang,
+    t,
+)
 
 
 class Bot(discord.Bot):
@@ -93,7 +101,7 @@ class Bot(discord.Bot):
 
         self.ready_event = ready_event
         if ready_event:
-            self.add_listener(self.on_ready_event, "on_ready")
+            self.add_listener(self._ready_event, "on_ready")
 
     def _cog_log(self, name: str, custom_logs: bool | str):
         """Sends a log message for a loaded cog."""
@@ -160,7 +168,35 @@ class Bot(discord.Bot):
                                 continue
                             self._cog_log(f"{dirname}{name}", custom_logs)
 
-    async def on_ready_event(self):
+    def ready(
+        self,
+        *,
+        title: str = READY_TITLE,
+        style: ReadyEvent = ReadyEvent.default,
+        default_info: bool = True,
+        new_info: dict | None = None,
+        colors: list[str] | None = None,
+    ):
+        """Print a custom ready message.
+
+        Parameters
+        ----------
+        title:
+            The title of the ready message.
+        style:
+            The style of the ready message. Defaults to :attr:`.ReadyEvent.default`.
+        default_info:
+            Whether to include the default information. Defaults to ``True``.
+        new_info:
+            A dictionary of information to include in the ready message.
+            Defaults to ``None``.
+        colors:
+            A list of colors to use for the ready message. If no colors are given,
+            default colors will be used.
+        """
+        print_custom_ready(self, title, style, default_info, new_info, colors)
+
+    async def _ready_event(self):
         """Prints the bot's information when it's ready."""
         print_ready(self, self.ready_event)
 

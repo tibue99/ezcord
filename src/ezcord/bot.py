@@ -193,6 +193,8 @@ class Bot(discord.Bot):
         colors:
             A list of colors to use for the ready message. If no colors are given,
             default colors will be used.
+
+            Colors can only be used with :attr:`.ReadyEvent.box_colorful` and all table styles.
         """
         print_custom_ready(self, title, style, default_info, new_info, colors)
 

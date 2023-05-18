@@ -55,6 +55,7 @@ def replace_dc_format(string: str, color: str | None = None) -> str:
         color = DEFAULT_COLOR
     color = get_escape_code(color)
 
+    string = replace_second(string, "***", color)  # color text that contains multiple other colors
     string = replace_second(string, "**", color)
     string = re.sub("```.*?```", "", string)  # remove codeblocks
     return string

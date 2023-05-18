@@ -151,7 +151,7 @@ class _ColorFormatter(logging.Formatter):
             log_format = log_format.replace("//", "")
             split = new_record.msg.split("\n", 1)
             if len(split) > 1:
-                new_record.msg = split[0] + "\n**" + split[1] + "**"
+                new_record.msg = split[0] + "\n***" + split[1] + "***"
 
         new_record.msg = replace_dc_format(new_record.msg, current_level_color)
 

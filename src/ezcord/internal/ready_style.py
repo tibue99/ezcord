@@ -5,6 +5,7 @@ from itertools import cycle, islice
 import discord
 from colorama import Fore
 
+from .. import __version__
 from ..enums import ReadyEvent
 from ..logs import log
 from .colors import get_escape_code
@@ -28,8 +29,8 @@ class Bold(Style):
     TL, TR, BL, BR, H, V, M, L, R, T, B = "╔", "╗", "╚", "╝", "═", "║", "╬", "╠", "╣", "╦", "╩"
 
 
-READY_TITLE = "Bot is online!"
-DEFAULT_COLORS = [Fore.CYAN, Fore.MAGENTA, Fore.YELLOW, Fore.GREEN, Fore.BLUE, Fore.RED]
+READY_TITLE: str = f"Bot is online with EzCord {__version__}"
+DEFAULT_COLORS: list[str] = [Fore.CYAN, Fore.MAGENTA, Fore.YELLOW, Fore.GREEN, Fore.BLUE, Fore.RED]
 
 
 def get_default_info(bot: discord.Bot):
@@ -87,8 +88,8 @@ def print_ready(
         style_cls = Bold()
 
     txt = title
-    if style == ReadyEvent.box or style == ReadyEvent.box_bold:
-        txt += box(colon_infos, style_cls)
+    if style in [ReadyEvent.box, ReadyEvent.box_bold, ReadyEvent.box_colorful]:
+        txt += box(colon_infos, colors, style, style_cls)
         log.info(txt)
     elif style == ReadyEvent.logs:
         log.info(txt)
@@ -108,15 +109,23 @@ def print_ready(
         log.info(txt)
 
 
-def box(infos: dict[str, str], s: Style = Style()):
+def box(infos: dict[str, str], colors: list[str], box_style: ReadyEvent, s: Style = Style()):
     longest = max([str(i) for i in infos.values()], key=len)
     formatter = f"<{len(longest)}"
     longest_key = max([len(i) for i in infos.keys()]) + 1
 
-    txt = f"\n{s.TL}{(len(longest) + 2 + longest_key) * s.H}{s.TR}\n"
-    for key, info in infos.items():
+    if box_style == ReadyEvent.box_colorful:
+        txt = f"\n{Fore.RESET}"
+    else:
+        txt = "\n"
+
+    txt += f"{s.TL}{(len(longest) + 2 + longest_key) * s.H}{s.TR}\n"
+    for index, (key, info) in enumerate(infos.items()):
         key = f"{key:<{longest_key}}"
-        txt += f"{s.V} {key}{info:{formatter}} {s.V}\n"
+        if box_style == ReadyEvent.box_colorful:
+            txt += f"{s.V} {key}{colors[index]}{info:{formatter}}{Fore.RESET} {s.V}\n"
+        else:
+            txt += f"{s.V} {key}{info:{formatter}} {s.V}\n"
     txt += f"{s.BL}{(len(longest) + 2 + longest_key) * s.H}{s.BR}"
     return txt
 

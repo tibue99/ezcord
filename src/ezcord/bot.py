@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 import os
-import traceback
 import warnings
 from pathlib import Path
 from typing import Any
@@ -23,6 +22,7 @@ from .internal import (  # isort: skip
     print_ready,
     set_lang,
     t,
+    get_error_text,
 )
 
 
@@ -233,7 +233,7 @@ class Bot(discord.Bot):
 
             webhook_sent = False
             if self.error_webhook_url:
-                description = self.get_error_text(ctx, error)
+                description = get_error_text(ctx, error)
                 webhook_sent = await self._send_error_webhook(description)
 
             self.logger.exception(
@@ -241,29 +241,6 @@ class Bot(discord.Bot):
                 exc_info=error,
                 extra={"webhook_sent": webhook_sent},
             )
-
-    @staticmethod
-    def get_error_text(
-        ctx: discord.ApplicationContext | discord.Interaction,
-        error: Exception,
-        item: discord.ui.Item | discord.ui.Modal | None = None,
-    ):
-        if item:
-            if isinstance(item, discord.ui.Button) and item.label:
-                location = f"- **Button:** {item.label}"
-            elif ctx.type == discord.InteractionType.modal_submit:
-                location = f"- **Modal:** {type(item).__name__}"
-            else:
-                location = f"- **Select Menu:** {type(item.view).__name__}"
-        else:
-            location = f"- **Command:** /{ctx.command.qualified_name}"
-
-        error_txt = "".join(traceback.format_exception(type(error), error, error.__traceback__))
-        guild_txt = f"\n- **Guild:** {ctx.guild.name} - `{ctx.guild.id}`" if ctx.guild else ""
-        user_txt = f"\n- **User:** {ctx.user} - `{ctx.user.id}`" if ctx.user else ""
-
-        description = location + guild_txt + user_txt + f"\n```py\n{error_txt[:3500]}```"
-        return description
 
     async def _send_error_webhook(self, description):
         webhook_sent = False

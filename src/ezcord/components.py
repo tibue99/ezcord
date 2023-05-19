@@ -24,7 +24,7 @@ from typing import Callable
 import aiohttp
 import discord
 
-from .bot import Bot
+from .internal import get_error_text
 from .logs import log
 
 _view_error_handlers: list[Callable] = []
@@ -134,7 +134,7 @@ class EzView(discord.ui.View):
         Executes all registered error handlers with the ``@on_view_error`` decorator.
         """
 
-        description = Bot.get_error_text(interaction, error, item)
+        description = get_error_text(interaction, error, item)
         webhook_sent = await _send_error_webhook(interaction, description)
 
         log.exception(
@@ -189,7 +189,7 @@ class EzModal(discord.ui.Modal):
         Executes all registered error handlers with the ``@on_modal_error`` decorator.
         """
 
-        description = Bot.get_error_text(interaction, error, self)
+        description = get_error_text(interaction, error, self)
         webhook_sent = await _send_error_webhook(interaction, description)
 
         log.exception(

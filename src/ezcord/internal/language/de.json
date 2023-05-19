@@ -7,8 +7,7 @@
   },
   "bot": {
     "error": "Der folgende Fehler ist aufgetreten: {}",
-    "cooldown": "Versuche es {} erneut.",
-    "no_perm_title": "Fehlende Berechtigung",
-    "no_perm_desc": "Mir fehlen die folgenden Berechtigungen, um diesen Befehl auszuführen."
+    "cooldown": "Cooldown! Versuche es {} erneut.",
+    "no_perms": "Mir fehlen die folgenden Berechtigungen, um diesen Befehl auszuführen."
   }
 }

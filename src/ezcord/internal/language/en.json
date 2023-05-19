@@ -7,8 +7,7 @@
   },
   "bot": {
     "error": "The following error occurred: {}",
-    "cooldown": "Try again {}.",
-    "no_perm_title": "Missing permission",
-    "no_perm_desc": "I'm missing the following permissions to execute this command."
+    "cooldown": "Cooldown! Try again {}.",
+    "no_perms": "I'm missing the following permissions to execute this command."
   }
 }

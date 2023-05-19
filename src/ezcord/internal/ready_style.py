@@ -63,7 +63,7 @@ def print_custom_ready(
 
     if new_info:
         for key, value in new_info.items():
-            infos[key] = value
+            infos[str(key)] = str(value)
 
     print_ready(bot, style, infos, title, colors)
 

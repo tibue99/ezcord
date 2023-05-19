@@ -49,13 +49,22 @@ def replace_second(string: str, substring: str, color: str) -> str:
     return string
 
 
-def replace_dc_format(string: str, color: str | None = None) -> str:
+def remove_escapes(string: str) -> str:
+    """Removes ansi escape codes from a string."""
+    return re.sub(r"\x1b\[[0-9;]*m", "", string)
+
+
+def replace_dc_format(string: str, color: str | None = None, file: bool = False) -> str:
     """Replaces Discord markdown with ansi colors."""
     if color is None:
         color = DEFAULT_COLOR
     color = get_escape_code(color)
 
-    string = replace_second(string, "***", color)  # color text that contains multiple other colors
-    string = replace_second(string, "**", color)
+    if file:
+        string = string.replace("***", "").replace("**", "")
+        string = remove_escapes(string)
+    else:
+        string = replace_second(string, "***", color)  # text that contains multiple other colors
+        string = replace_second(string, "**", color)
     string = re.sub("```.*?```", "", string)  # remove codeblocks
     return string

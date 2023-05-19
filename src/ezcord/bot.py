@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 import os
-import warnings
 from pathlib import Path
 from typing import Any
 
@@ -46,7 +45,8 @@ class Bot(discord.Bot):
         The webhook URL to send error messages to. Defaults to ``None``.
 
         .. note::
-            You need to enable the error handler for the webhook to work.
+            You can disable the default error handler, but still provide an error webhook URL.
+            This will send an error report to the webhook, but it won't send an error message to the user.
     ignored_errors:
         A list of error types to ignore. Defaults to ``None``.
     full_error_traceback:
@@ -79,7 +79,7 @@ class Bot(discord.Bot):
     ):
         super().__init__(intents=intents, **kwargs)
 
-        if error_handler and error_webhook_url:
+        if error_webhook_url:
             os.environ.setdefault("ERROR_WEBHOOK_URL", error_webhook_url)
 
         if debug:
@@ -88,16 +88,15 @@ class Bot(discord.Bot):
             self.logger = logging.getLogger(DEFAULT_LOG)
             self.logger.addHandler(logging.NullHandler())
 
+        self.error_handler = error_handler
         self.error_webhook_url = error_webhook_url
         self.ignored_errors = ignored_errors or []
         self.full_error_traceback = full_error_traceback
         load_lang(language)
         set_lang(language) if language != {} else set_lang("en")
 
-        if error_handler:
+        if error_handler or error_webhook_url:
             self.add_listener(self._error_event, "on_application_command_error")
-        elif error_webhook_url:
-            warnings.warn("You need to enable the error handler for the webhook to work.")
 
         self.ready_event = ready_event
         if ready_event:
@@ -208,14 +207,16 @@ class Bot(discord.Bot):
             return
 
         if isinstance(error, commands.CommandOnCooldown):
-            seconds = round(ctx.command.get_cooldown_retry_after(ctx))
-            cooldown_txt = t("cooldown", dc_timestamp(seconds))
-            await error_emb(ctx, cooldown_txt, title="Cooldown")
+            if self.error_handler:
+                seconds = round(ctx.command.get_cooldown_retry_after(ctx))
+                cooldown_txt = t("cooldown", dc_timestamp(seconds))
+                await error_emb(ctx, cooldown_txt, title="Cooldown")
 
         elif isinstance(error, commands.BotMissingPermissions):
-            perms = "\n".join(error.missing_permissions)
-            perm_txt = f"{t('no_perm_desc')} ```\n{perms}```"
-            await error_emb(ctx, perm_txt, title=t("no_perm_title"))
+            if self.error_handler:
+                perms = "\n".join(error.missing_permissions)
+                perm_txt = f"{t('no_perm_desc')} ```\n{perms}```"
+                await error_emb(ctx, perm_txt, title=t("no_perm_title"))
 
         else:
             if "original" in error.__dict__ and not self.full_error_traceback:
@@ -225,11 +226,13 @@ class Bot(discord.Bot):
             else:
                 error_msg = f"{error}"
 
-            error_txt = f"{t('error', f'```{error_msg}```')}"
-            try:
-                await error_emb(ctx, error_txt, title="Error")
-            except discord.HTTPException:
-                pass
+            if self.error_handler:
+                error_txt = f"{t('error', f'```{error_msg}```')}"
+                try:
+                    await error_emb(ctx, error_txt, title="Error")
+                except discord.HTTPException:
+                    # invalid interaction, probably took too long to respond
+                    pass
 
             webhook_sent = False
             if self.error_webhook_url:

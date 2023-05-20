@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import re
 import sys
 
 import aiohttp
@@ -46,15 +47,27 @@ def custom_log(
 
 def _format_log_colors(log_format: str, file: bool, final_colors: dict[int, str]) -> dict[int, str]:
     """Checks if the is sent to a file and formats the colors accordingly."""
+    format_colors = re.findall(r"{.*?}", log_format)
+
     color_formats = {}
-    if "{color}" in log_format and "{color_end}" in log_format:
+    if "{end}" in log_format:
         for level in final_colors:
             if file:
-                color_formats[level] = log_format.format(color="", color_end="")
+                for substring in format_colors:
+                    log_format = log_format.replace(substring, "")
+
+                color_formats[level] = log_format.format(color="", end="")
             else:
-                color_formats[level] = log_format.format(
-                    color=final_colors[level], color_end=Fore.RESET
-                )
+                for substring in format_colors:
+                    if substring == "{end}":
+                        log_format = log_format.replace(substring, Fore.RESET, 1)
+                        continue
+
+                    log_format = log_format.replace(
+                        substring, get_escape_code(substring.strip("{}"))
+                    )
+
+                color_formats[level] = log_format.format(color=final_colors[level], end=Fore.RESET)
     else:
         for level in final_colors:
             color_formats[level] = final_colors[level] + log_format + Fore.RESET

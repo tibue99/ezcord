@@ -230,6 +230,8 @@ def set_log(
 ):
     """Creates a logger. If this logger already exists, it will return the existing logger.
 
+    This should be called before :class:`.Bot` is initialized.
+
     Parameters
     ----------
     name:

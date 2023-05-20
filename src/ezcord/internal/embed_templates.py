@@ -15,7 +15,7 @@ _TEMPLATES: dict[str, Embed] = {
 }
 
 
-def save_embeds(**kwargs: Embed):
+def save_embeds(**kwargs: Embed | str):
     """Save multiple embeds to a JSON file.
 
     If one of the default values is not included, a default template will be saved.
@@ -26,6 +26,8 @@ def save_embeds(**kwargs: Embed):
     for name, embed in overrides.items():
         if embed is None:
             embeds[name] = _TEMPLATES[name].to_dict()
+        elif isinstance(embed, str):
+            embeds[name] = embed
         else:
             embeds[name] = embed.to_dict()
 
@@ -35,7 +37,7 @@ def save_embeds(**kwargs: Embed):
 
 
 @cache
-def load_embed(name: str) -> Embed:
+def load_embed(name: str) -> Embed | str:
     """Load an embed template from a JSON file."""
     parent = Path(__file__).parent.absolute()
     json_path = parent.joinpath("embeds.json")
@@ -44,6 +46,9 @@ def load_embed(name: str) -> Embed:
 
     with open(os.path.join(parent, "embeds.json")) as file:
         embeds = json.load(file)
+
+    if isinstance(embeds[name], str):
+        return embeds[name]
 
     try:
         return Embed.from_dict(embeds[name])

@@ -49,6 +49,10 @@ def _format_log_colors(log_format: str, file: bool, final_colors: dict[int, str]
     """Checks if the is sent to a file and formats the colors accordingly."""
     format_colors = re.findall(r"{.*?}", log_format)
 
+    remove_attrs = ["{color}"]
+    for attr in remove_attrs:
+        format_colors = [x for x in format_colors if attr not in x]
+
     color_formats = {}
     if "{end}" in log_format:
         for level in final_colors:
@@ -114,6 +118,7 @@ class _ColorFormatter(logging.Formatter):
         log_format: str,
         time_format: str,
         dc_codeblocks: bool,
+        spacing: int,
         colors: dict[int, str] | str | None = None,
         *args,
         **kwargs,
@@ -123,6 +128,7 @@ class _ColorFormatter(logging.Formatter):
         self.file = file
         self.colors = colors
         self.dc_codeblocks = dc_codeblocks
+        self.spacing = spacing
         self.LOG_FORMAT = log_format
         self.TIME_FORMAT = time_format
 
@@ -153,8 +159,18 @@ class _ColorFormatter(logging.Formatter):
         color_log_formats = _format_log_colors(self.LOG_FORMAT, self.file, color_formats)
 
         log_format = color_log_formats.get(record.levelno)
+        spacing_name = record.__dict__["key"] if "key" in record.__dict__ else record.levelname
+        spaces = " " * (self.spacing - len(spacing_name))
+
+        if log_format and "%%" in log_format:
+            log_format = log_format.replace("%%", "%")
+            record.msg = spaces + record.msg
+        else:
+            spacing_name = spacing_name + spaces
+            record.levelname = spacing_name
+
         if "key" in record.__dict__ and log_format:
-            log_format = log_format.replace("%(levelname)s", record.__dict__["key"])
+            log_format = log_format.replace("%(levelname)s", spacing_name)
 
         current_level_color = color_formats.get(record.levelno)
         new_record = logging.makeLogRecord(record.__dict__)
@@ -239,6 +255,7 @@ def set_log(
     discord_log_level: int = logging.WARNING,
     webhook_url: str | None = None,
     dc_codeblocks: bool = True,
+    level_spacing: int = 0,
     colors: dict[int, str] | str | None = None,
 ):
     """Creates a logger. If this logger already exists, it will return the existing logger.
@@ -266,6 +283,9 @@ def set_log(
         The discord webhook URL to send logs to. Defaults to ``None``.
     dc_codeblocks:
         Whether to use codeblocks for all Discord log messages. Defaults to ``True``.
+    level_spacing:
+        The length of the log level. If the log level is ``INFO`` and the spacing is ``8``, the log level
+        will be filled with 4 additional spaces, so that the log level is 8 characters long.
     colors:
         A dictionary of log levels and their corresponding colors. If only one color is given,
         all log levels will be colored with that color.
@@ -303,7 +323,9 @@ def set_log(
     else:
         handler = logging.StreamHandler(sys.stdout)
 
-    color_formatter = _ColorFormatter(file, log_format, time_format, dc_codeblocks, colors)
+    color_formatter = _ColorFormatter(
+        file, log_format, time_format, dc_codeblocks, level_spacing, colors
+    )
 
     handler.setFormatter(color_formatter)
     handler.setLevel(log_level)

@@ -7,12 +7,13 @@ import logging
 import os
 import re
 import sys
+from typing import Literal
 
 import aiohttp
 import discord
 from colorama import Fore
 
-from .enums import LogFormat
+from .enums import LogFormat, TimeFormat
 
 from .internal.colors import (  # isort: skip
     DEFAULT_COLOR,
@@ -98,19 +99,7 @@ def _format_colors(colors: dict[int, str] | str | None = None) -> dict[int, str]
 
 
 class _ColorFormatter(logging.Formatter):
-    """A logging formatter that adds colors to the output. This is used by :func:`set_log`.
-
-    Parameters
-    ----------
-    file:
-        Whether to log to a file.
-    log_format:
-        The log format.
-    time_format:
-        The time format.
-    colors:
-        Colors for the log levels.
-    """
+    """A logging formatter that adds colors to the output. This is used by :func:`set_log`."""
 
     def __init__(
         self,
@@ -119,6 +108,7 @@ class _ColorFormatter(logging.Formatter):
         time_format: str,
         dc_codeblocks: bool,
         spacing: int,
+        space_after_level: bool,
         colors: dict[int, str] | str | None = None,
         *args,
         **kwargs,
@@ -129,6 +119,7 @@ class _ColorFormatter(logging.Formatter):
         self.colors = colors
         self.dc_codeblocks = dc_codeblocks
         self.spacing = spacing
+        self.space_after_level = space_after_level
         self.LOG_FORMAT = log_format
         self.TIME_FORMAT = time_format
 
@@ -162,12 +153,13 @@ class _ColorFormatter(logging.Formatter):
         spacing_name = record.__dict__["key"] if "key" in record.__dict__ else record.levelname
         spaces = " " * (self.spacing - len(spacing_name))
 
-        if log_format and "%%" in log_format:
-            log_format = log_format.replace("%%", "%")
-            record.msg = spaces + record.msg
-        else:
+        if self.space_after_level:
+            # add space directly after log level
             spacing_name = spacing_name + spaces
             record.levelname = spacing_name
+        else:
+            # add space in front of log message
+            record.msg = spaces + record.msg
 
         if "key" in record.__dict__ and log_format:
             log_format = log_format.replace("%(levelname)s", spacing_name)
@@ -251,11 +243,12 @@ def set_log(
     *,
     file: bool = False,
     log_format: str | LogFormat = LogFormat.default,
-    time_format: str = "%Y-%m-%d %H:%M:%S",
+    time_format: str | TimeFormat = TimeFormat.default,
     discord_log_level: int = logging.WARNING,
     webhook_url: str | None = None,
     dc_codeblocks: bool = True,
-    level_spacing: int = 0,
+    level_spacing: int = 8,
+    space_mode: Literal["auto", "always", "never"] = "auto",
     colors: dict[int, str] | str | None = None,
 ):
     """Creates a logger. If this logger already exists, it will return the existing logger.
@@ -284,8 +277,10 @@ def set_log(
     dc_codeblocks:
         Whether to use codeblocks for all Discord log messages. Defaults to ``True``.
     level_spacing:
-        The length of the log level. If the log level is ``INFO`` and the spacing is ``8``, the log level
-        will be filled with 4 additional spaces, so that the log level is 8 characters long.
+        The length of the log level. If the log level is ``INFO`` and the spacing is ``8``, the log
+        level will be filled with 4 additional spaces, so that all log levels are 8 characters long.
+    space_mode:
+        Choose when to add spacing to the log level. Defaults to ``auto``.
     colors:
         A dictionary of log levels and their corresponding colors. If only one color is given,
         all log levels will be colored with that color.
@@ -323,8 +318,14 @@ def set_log(
     else:
         handler = logging.StreamHandler(sys.stdout)
 
+    space_after_level = True
+    if "%(levelname)s " not in log_format and "%(levelname)s{end} " not in log_format:
+        space_after_level = False
+        if space_mode == "never" or space_mode == "auto":
+            level_spacing = 0
+
     color_formatter = _ColorFormatter(
-        file, log_format, time_format, dc_codeblocks, level_spacing, colors
+        file, log_format, time_format, dc_codeblocks, level_spacing, space_after_level, colors
     )
 
     handler.setFormatter(color_formatter)

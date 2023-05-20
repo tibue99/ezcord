@@ -104,7 +104,10 @@ def t(key: str, *args: str):
     lang = get_lang()
 
     try:
-        return load_lang(lang)[origin_file][key].format(*args)
+        string = load_lang(lang)[origin_file][key]
+        if not string:
+            return None
+        return string.format(*args)
     except KeyError:
         # fallback to english if the key is not in the custom language file
         # provided by the user

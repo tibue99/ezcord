@@ -210,13 +210,13 @@ class Bot(discord.Bot):
             if self.error_handler:
                 seconds = round(ctx.command.get_cooldown_retry_after(ctx))
                 cooldown_txt = t("cooldown", dc_timestamp(seconds))
-                await error_emb(ctx, cooldown_txt)
+                await error_emb(ctx, cooldown_txt, title=t("cooldown_title"))
 
         elif isinstance(error, commands.BotMissingPermissions):
             if self.error_handler:
                 perms = "\n".join(error.missing_permissions)
-                perm_txt = f"{t('no_perm_desc')} ```\n{perms}```"
-                await error_emb(ctx, perm_txt)
+                perm_txt = f"{t('no_perms')} ```\n{perms}```"
+                await error_emb(ctx, perm_txt, title=t("no_perms_title"))
 
         else:
             if "original" in error.__dict__ and not self.full_error_traceback:
@@ -229,7 +229,7 @@ class Bot(discord.Bot):
             if self.error_handler:
                 error_txt = f"{t('error', f'```{error_msg}```')}"
                 try:
-                    await error_emb(ctx, error_txt)
+                    await error_emb(ctx, error_txt, title=t("error_title"))
                 except discord.HTTPException:
                     # invalid interaction, probably took too long to respond
                     pass

@@ -6,8 +6,11 @@
     "day": "Tag"
   },
   "bot": {
+    "error_title": "Error",
     "error": "Der folgende Fehler ist aufgetreten: {}",
-    "cooldown": "Cooldown! Versuche es {} erneut.",
+    "cooldown_title": "Cooldown",
+    "cooldown": "Versuche es {} erneut.",
+    "no_perms_title": "Fehlende Rechte",
     "no_perms": "Mir fehlen die folgenden Berechtigungen, um diesen Befehl auszuführen."
   }
 }

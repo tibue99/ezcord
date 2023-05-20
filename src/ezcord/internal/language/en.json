@@ -6,8 +6,11 @@
     "day": "day"
   },
   "bot": {
+    "error_title": "Error",
     "error": "The following error occurred: {}",
-    "cooldown": "Cooldown! Try again {}.",
+    "cooldown_title": "Cooldown",
+    "cooldown": "Try again {}.",
+    "no_perms_title": "Missing permissions",
     "no_perms": "I'm missing the following permissions to execute this command."
   }
 }

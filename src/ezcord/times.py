@@ -106,25 +106,39 @@ def dc_timestamp(
     return format_dt(dt, style)
 
 
-def convert_to_seconds(s: str) -> int:
-    """Convert a string to seconds.
+def convert_to_seconds(string: str) -> int:
+    """Convert a string to seconds. Supports multiple units and decimal separators.
 
     Parameters
     ----------
-    s:
+    string:
         The string to convert.
+
+    Example
+    -------
+    >>> convert_to_seconds("1m 9s")
+    69
+    >>> convert_to_seconds("1.5m")
+    90
+    >>> convert_to_seconds("1,5 min")
+    90
+    >>> convert_to_seconds("1h 5m 10s")
+    3910
 
     Returns
     -------
     :class:`int`
         The amount of seconds.
     """
-    units = {"s": "seconds", "m": "minutes", "h": "hours", "d": "days", "w": "weeks"}
-    return int(
-        timedelta(
-            **{
-                units.get(m.group("unit").lower(), "seconds"): float(m.group("val"))
-                for m in re.finditer(r"(?P<val>\d+(\.\d+)?)(?P<unit>[smhdw]?)", s, flags=re.I)
-            }
-        ).total_seconds()
-    )
+    units = {"s": "seconds", "m": "minutes", "h": "hours", "d": "days", "t": "days", "w": "weeks"}
+
+    pattern = re.compile(r"(?P<value>\d+([.,]\d+)?) *(?P<unit>[smhdtw]?)", flags=re.IGNORECASE)
+    matches = pattern.finditer(string)
+
+    found_units = {}
+    for match in matches:
+        unit = match.group("unit").lower()
+        value = float(match.group("value").replace(",", "."))
+        found_units[units.get(unit, "seconds")] = value
+
+    return int(timedelta(**found_units).total_seconds())

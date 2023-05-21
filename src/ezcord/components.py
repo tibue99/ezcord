@@ -131,7 +131,7 @@ class EzView(discord.ui.View):
     ) -> None:
         """Sends an error message to a webhook, if the URL was passed in :class:`.Bot`.
 
-        Executes all registered error handlers with the ``@on_view_error`` decorator.
+        Executes all registered error handlers with the ``@ezcord.event`` decorator.
         """
 
         description = get_error_text(interaction, error, item)
@@ -154,7 +154,7 @@ class EzView(discord.ui.View):
         return True
 
     async def on_check_failure(self, interaction: discord.Interaction) -> None:
-        """This method is called if :meth:`interaction_check` returns ``False``"""
+        """This method is called if :meth:`interaction_check` returns ``False``."""
         for coro in _view_check_failures:
             await coro(interaction)
 
@@ -186,7 +186,7 @@ class EzModal(discord.ui.Modal):
     async def on_error(self, error: Exception, interaction: discord.Interaction) -> None:
         """Sends an error message to a webhook, if the webhook URL was passed into :class:`.Bot`.
 
-        Executes all registered error handlers with the ``@on_modal_error`` decorator.
+        Executes all registered error handlers with the ``@ezcord.event`` decorator.
         """
 
         description = get_error_text(interaction, error, self)

@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class LogFormat(str, Enum):
-    """Presets for logging formats that can be used in :func:`set_log`.
+    """Presets for logging formats that can be used in :func:`.set_log`.
 
     ``{color}`` and ``{end}`` are used to add the default color of the current log level.
     Specific colors like ``{red}`` and ``{green}`` can also be used.
@@ -24,7 +24,7 @@ class LogFormat(str, Enum):
 
 
 class TimeFormat(str, Enum):
-    """Presets for the time format that is used in :func:`set_log`."""
+    """Presets for the time format that is used in :func:`.set_log`."""
 
     datetime = "%Y-%m-%d %H:%M:%S"
     time = "%H:%M:%S"

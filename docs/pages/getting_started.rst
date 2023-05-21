@@ -26,7 +26,7 @@ If you don't, you can find the documentation `here <https://docs.pycord.dev/>`_.
 
 Example
 --------------
-A quick example of how EzCord works. You can find more examples :doc:`here </examples/examples>`
+A quick example of how EzCord works. You can find more examples :doc:`here </examples/examples>`.
 
 .. literalinclude:: ../../examples/main.py
    :language: python

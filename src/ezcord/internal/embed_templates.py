@@ -65,6 +65,7 @@ def get_error_text(
     error: Exception,
     item: discord.ui.Item | discord.ui.Modal | None = None,
 ):
+    """Get the description for the webhook embed."""
     if item:
         if isinstance(item, discord.ui.Button) and item.label:
             location = f"- **Button:** {item.label}"

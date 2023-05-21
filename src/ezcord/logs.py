@@ -266,7 +266,7 @@ def set_log(
     log_format:
         The log format. Defaults to :attr:`.LogFormat.default`.
     time_format:
-        The time format. Defaults to ``%Y-%m-%d %H:%M:%S``.
+        The time format. Defaults to :attr:`.TimeFormat.default`.
     discord_log_level:
         The log level for discord log messages. Defaults to ``logging.WARNING``.
 

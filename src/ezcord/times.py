@@ -31,12 +31,17 @@ def convert_time(seconds: int | float, relative: bool = True) -> str:
     ----------
     seconds:
         The amount of seconds to convert.
-    relative: :class:`bool`
+    relative:
         Whether to use relative time. Defaults to ``True``.
 
         .. hint::
             This is only needed for German translation and will
             not have any effect if the language is set to English.
+
+            >>> convert_time(450000, relative=True)  # Relative: Seit 5 Tagen
+            '5 Tagen'
+            >>> convert_time(450000, relative=False)  # Not relative: 5 Tage
+            '5 Tage'
 
     Returns
     -------
@@ -64,7 +69,7 @@ def convert_dt(dt: datetime | timedelta, relative: bool = True) -> str:
     ----------
     dt:
         The datetime or timedelta object to convert.
-    relative: :class:`bool`
+    relative:
         Whether to use relative time. Defaults to ``True``.
 
     Returns

@@ -6,7 +6,9 @@ import json
 import discord
 
 
-def create_json_file(dictionary: dict, filename: str = "data.json", **kwargs) -> discord.File:
+def create_json_file(
+    dictionary: dict, filename: str = "data.json", indent: int = 2, **kwargs
+) -> discord.File:
     """Create a :class:`discord.File` object from a dictionary.
 
     Parameters
@@ -15,6 +17,8 @@ def create_json_file(dictionary: dict, filename: str = "data.json", **kwargs) ->
         The dictionary to convert to a JSON file.
     filename:
         The filename to use for the JSON file.
+    indent:
+        The indent to use for the JSON file.
     **kwargs:
         Keyword arguments for :class:`discord.File`.
 
@@ -22,7 +26,7 @@ def create_json_file(dictionary: dict, filename: str = "data.json", **kwargs) ->
     -------
     :class:`discord.File`
     """
-    content = json.dumps(dictionary, indent=2).encode()
+    content = json.dumps(dictionary, indent=indent).encode()
     return discord.File(io.BytesIO(content), filename=filename, **kwargs)
 
 

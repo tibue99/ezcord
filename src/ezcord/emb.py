@@ -107,6 +107,51 @@ async def _send_embed(
         await target.send(content=content, embed=embed, **kwargs)
 
 
+def _replace_values(s: str, user: discord.User | discord.Member) -> str:
+    s = s.replace("{username}", user.name)
+    s = s.replace("{user_mention}", user.mention)
+    s = s.replace("{user_id}", str(user.id))
+    s = s.replace("{user_avatar}", user.display_avatar.url)
+    return s
+
+
+def _loop_dict(embed_dic: dict | str, user: discord.User | discord.Member) -> dict | str:
+    if isinstance(embed_dic, str):
+        return _replace_values(embed_dic, user)
+
+    for key, value in embed_dic.items():
+        if isinstance(value, str):
+            embed_dic[key] = _replace_values(value, user)
+        elif isinstance(value, list):
+            item = []
+            for i in value:
+                item.append(_loop_dict(i, user))
+            embed_dic[key] = item
+        elif isinstance(value, dict):
+            embed_dic[key] = _loop_dict(value, user)
+
+    return embed_dic
+
+
+def _insert_info(
+    target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
+    embed: discord.Embed | str,
+):
+    if not isinstance(target, discord.ApplicationContext) and not isinstance(
+        target, discord.Interaction
+    ):
+        return embed
+
+    if isinstance(embed, discord.Embed):
+        embed = embed.to_dict()
+    embed_dic = _loop_dict(embed, target.user)
+
+    if isinstance(embed, dict):
+        return discord.Embed.from_dict(embed_dic)
+
+    return embed_dic
+
+
 async def _process_message(
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     embed: discord.Embed | str,
@@ -135,6 +180,8 @@ async def _process_message(
             embed.title = title
     elif isinstance(embed, str) and embed == "":
         embed = txt
+
+    embed = _insert_info(target, embed)
 
     await _send_embed(target, embed, ephemeral, **kwargs)
 

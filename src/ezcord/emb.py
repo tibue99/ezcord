@@ -39,6 +39,22 @@ def set_embed_templates(
     If you pass a string, error messages will be sent as a text instead of an embed.
     If the string is empty, the text will be taken from template methods.
 
+    .. note::
+        You can use the following variables for embed templates. They will automatically
+        be replaced when the template is sent to an interaction.
+
+        - ``{user}`` - The user who initiated the interaction
+        - ``{username}`` - The name of the user
+        - ``{user_mention}`` - The user mention
+        - ``{user_id}`` - The ID of the user
+        - ``{user_avatar}`` - The URL of the user's avatar
+
+        Server variables will be replaced with information about the bot if the interaction
+        was initiated in DMs.
+
+        - ``{servername}`` - The guild where the interaction was initiated
+        - ``{server_icon}`` - The URL of the guild's icon
+
     Parameters
     ----------
     error_embed:
@@ -120,7 +136,7 @@ def _replace_values(s: str, interaction: discord.Interaction) -> str:
     if interaction.guild:
         s = s.replace("{servername}", interaction.guild.name)
     else:
-        s = s.replace("{servername}", "DM")
+        s = s.replace("{servername}", interaction.client.user.name)
 
     if interaction.guild and interaction.guild.icon:
         s = s.replace("{server_icon}", interaction.guild.icon.url)

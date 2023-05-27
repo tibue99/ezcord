@@ -66,5 +66,6 @@ def replace_dc_format(string: str, color: str | None = None, file: bool = False)
     else:
         string = replace_second(string, "***", color)  # text that contains multiple other colors
         string = replace_second(string, "**", color)
-    string = re.sub("```.*?```", "", string)  # remove codeblocks
+
+    string = re.sub("```.*?```", "", string, flags=re.DOTALL)  # remove codeblocks
     return string

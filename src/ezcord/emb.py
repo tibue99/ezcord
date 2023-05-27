@@ -190,7 +190,7 @@ def _insert_info(
 async def _process_message(
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     embed: discord.Embed | str,
-    txt: str,
+    txt: str | None,
     title: str | None,
     ephemeral: bool,
     **kwargs,
@@ -210,7 +210,8 @@ async def _process_message(
     """
     if isinstance(embed, discord.Embed):
         embed = copy.deepcopy(embed)
-        embed.description = txt
+        if txt is not None:
+            embed.description = txt
         if title is not None:
             embed.title = title
     elif isinstance(embed, str) and embed == "":
@@ -224,7 +225,7 @@ async def _process_message(
 @copy_kwargs(discord.InteractionResponse.send_message)
 async def error(
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
-    txt: str,
+    txt: str | None = None,
     *,
     title: str | None = None,
     ephemeral: bool = True,
@@ -237,7 +238,8 @@ async def error(
     target:
         The target to send the message to.
     txt:
-        The text for the embed description.
+        The text for the embed description. If this is ``None``,
+        you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
     title:
         The title of the embed. Defaults to ``None``.
     ephemeral:
@@ -250,7 +252,7 @@ async def error(
 @copy_kwargs(discord.abc.Messageable.send)
 async def success(
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
-    txt: str,
+    txt: str | None = None,
     *,
     title: str | None = None,
     ephemeral: bool = True,
@@ -263,7 +265,8 @@ async def success(
     target:
         The target to send the message to.
     txt:
-        The text for the embed description.
+        The text for the embed description. If this is ``None``,
+        you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
     title:
         The title of the embed. Defaults to ``None``.
     ephemeral:
@@ -276,7 +279,7 @@ async def success(
 @copy_kwargs(discord.abc.Messageable.send)
 async def warn(
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
-    txt: str,
+    txt: str | None = None,
     *,
     title: str | None = None,
     ephemeral: bool = True,
@@ -289,7 +292,8 @@ async def warn(
     target:
         The target to send the message to.
     txt:
-        The text for the embed description.
+        The text for the embed description. If this is ``None``,
+        you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
     title:
         The title of the embed. Defaults to ``None``.
     ephemeral:
@@ -302,7 +306,7 @@ async def warn(
 @copy_kwargs(discord.abc.Messageable.send)
 async def info(
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
-    txt: str,
+    txt: str | None = None,
     *,
     title: str | None = None,
     ephemeral: bool = True,
@@ -315,7 +319,8 @@ async def info(
     target:
         The target to send the message to.
     txt:
-        The text to send.
+        The text for the embed description. If this is ``None``,
+        you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
     title:
         The title of the embed. Defaults to ``None``.
     ephemeral:
@@ -329,7 +334,7 @@ async def info(
 async def send(
     template: str,
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
-    txt: str,
+    txt: str | None = None,
     *,
     title: str | None = None,
     ephemeral: bool = True,
@@ -344,7 +349,8 @@ async def send(
     target:
         The target to send the message to.
     txt:
-        The text to send.
+        The text for the embed description. If this is ``None``,
+        you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
     title:
         The title of the embed. Defaults to ``None``.
     ephemeral:

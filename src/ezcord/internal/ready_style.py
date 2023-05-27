@@ -1,5 +1,7 @@
 """Utility functions for the ready event."""
 
+from __future__ import annotations
+
 from itertools import cycle, islice
 
 import discord

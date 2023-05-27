@@ -107,30 +107,43 @@ async def _send_embed(
         await target.send(content=content, embed=embed, **kwargs)
 
 
-def _replace_values(s: str, user: discord.User | discord.Member) -> str:
+def _replace_values(s: str, interaction: discord.Interaction) -> str:
+    user = interaction.user
+    s = s.replace("{user}", f"{user}")
     s = s.replace("{username}", user.name)
     s = s.replace("{user_mention}", user.mention)
-    s = s.replace("{user_id}", str(user.id))
+    s = s.replace("{user_id}", f"{user.id}")
     s = s.replace("{user_avatar}", user.display_avatar.url)
+
+    if interaction.guild:
+        s = s.replace("{servername}", interaction.guild.name)
+    else:
+        s = s.replace("{servername}", "DM")
+
+    if interaction.guild and interaction.guild.icon:
+        s = s.replace("{server_icon}", interaction.guild.icon.url)
+    else:
+        s = s.replace("{server_icon}", interaction.client.user.display_avatar.url)
+
     return s
 
 
-def _loop_dict(embed_dic: dict | str, user: discord.User | discord.Member) -> dict | str:
-    if isinstance(embed_dic, str):
-        return _replace_values(embed_dic, user)
+def _loop_object(content: dict | str, interaction: discord.Interaction) -> dict | str:
+    if isinstance(content, str):
+        return _replace_values(content, interaction)
 
-    for key, value in embed_dic.items():
+    for key, value in content.items():
         if isinstance(value, str):
-            embed_dic[key] = _replace_values(value, user)
+            content[key] = _replace_values(value, interaction)
         elif isinstance(value, list):
-            item = []
-            for i in value:
-                item.append(_loop_dict(i, user))
-            embed_dic[key] = item
+            items = []
+            for element in value:
+                items.append(_loop_object(element, interaction))
+            content[key] = items
         elif isinstance(value, dict):
-            embed_dic[key] = _loop_dict(value, user)
+            content[key] = _loop_object(value, interaction)
 
-    return embed_dic
+    return content
 
 
 def _insert_info(
@@ -142,9 +155,13 @@ def _insert_info(
     ):
         return embed
 
+    interaction = target
+    if isinstance(target, discord.ApplicationContext):
+        interaction = target.interaction
+
     if isinstance(embed, discord.Embed):
         embed = embed.to_dict()
-    embed_dic = _loop_dict(embed, target.user)
+    embed_dic = _loop_object(embed, interaction)
 
     if isinstance(embed, dict):
         return discord.Embed.from_dict(embed_dic)

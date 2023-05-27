@@ -16,6 +16,8 @@ Example
 
 from __future__ import annotations
 
+import copy
+
 import discord
 
 from .internal import copy_kwargs, load_embed, save_embeds
@@ -191,7 +193,7 @@ async def _process_message(
         Whether the message should be ephemeral.
     """
     if isinstance(embed, discord.Embed):
-        embed = embed.copy()
+        embed = copy.deepcopy(embed)
         embed.description = txt
         if title is not None:
             embed.title = title

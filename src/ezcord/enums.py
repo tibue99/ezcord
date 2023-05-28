@@ -34,8 +34,29 @@ class TimeFormat(str, Enum):
         return self.value
 
 
+class CogLog(str, Enum):
+    """Presets for log messages in :meth:`.Bot.load_cogs`.
+
+    - ``{cog}`` is the name of the cog.
+    - ``{directory}`` is the directory where a cog was loaded from.
+    - ``{path}`` is the path of a cog.
+    - ``{sum}`` is the amount of cogs that were loaded.
+
+    If ``{sum}`` is used, no other variables except ``{directory}`` can be used.
+    """
+
+    default = "Loaded **{cog}**"
+    no_color = "Loaded {cog}"
+    sum = "Loaded {sum} cogs"
+    directory_sum = "Loaded {sum} cogs from {directory}"
+    path = "Loaded {path}"
+
+    def __str__(self):
+        return self.name
+
+
 class ReadyEvent(Enum):
-    """Styles for the ready event."""
+    """Styles for the ready event. This can be used in :class:`.Bot`."""
 
     box = 0
     box_colorful = 1

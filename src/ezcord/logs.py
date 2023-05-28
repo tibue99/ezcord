@@ -27,7 +27,7 @@ log = logging.getLogger(DEFAULT_LOG)
 
 
 def custom_log(
-    key: str, message: str, *, color: str | bool = DEFAULT_COLOR, level: int = logging.INFO
+    key: str, message: str, *, color: str | None = DEFAULT_COLOR, level: int = logging.INFO
 ):
     """Log a message with a custom log level.
 

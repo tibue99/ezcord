@@ -10,7 +10,7 @@ import discord
 from discord.ext import bridge, commands
 
 from .emb import error as error_emb
-from .enums import ReadyEvent
+from .enums import CogLog, ReadyEvent
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .times import dc_timestamp
 
@@ -102,21 +102,74 @@ class Bot(discord.Bot):
         if ready_event:
             self.add_listener(self._ready_event, "on_ready")
 
-    def _cog_log(self, name: str, custom_logs: bool | str):
-        """Sends a log message for a loaded cog."""
-        if custom_logs:
-            custom_log("COG", f"Loaded {name}", color=custom_logs, level=logging.INFO)
+    def _send_cog_log(
+        self,
+        custom_log_level: str | None,
+        log_format: str,
+        color: str | None,
+    ):
+        if custom_log_level:
+            custom_log(custom_log_level, log_format, color=color, level=logging.INFO)
         else:
-            self.logger.info(f"Loaded {name}")
+            self.logger.info(log_format)
+
+    def _cog_log(
+        self,
+        cog_name: str,
+        custom_log_level: str | None,
+        log_format: CogLog | str | None,
+        directory: str,
+        color: str | None = None,
+        subdir: bool = False,
+    ):
+        """Sends a log message for a loaded cog."""
+
+        if not log_format or "{sum}" in log_format:
+            return
+
+        log_format = log_format.replace("{cog}", cog_name)
+        log_format = log_format.replace("{path}", f"{directory}.{cog_name}" if subdir else cog_name)
+        log_format = log_format.replace("{directory}", f"{directory}")
+
+        self._send_cog_log(custom_log_level, log_format, color=color)
+
+    def _cog_count_log(
+        self,
+        custom_log_level: str | None,
+        log_format: CogLog | str | None,
+        count: int,
+        color: str | None = None,
+        directory: str | None = None,
+    ):
+        """Sends a log message for the number of loaded cogs in a directory or in total."""
+
+        if not log_format or "{cog}" in log_format or "{path}" in log_format:
+            return
+        if directory and "{directory}" not in log_format:
+            return
+        if count == 0:
+            return
+        if count == 1:
+            log_format = log_format.replace("cogs", "cog")
+
+        if directory and "{sum}" in log_format and "{directory}" in log_format:
+            log_format = log_format.replace("{sum}", str(count))
+            log_format = log_format.replace("{directory}", directory)
+        elif not directory and "{sum}" in log_format and "{directory}" not in log_format:
+            log_format = log_format.replace("{sum}", str(count))
+        else:
+            return
+
+        self._send_cog_log(custom_log_level, log_format, color=color)
 
     def load_cogs(
         self,
         *directories: str,
         subdirectories: bool = False,
         ignored_cogs: list[str] | None = None,
-        log: bool = True,
-        custom_logs: bool | str = True,
-        log_directories: bool = False,
+        log: CogLog | str | None = CogLog.default,
+        custom_log_level: str | None = "COG",
+        log_color: str | None = None,
     ):
         """Load all cogs in the given directories.
 
@@ -131,41 +184,54 @@ class Bot(discord.Bot):
         ignored_cogs:
             A list of cogs to ignore. Defaults to ``None``.
         log:
-            Whether to log the loaded cogs. Defaults to ``True``.
-        custom_logs:
-            Whether to use a custom log format for cogs. Defaults to ``True``.
-            You can also pass in a custom color.
-        log_directories:
-            Whether to include the directory name in log messages. Defaults to ``False``.
+            The log format for cogs. Defaults to :attr:`.CogLog.default`.
+            If this is ``None``, logs will be disabled.
+        custom_log_level:
+            The name of the custom log level for cogs. Defaults to ``COG``.
+        log_color:
+            The color to use for cog logs. This will only have an effect if ``custom_log_level`` is enabled.
+            If this is ``None``, a default color will be used.
         """
         ignored_cogs = ignored_cogs or []
         if not directories:
             directories = ("cogs",)
 
+        loaded_cogs = 0
         for directory in directories:
             path = Path(directory)
 
+            loaded_root_cogs = 0
             for filename in os.listdir(directory):
                 name = filename[:-3]
                 if filename.endswith(".py") and name not in ignored_cogs:
                     self.load_extension(f"{'.'.join(path.parts)}.{name}")
-                    if not log:
-                        continue
-                    self._cog_log(f"{name}", custom_logs)
+                    loaded_root_cogs += 1
+                    self._cog_log(f"{name}", custom_log_level, log, directory, log_color)
+
+            loaded_cogs += loaded_root_cogs
+            self._cog_count_log(custom_log_level, log, loaded_root_cogs, log_color, directory)
 
             if subdirectories:
                 for element in os.scandir(directory):
                     if not element.is_dir():
                         continue
 
+                    loaded_dir_cogs = 0
+                    dirname = element.name
+
                     for sub_file in os.scandir(element.path):
                         name = sub_file.name[:-3]
                         if sub_file.name.endswith(".py") and name not in ignored_cogs:
-                            self.load_extension(f"{'.'.join(path.parts)}.{element.name}.{name}")
-                            dirname = f"{element.name}." if log_directories else ""
-                            if not log:
-                                continue
-                            self._cog_log(f"{dirname}{name}", custom_logs)
+                            self.load_extension(f"{'.'.join(path.parts)}.{dirname}.{name}")
+                            loaded_dir_cogs += 1
+                            self._cog_log(
+                                f"{name}", custom_log_level, log, dirname, log_color, subdir=True
+                            )
+
+                    self._cog_count_log(custom_log_level, log, loaded_dir_cogs, log_color, dirname)
+                    loaded_cogs += loaded_dir_cogs
+
+        self._cog_count_log(custom_log_level, log, loaded_cogs, log_color)
 
     def ready(
         self,

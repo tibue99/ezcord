@@ -16,7 +16,7 @@ DEFAULT_LOG_COLORS: dict[int, str] = {
 }
 
 
-def get_escape_code(color_string: str | bool) -> str:
+def get_escape_code(color_string: str | None) -> str:
     """Converts a color string to an ansi escape code using colorama.
 
     If the string already is an escape code, it will be returned.

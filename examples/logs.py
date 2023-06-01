@@ -27,5 +27,6 @@ ezcord.custom_log("CUSTOM", "This is a message with a custom log level")
 bot = ezcord.Bot()
 
 if __name__ == "__main__":
-    bot.load_cogs("cogs", custom_logs="magenta")  # Load all cogs with a custom log color
+    # Load all cogs with a custom log style
+    bot.load_cogs("cogs", log=ezcord.CogLog.default, log_color="green")
     bot.run("TOKEN")  # Replace with your bot token

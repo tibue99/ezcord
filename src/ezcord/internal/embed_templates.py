@@ -62,6 +62,11 @@ def load_embed(name: str) -> Embed | str:
             raise ValueError(f"Embed template '{name}' not found.")
 
 
+def format_error(error: Exception) -> str:
+    txt = "".join(traceback.format_exception(type(error), error, error.__traceback__))
+    return f"\n```py\n{txt[:3500]}```"
+
+
 def get_error_text(
     ctx: discord.ApplicationContext | discord.Interaction,
     error: Exception,
@@ -78,9 +83,8 @@ def get_error_text(
     else:
         location = f"- **Command:** /{ctx.command.qualified_name}"
 
-    error_txt = "".join(traceback.format_exception(type(error), error, error.__traceback__))
     guild_txt = f"\n- **Guild:** {ctx.guild.name} - `{ctx.guild.id}`" if ctx.guild else ""
     user_txt = f"\n- **User:** {ctx.user} - `{ctx.user.id}`" if ctx.user else ""
 
-    description = location + guild_txt + user_txt + f"\n```py\n{error_txt[:3500]}```"
+    description = location + guild_txt + user_txt + format_error(error)
     return description

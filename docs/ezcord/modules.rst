@@ -12,3 +12,4 @@ Here is an overview of all features.
    logs
    enums
    components
+   sql

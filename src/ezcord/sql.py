@@ -12,10 +12,20 @@ class DBHandler:
     Parameters
     ----------
     path:
-        The path to the database file."""
+        The path to the database file.
+    """
 
     def __init__(self, path: str):
         self.DB = path
+
+    @staticmethod
+    def _process_args(args) -> tuple:
+        """If SQL query parameters are passed as a tuple instead of single values,
+        the tuple will be unpacked.
+        """
+        if len(args) == 1 and isinstance(args, tuple):
+            return args[0]
+        return args
 
     async def one(self, sql: str, *args, **kwargs) -> tuple | None | Any:
         """Returns one result row. If no row is found, ``None`` is returned.
@@ -31,6 +41,7 @@ class DBHandler:
         **kwargs:
             Keyword arguments for the connection.
         """
+        args = self._process_args(args)
         async with aiosqlite.connect(self.DB, **kwargs) as db:
             async with db.execute(sql, args) as cursor:
                 result = await cursor.fetchone()
@@ -54,6 +65,7 @@ class DBHandler:
         **kwargs:
             Keyword arguments for the connection.
         """
+        args = self._process_args(args)
         async with aiosqlite.connect(self.DB, **kwargs) as db:
             async with db.execute(sql, args) as cursor:
                 result = await cursor.fetchall()
@@ -75,6 +87,7 @@ class DBHandler:
         **kwargs:
             Keyword arguments for the connection.
         """
+        args = self._process_args(args)
         async with aiosqlite.connect(self.DB, **kwargs) as db:
             async with db.execute(sql, args) as cursor:
                 async for row in cursor:
@@ -92,6 +105,7 @@ class DBHandler:
         **kwargs:
             Keyword arguments for the connection.
         """
+        args = self._process_args(args)
         async with aiosqlite.connect(self.DB, **kwargs) as db:
             await db.execute(sql, args)
             await db.commit()

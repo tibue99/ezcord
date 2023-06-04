@@ -3,7 +3,7 @@ __author__ = "tibue99"
 __license__ = "MIT"
 __version__ = "0.2.2"
 
-from . import components, emb, logs, times, utils
+from . import components, emb, logs, sql, times, utils
 from .bot import Bot, BridgeBot, PrefixBot
 from .components import *
 from .emb import *

@@ -43,6 +43,8 @@ class DBHandler:
     async def all(self, sql: str, *args, **kwargs) -> list[tuple]:
         """Returns all result rows.
 
+        If the query returns only one column, the values of that column are returned.
+
         Parameters
         ----------
         sql:
@@ -54,10 +56,15 @@ class DBHandler:
         """
         async with aiosqlite.connect(self.DB, **kwargs) as db:
             async with db.execute(sql, args) as cursor:
-                return await cursor.fetchall()
+                result = await cursor.fetchall()
+            if len(result) == 0 or len(result[0]) == 1:
+                return [row[0] for row in result]
+            return result
 
     async def getall(self, sql: str, *args, **kwargs) -> AsyncIterator:
         """Returns an :class:`~collections.abc.AsyncIterator` that yields all result rows.
+
+        If the query returns only one column, the values of that column are returned.
 
         Parameters
         ----------
@@ -71,7 +78,7 @@ class DBHandler:
         async with aiosqlite.connect(self.DB, **kwargs) as db:
             async with db.execute(sql, args) as cursor:
                 async for row in cursor:
-                    yield row
+                    yield row if len(row) > 1 else row[0]
 
     async def exec(self, sql: str, *args, **kwargs) -> None:
         """Executes a SQL query.

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from typing import Any
 
 import aiosqlite
 
@@ -27,7 +26,7 @@ class DBHandler:
             return args[0]
         return args
 
-    async def one(self, sql: str, *args, **kwargs) -> tuple | None | Any:
+    async def one(self, sql: str, *args, **kwargs):
         """Returns one result row. If no row is found, ``None`` is returned.
 
         If the query returns only one column, the value of that column is returned.
@@ -40,6 +39,10 @@ class DBHandler:
             The arguments to pass to the query.
         **kwargs:
             Keyword arguments for the connection.
+
+        Returns
+        -------
+        The result row or ``None``. A result row is either a tuple or a single value.
         """
         args = self._process_args(args)
         async with aiosqlite.connect(self.DB, **kwargs) as db:
@@ -51,7 +54,7 @@ class DBHandler:
                     return result[0]
                 return result
 
-    async def all(self, sql: str, *args, **kwargs) -> list[tuple]:
+    async def all(self, sql: str, *args, **kwargs) -> list:
         """Returns all result rows.
 
         If the query returns only one column, the values of that column are returned.
@@ -64,6 +67,10 @@ class DBHandler:
             The arguments to pass to the query.
         **kwargs:
             Keyword arguments for the connection.
+
+        Returns
+        -------
+        A list of result rows. A result row is either a tuple or a single value.
         """
         args = self._process_args(args)
         async with aiosqlite.connect(self.DB, **kwargs) as db:

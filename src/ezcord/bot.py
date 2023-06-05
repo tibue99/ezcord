@@ -375,3 +375,25 @@ class BridgeBot(Bot, bridge.Bot):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+class _CogMeta(discord.cog.CogMeta):
+    """A metaclass for cogs that adds an ``emoji`` attribute."""
+
+    def __new__(cls, *args, **kwargs) -> discord.cog.CogMeta:
+        name, bases, attrs = args
+        attrs["emoji"] = kwargs.pop("emoji", None)
+        return super().__new__(cls, *args, **kwargs)
+
+
+class Cog(commands.Cog, metaclass=_CogMeta):
+    """This can be used as a base class for all cogs.
+
+    Parameters
+    ----------
+    bot:
+        The bot instance.
+    """
+
+    def __init__(self, bot: Bot) -> None:
+        self.bot = bot

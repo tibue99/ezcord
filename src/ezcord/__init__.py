@@ -4,7 +4,7 @@ __license__ = "MIT"
 __version__ = "0.2.2"
 
 from . import components, emb, logs, sql, times, utils
-from .bot import Bot, BridgeBot, PrefixBot
+from .bot import *
 from .components import *
 from .emb import *
 from .enums import *

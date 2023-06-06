@@ -245,7 +245,7 @@ class Bot(discord.Bot):
         position: int | None = None,
         color: str | None = None,
     ):
-        """Add a ready message info.
+        """Adds an information to the ``on_ready`` message.
 
         Parameters
         ----------
@@ -261,7 +261,7 @@ class Bot(discord.Bot):
         self.ready_event_adds[name] = {"value": value, "position": position, "color": color}
 
     def remove_ready_info(self, *elements: str | int):
-        """Remove a ready message info.
+        """Removes an information from the ``on_ready`` message.
 
         Parameters
         ----------

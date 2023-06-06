@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from itertools import cycle, islice
 
 import discord
@@ -35,50 +36,89 @@ READY_TITLE: str = f"Bot is online with EzCord {__version__}"
 DEFAULT_COLORS: list[str] = [Fore.CYAN, Fore.MAGENTA, Fore.YELLOW, Fore.GREEN, Fore.BLUE, Fore.RED]
 
 
-def get_default_info(bot: discord.Bot):
+def get_default_info(bot: discord.Bot) -> list[tuple[str, str]]:
     cmds = [
         cmd for cmd in bot.walk_application_commands() if type(cmd) != discord.SlashCommandGroup
     ]
 
-    infos = {
-        "Bot": f"{bot.user}",
-        "ID": f"{bot.user.id}",
-        "Pycord": discord.__version__,
-        "Commands": f"{len(cmds):,}",
-        "Guilds": f"{len(bot.guilds):,}",
-        "Latency": f"{round(bot.latency * 1000):,}ms",
-    }
+    return [
+        ("Bot", f"{bot.user}"),
+        ("ID", f"{bot.user.id}"),
+        ("Pycord", discord.__version__),
+        ("Commands", f"{len(cmds):,}"),
+        ("Guilds", f"{len(bot.guilds):,}"),
+        ("Latency", f"{round(bot.latency * 1000):,}ms"),
+    ]
 
-    return infos
+
+def modify_info(
+    bot: discord.Bot, modifications: tuple, custom_color_list: list[str] | None = None
+) -> tuple[list[tuple[str, str]], list[str]]:
+    """Add or remove information from the default ready event."""
+
+    infos = get_default_info(bot)
+    additions, deletions = modifications
+    colors = custom_color_list or DEFAULT_COLORS
+
+    for key, settings in additions.items():
+        value, position, color = settings["value"], settings["position"], settings["color"]
+
+        if position is None:
+            position = len(infos)
+
+        infos.insert(position, (key, str(value)))
+        colors.insert(position, get_escape_code(color))
+
+    for key in deletions:
+        if isinstance(key, int):
+            try:
+                infos.pop(key)
+            except IndexError:
+                log.warning(f"Index {key} does not exist and could not be removed.")
+        else:
+            infos = [info for info in infos if info[0] != key]
+
+    return infos, colors
 
 
 def print_custom_ready(
     bot: discord.Bot,
     title: str,
+    modifications: tuple,
     style: ReadyEvent = ReadyEvent.default,
     default_info: bool = True,
     new_info: dict | None = None,
     colors: list[str] | None = None,
 ):
-    infos = get_default_info(bot) if default_info else {}
     colors = list(map(get_escape_code, colors or DEFAULT_COLORS))
+
+    if default_info:
+        infos, colors = modify_info(bot, modifications, colors)
+    else:
+        infos = get_default_info(bot)
 
     if new_info:
         for key, value in new_info.items():
-            infos[str(key)] = str(value)
+            infos.append((str(key), str(value)))
 
-    print_ready(bot, style, infos, title, colors)
+    print_ready(bot, style, OrderedDict(infos), title, colors)
 
 
 def print_ready(
     bot: discord.Bot,
     style: ReadyEvent,
-    infos: dict[str, str] | None = None,
+    infos: OrderedDict | None = None,
     title: str = READY_TITLE,
     colors: list[str] | None = None,
+    *,
+    modifications: tuple | None = None,
 ):
-    infos = infos or get_default_info(bot)
     colors = colors or DEFAULT_COLORS
+    infos = infos or OrderedDict(get_default_info(bot))
+
+    if modifications:
+        infos_list, colors = modify_info(bot, modifications, colors)
+        infos = OrderedDict(infos_list)
 
     info_count = len(infos.items())
     colors = list(islice(cycle(colors), info_count))

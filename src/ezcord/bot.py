@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from pathlib import Path
@@ -102,6 +103,9 @@ class Bot(discord.Bot):
         self.ready_event = ready_event
         if ready_event:
             self.add_listener(self._ready_event, "on_ready")
+
+        self.ready_event_adds: dict = {}
+        self.ready_event_removes: list[int | str] = []
 
     def _send_cog_log(
         self,
@@ -234,6 +238,38 @@ class Bot(discord.Bot):
 
         self._cog_count_log(custom_log_level, log, loaded_cogs, log_color)
 
+    def add_ready_info(
+        self,
+        name: str,
+        value: str | int,
+        position: int | None = None,
+        color: str | None = None,
+    ):
+        """Add a ready message info.
+
+        Parameters
+        ----------
+        name:
+            The name of the info to add. If this name already exists, the info will be updated.
+        value:
+            The value of the info.
+        position:
+            The position of the info. If this is ``None``, the info will be added at the end.
+        color:
+            The color of the info. If this is ``None``, a default color will be used.
+        """
+        self.ready_event_adds[name] = {"value": value, "position": position, "color": color}
+
+    def remove_ready_info(self, element: str | int):
+        """Remove a ready message info.
+
+        Parameters
+        ----------
+        element:
+            The name or position of the info to remove.
+        """
+        self.ready_event_removes.append(element)
+
     def ready(
         self,
         *,
@@ -254,19 +290,28 @@ class Bot(discord.Bot):
         default_info:
             Whether to include the default information. Defaults to ``True``.
         new_info:
-            A dictionary of information to include in the ready message.
+            A dictionary of additional information to include in the ready message.
             Defaults to ``None``.
+
+            .. note::
+                Information can also be added with :meth:`.add_ready_info` and removed with
+                :meth:`.remove_ready_info`.
         colors:
             A list of colors to use for the ready message. If no colors are given,
             default colors will be used.
 
             Colors can only be used with :attr:`.ReadyEvent.box_colorful` and all table styles.
         """
-        print_custom_ready(self, title, style, default_info, new_info, colors)
+        modifications = self.ready_event_adds, self.ready_event_removes
+        print_custom_ready(self, title, modifications, style, default_info, new_info, colors)
 
     async def _ready_event(self):
         """Prints the bot's information when it's ready."""
-        print_ready(self, self.ready_event)
+        if len(self.ready_event_adds) > 0 or len(self.ready_event_removes) > 0:
+            await asyncio.sleep(0.5)
+
+        modifications = self.ready_event_adds, self.ready_event_removes
+        print_ready(self, self.ready_event, modifications=modifications)
 
     # This requires the following PR to be in a stable Pycord release:
     # https://github.com/Pycord-Development/pycord/pull/1945

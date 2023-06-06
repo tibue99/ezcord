@@ -260,15 +260,16 @@ class Bot(discord.Bot):
         """
         self.ready_event_adds[name] = {"value": value, "position": position, "color": color}
 
-    def remove_ready_info(self, element: str | int):
+    def remove_ready_info(self, *elements: str | int):
         """Remove a ready message info.
 
         Parameters
         ----------
-        element:
-            The name or position of the info to remove.
+        *elements:
+            The names or positions of the infos to remove.
         """
-        self.ready_event_removes.append(element)
+        for element in elements:
+            self.ready_event_removes.append(element)
 
     def ready(
         self,

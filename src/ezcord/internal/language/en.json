@@ -12,5 +12,12 @@
     "cooldown": "Try again {}.",
     "no_perms_title": "Missing permissions",
     "no_perms": "I'm missing the following permissions to execute this command."
+  },
+  "help": {
+    "wrong_user": "This help command does not belong to you!",
+    "placeholder": "\uD83D\uDD30 › Choose a category",
+    "cmd_description": "Show all commands",
+    "embed_title": "My commands",
+    "default_description": "All commands of category **{}**."
   }
 }

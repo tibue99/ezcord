@@ -90,6 +90,7 @@ class Bot(discord.Bot):
             self.logger = logging.getLogger(DEFAULT_LOG)
             self.logger.addHandler(logging.NullHandler())
 
+        self.help: dict = {}
         self.error_handler = error_handler
         self.error_webhook_url = error_webhook_url
         self.ignored_errors = ignored_errors or []
@@ -402,6 +403,26 @@ class Bot(discord.Bot):
 
         return webhook_sent
 
+    def add_help_command(
+        self,
+        embed: discord.Embed | None = None,
+        ephemeral: bool = True,
+    ):
+        """Add a help command that uses a select menu to group commands by cogs.
+
+        If you use :class:`Cog`, you can pass in emojis to use for the select menu.
+
+        Parameters
+        ----------
+        embed:
+            The embed to use for the help command. If this is ``None``, a default
+            embed will be used.
+        ephemeral:
+            Whether the help command should be ephemeral. Defaults to ``False``.
+        """
+        self.load_extension(f".cogs.help", package="src.ezcord")
+        self.help = {"embed": embed, "ephemeral": ephemeral}
+
 
 class PrefixBot(Bot, commands.Bot):
     """A subclass of :class:`discord.ext.commands.Bot` that implements the :class:`Bot` class.
@@ -421,3 +442,25 @@ class BridgeBot(Bot, bridge.Bot):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+class _CogMeta(discord.cog.CogMeta):
+    """A metaclass for cogs that adds an ``emoji`` attribute."""
+
+    def __new__(cls, *args, **kwargs) -> discord.cog.CogMeta:
+        name, bases, attrs = args
+        attrs["emoji"] = kwargs.pop("emoji", None)
+        return super().__new__(cls, *args, **kwargs)
+
+
+class Cog(commands.Cog, metaclass=_CogMeta):
+    """This can be used as a base class for all cogs.
+
+    Parameters
+    ----------
+    bot:
+        The bot instance.
+    """
+
+    def __init__(self, bot: Bot) -> None:
+        self.bot = bot

@@ -89,6 +89,7 @@ class Bot(discord.Bot):
             self.logger = logging.getLogger(DEFAULT_LOG)
             self.logger.addHandler(logging.NullHandler())
 
+        self.help: dict = {}
         self.error_handler = error_handler
         self.error_webhook_url = error_webhook_url
         self.ignored_errors = ignored_errors or []
@@ -355,6 +356,26 @@ class Bot(discord.Bot):
                 webhook_sent = True
 
         return webhook_sent
+
+    def add_help_command(
+        self,
+        embed: discord.Embed | None = None,
+        ephemeral: bool = True,
+    ):
+        """Add a help command that uses a select menu to group commands by cogs.
+
+        If you use :class:`Cog`, you can pass in emojis to use for the select menu.
+
+        Parameters
+        ----------
+        embed:
+            The embed to use for the help command. If this is ``None``, a default
+            embed will be used.
+        ephemeral:
+            Whether the help command should be ephemeral. Defaults to ``False``.
+        """
+        self.load_extension(f".cogs.help", package="src.ezcord")
+        self.help = {"embed": embed, "ephemeral": ephemeral}
 
 
 class PrefixBot(Bot, commands.Bot):

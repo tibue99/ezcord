@@ -109,7 +109,7 @@ class DBHandler:
             return [row[0] for row in result]
         return result
 
-    async def exec(self, sql: str, end: bool = False, *args, **kwargs) -> None:
+    async def exec(self, sql: str, *args, end: bool = False, **kwargs) -> None:
         """Executes a SQL query.
 
         Parameters

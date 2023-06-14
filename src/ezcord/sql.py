@@ -1,21 +1,35 @@
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
-
 import aiosqlite
 
 
 class DBHandler:
-    """A class to handle database connections.
+    """A class that provides helper methods for SQLite databases.
 
     Parameters
     ----------
     path:
         The path to the database file.
+    transaction:
+        Automatically create a new connection that will be used for all transaction queries.
+    connection:
+        A connection to the database. If not provided, a new connection will be created.
+        If ``transaction`` is ``True``, this will be ignored.
+    **kwargs:
+        Keyword arguments for :func:`aiosqlite.connect`.
     """
 
-    def __init__(self, path: str):
+    def __init__(
+        self,
+        path: str,
+        connection: aiosqlite.Connection | None = None,
+        transaction: bool = False,
+        **kwargs,
+    ):
         self.DB = path
+        self.connection = connection
+        self.transaction = transaction
+        self.kwargs = kwargs
 
     @staticmethod
     def _process_args(args) -> tuple:
@@ -25,6 +39,21 @@ class DBHandler:
         if len(args) == 1 and isinstance(args, tuple):
             return args[0]
         return args
+
+    async def _connect(self, **kwargs) -> aiosqlite.Connection:
+        """Connect to an SQLite database. This is useful for transactions."""
+
+        if self.connection is not None:
+            return self.connection
+
+        con_args = {**kwargs, **self.kwargs}
+
+        if self.transaction:
+            self.connection = await aiosqlite.connect(self.DB, **con_args)
+            return self.connection
+
+        db = await aiosqlite.connect(self.DB, **con_args)
+        return db
 
     async def one(self, sql: str, *args, **kwargs):
         """Returns one result row. If no row is found, ``None`` is returned.
@@ -36,7 +65,7 @@ class DBHandler:
         sql:
             The SQL query to execute.
         *args:
-            The arguments to pass to the query.
+            Arguments for the query.
         **kwargs:
             Keyword arguments for the connection.
 
@@ -45,14 +74,14 @@ class DBHandler:
         The result row or ``None``. A result row is either a tuple or a single value.
         """
         args = self._process_args(args)
-        async with aiosqlite.connect(self.DB, **kwargs) as db:
-            async with db.execute(sql, args) as cursor:
-                result = await cursor.fetchone()
-                if result is None:
-                    return None
-                if len(result) == 1:
-                    return result[0]
-                return result
+        db = await self._connect(**kwargs)
+        async with db.execute(sql, args) as cursor:
+            result = await cursor.fetchone()
+            if result is None:
+                return None
+            if len(result) == 1:
+                return result[0]
+            return result
 
     async def all(self, sql: str, *args, **kwargs) -> list:
         """Returns all result rows.
@@ -64,7 +93,7 @@ class DBHandler:
         sql:
             The SQL query to execute.
         *args:
-            The arguments to pass to the query.
+            Arguments for the query.
         **kwargs:
             Keyword arguments for the connection.
 
@@ -73,46 +102,30 @@ class DBHandler:
         A list of result rows. A result row is either a tuple or a single value.
         """
         args = self._process_args(args)
-        async with aiosqlite.connect(self.DB, **kwargs) as db:
-            async with db.execute(sql, args) as cursor:
-                result = await cursor.fetchall()
-            if len(result) == 0 or len(result[0]) == 1:
-                return [row[0] for row in result]
-            return result
+        db = await self._connect(**kwargs)
+        async with db.execute(sql, args) as cursor:
+            result = await cursor.fetchall()
+        if len(result) == 0 or len(result[0]) == 1:
+            return [row[0] for row in result]
+        return result
 
-    async def getall(self, sql: str, *args, **kwargs) -> AsyncIterator:
-        """Returns an :class:`~collections.abc.AsyncIterator` that yields all result rows.
-
-        If the query returns only one column, the values of that column are returned.
-
-        Parameters
-        ----------
-        sql:
-            The SQL query to execute.
-        *args:
-            The arguments to pass to the query.
-        **kwargs:
-            Keyword arguments for the connection.
-        """
-        args = self._process_args(args)
-        async with aiosqlite.connect(self.DB, **kwargs) as db:
-            async with db.execute(sql, args) as cursor:
-                async for row in cursor:
-                    yield row if len(row) > 1 else row[0]
-
-    async def exec(self, sql: str, *args, **kwargs) -> None:
+    async def exec(self, sql: str, end: bool = False, *args, **kwargs) -> None:
         """Executes a SQL query.
 
         Parameters
         ----------
         sql:
             The SQL query to execute.
+        end:
+            Whether to commit and close the connection after executing the query.
         *args:
-            The arguments to pass to the query.
+            Arguments for the query.
         **kwargs:
             Keyword arguments for the connection.
         """
         args = self._process_args(args)
-        async with aiosqlite.connect(self.DB, **kwargs) as db:
-            await db.execute(sql, args)
+        db = await self._connect(**kwargs)
+        await db.execute(sql, args)
+        if end or not self.connection:
             await db.commit()
+            await db.close()

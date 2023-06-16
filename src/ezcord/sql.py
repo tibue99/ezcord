@@ -41,6 +41,13 @@ class DBHandler:
             return args[0]
         return args
 
+    def start(self):
+        """Returns an instance of :class:`.DBHandler` with the current settings
+        and ``transaction=True``.
+        """
+        cls = type(self)
+        return cls(self.DB, transaction=True, **self.kwargs)
+
     async def _connect(self, **kwargs) -> aiosqlite.Connection:
         """Connect to an SQLite database. This is useful for transactions."""
 

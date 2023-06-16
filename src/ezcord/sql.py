@@ -55,6 +55,11 @@ class DBHandler:
         db = await aiosqlite.connect(self.DB, **con_args)
         return db
 
+    async def close(self):
+        """Close the current connection to the database."""
+        if self.connection is not None:
+            await self.connection.close()
+
     async def one(self, sql: str, *args, **kwargs):
         """Returns one result row. If no row is found, ``None`` is returned.
 
@@ -77,11 +82,13 @@ class DBHandler:
         db = await self._connect(**kwargs)
         async with db.execute(sql, args) as cursor:
             result = await cursor.fetchone()
-            if result is None:
-                return None
-            if len(result) == 1:
-                return result[0]
-            return result
+        if result is None:
+            return None
+        if len(result) == 1:
+            return result[0]
+        if not self.connection:
+            await db.close()
+        return result
 
     async def all(self, sql: str, *args, **kwargs) -> list:
         """Returns all result rows.
@@ -107,6 +114,8 @@ class DBHandler:
             result = await cursor.fetchall()
         if len(result) == 0 or len(result[0]) == 1:
             return [row[0] for row in result]
+        if not self.connection:
+            await db.close()
         return result
 
     async def exec(self, sql: str, *args, end: bool = False, **kwargs) -> None:

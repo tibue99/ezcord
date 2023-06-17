@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from copy import deepcopy
+
 import aiosqlite
 
 
@@ -45,8 +47,9 @@ class DBHandler:
         """Returns an instance of :class:`.DBHandler` with the current settings
         and ``transaction=True``.
         """
-        cls = type(self)
-        return cls(self.DB, transaction=True, **self.kwargs)
+        cls = deepcopy(self)
+        cls.transaction = True
+        return cls
 
     async def _connect(self, **kwargs) -> aiosqlite.Connection:
         """Connect to an SQLite database. This is useful for transactions."""

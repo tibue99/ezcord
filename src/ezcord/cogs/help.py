@@ -25,8 +25,8 @@ def get_group(cog: Cog) -> str | None:
     return None
 
 
-class Help(Cog, command_attrs=dict(hidden=True)):
-    @slash_command(name="help", description=t("cmd_description"), hidden=True)
+class Help(Cog, hidden=True):
+    @slash_command(name="help", description=t("cmd_description"))
     async def help(self, ctx):
         embed = self.bot.help["embed"]
         if embed is None:
@@ -35,6 +35,9 @@ class Help(Cog, command_attrs=dict(hidden=True)):
         options = []
         commands = {}
         for name, cog in self.bot.cogs.items():
+            if hasattr(cog, "hidden") and cog.hidden:
+                continue
+
             group = get_group(cog)
             name = group if group else name
             name = name.title()
@@ -43,7 +46,7 @@ class Help(Cog, command_attrs=dict(hidden=True)):
             if "cmds" not in commands[name]:
                 commands[name]["cmds"] = []
 
-            if len(cog.get_commands()) == 0 or cog == self:
+            if len(cog.get_commands()) == 0:
                 continue
 
             emoji = get_emoji(cog)

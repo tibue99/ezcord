@@ -460,6 +460,7 @@ class _CogMeta(discord.cog.CogMeta):
         name, bases, attrs = args
         attrs["emoji"] = kwargs.pop("emoji", None)
         attrs["group"] = kwargs.pop("group", None)
+        attrs["hidden"] = kwargs.pop("hidden", False)
         return super().__new__(cls, *args, **kwargs)
 
 

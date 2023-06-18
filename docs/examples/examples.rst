@@ -10,7 +10,8 @@ Feel free to choose an example below. On this page, you can see an example for t
    embeds
    languages
    ready_event
-
+   aiosqlite
+   help_cmd
 
 Main Example
 ------------

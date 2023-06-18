@@ -103,6 +103,7 @@ class Bot(discord.Bot):
         self.ready_event = ready_event
         if ready_event:
             self.add_listener(self._ready_event, "on_ready")
+        self.add_listener(self._check_cog_groups, "on_ready")
 
         self.ready_event_adds: dict = {}
         self.ready_event_removes: list[int | str] = []
@@ -313,6 +314,15 @@ class Bot(discord.Bot):
 
         modifications = self.ready_event_adds, self.ready_event_removes
         print_ready(self, self.ready_event, modifications=modifications)
+
+    async def _check_cog_groups(self):
+        """Checks if all cog groups are valid."""
+        for cog in self.cogs.values():
+            if hasattr(cog, "group") and cog.group:
+                if cog.group not in self.cogs.keys():
+                    self.logger.warning(
+                        f"The cog group '{cog.group}' for cog '{cog.qualified_name}' does not exist."
+                    )
 
     # This requires the following PR to be in a stable Pycord release:
     # https://github.com/Pycord-Development/pycord/pull/1945

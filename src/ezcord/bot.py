@@ -23,7 +23,6 @@ from .internal import (  # isort: skip
     set_lang,
     t,
     get_error_text,
-    format_error,
 )
 
 
@@ -450,6 +449,7 @@ class _CogMeta(discord.cog.CogMeta):
     def __new__(cls, *args, **kwargs) -> discord.cog.CogMeta:
         name, bases, attrs = args
         attrs["emoji"] = kwargs.pop("emoji", None)
+        attrs["group"] = kwargs.pop("group", None)
         return super().__new__(cls, *args, **kwargs)
 
 

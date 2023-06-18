@@ -11,7 +11,7 @@ import discord
 from discord.ext import bridge, commands
 
 from .emb import error as error_emb
-from .enums import CogLog, ReadyEvent
+from .enums import CogLog, HelpStyle, ReadyEvent
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .times import dc_timestamp
 
@@ -414,7 +414,10 @@ class Bot(discord.Bot):
 
     def add_help_command(
         self,
+        *,
+        style: HelpStyle = HelpStyle.embed_description,
         embed: discord.Embed | None = None,
+        show_categories: bool = True,
         ephemeral: bool = True,
     ):
         """Add a help command that uses a select menu to group commands by cogs.
@@ -423,14 +426,23 @@ class Bot(discord.Bot):
 
         Parameters
         ----------
+        style:
+            The style to use for the help command. Defaults to :attr:`.HelpStyle.default`.
         embed:
             The embed to use for the help command. If this is ``None``, a default
             embed will be used.
+        show_categories:
+            Whether to display the categories of the help command front page. Defaults to ``True``.
         ephemeral:
             Whether the help command should be ephemeral. Defaults to ``False``.
         """
         self.load_extension(f".cogs.help", package="src.ezcord")
-        self.help = {"embed": embed, "ephemeral": ephemeral}
+        self.help = {
+            "style": style,
+            "embed": embed,
+            "show_categories": show_categories,
+            "ephemeral": ephemeral,
+        }
 
 
 class PrefixBot(Bot, commands.Bot):

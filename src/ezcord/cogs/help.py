@@ -7,7 +7,9 @@ from discord.commands import slash_command
 
 from ..bot import Bot, Cog
 from ..components import EzView
+from ..enums import HelpStyle
 from ..internal import t
+from ..logs import log
 
 
 def get_emoji(cog: Cog) -> str:
@@ -68,10 +70,19 @@ class Help(Cog, hidden=True):
                 commands[name]["cmds"].append(command)
 
             if not group:
-                embed.add_field(name=f"{emoji_str or ''}{name}", value=desc, inline=False)
                 option = discord.SelectOption(label=name, emoji=emoji)
                 options.append(option)
+                if self.bot.help["show_categories"]:
+                    embed.add_field(name=f"{emoji_str or ''}{name}", value=desc, inline=False)
 
+        if len(options) == 0:
+            return await ctx.respond(t("no_commands"), ephemeral=True)
+        if len(options) > 25 or len(embed.fields) > 25:
+            log.error(
+                f"Help command category limit reached. Only 25 out of {len(options)} are shown."
+            )
+            options = options[:25]
+            embed.fields = embed.fields[:25]
         view = CategoryView(options, self.bot, ctx.user, commands)
         await ctx.respond(view=view, embed=embed, ephemeral=self.bot.help["ephemeral"])
 
@@ -107,12 +118,51 @@ class CategorySelect(discord.ui.Select):
                 title=f"`{emoji}` - {title}",
                 color=discord.Color.blue(),
             )
-        for command in cmds["cmds"]:
-            embed.add_field(
-                name=f"{command.mention}",
-                value=f"`{command.description}`",
-                inline=False,
-            )
+        embed.clear_fields()
+
+        commands = cmds["cmds"]
+        embed_field_styles = [
+            HelpStyle.embed_fields,
+            HelpStyle.codeblocks_inline,
+            HelpStyle.codeblocks,
+        ]
+        style = self.bot.help["style"]
+        if len(commands) > 25 and style in embed_field_styles:
+            style = HelpStyle.embed_description
+
+        if style == HelpStyle.embed_fields:
+            for command in commands:
+                embed.add_field(
+                    name=f"{command.mention}",
+                    value=f"`{command.description}`",
+                    inline=False,
+                )
+
+        elif style == HelpStyle.codeblocks or style == HelpStyle.codeblocks_inline:
+            for command in commands:
+                embed.add_field(
+                    name=f"{command.mention}",
+                    value=f"```{command.description}```",
+                    inline=style == HelpStyle.codeblocks_inline,
+                )
+
+        elif style == HelpStyle.embed_description:
+            embed.description = ""
+            for command in commands:
+                if len(embed.description) <= 3500:
+                    embed.description += f"{command.mention}\n{command.description}\n\n"
+                else:
+                    log.error("Help embed length limit reached. Some commands are not shown.")
+                    break
+
+        elif style == HelpStyle.markdown:
+            embed.description = ""
+            for command in commands:
+                if len(embed.description) <= 3500:
+                    embed.description += f"### {command.mention}\n{command.description}\n"
+                else:
+                    log.error("Help embed length limit reached. Some commands are not shown.")
+                    break
 
         await interaction.response.edit_message(
             embed=embed, view=CategoryView(self.options, self.bot, self.member, self.commands)

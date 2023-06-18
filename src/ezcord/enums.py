@@ -34,6 +34,21 @@ class TimeFormat(str, Enum):
         return self.value
 
 
+class HelpStyle(Enum):
+    """Presets for the help command used in :func:`.add_help_command`."""
+
+    embed_fields = 0
+    embed_description = 1
+    markdown = 2
+    codeblocks = 3
+    codeblocks_inline = 4
+
+    default = embed_fields
+
+    def __str__(self):
+        return self.name
+
+
 class CogLog(str, Enum):
     """Presets for log messages in :meth:`.Bot.load_cogs`.
 

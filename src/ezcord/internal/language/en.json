@@ -18,6 +18,7 @@
     "placeholder": "\uD83D\uDD30 › Choose a category",
     "cmd_description": "Show all commands",
     "embed_title": "My commands",
-    "default_description": "All commands of category **{}**."
+    "default_description": "All commands of category **{}**.",
+    "no_commands": "Oops, I didn't find any commands."
   }
 }

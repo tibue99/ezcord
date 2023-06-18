@@ -40,7 +40,8 @@ class DBHandler:
         the tuple will be unpacked.
         """
         if len(args) == 1 and isinstance(args, tuple):
-            return args[0]
+            if isinstance(args[0], tuple):
+                return args[0]
         return args
 
     def start(self):

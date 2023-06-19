@@ -60,11 +60,10 @@ class CogLog(str, Enum):
     If ``{sum}`` is used, no other variables except ``{directory}`` can be used.
     """
 
-    default = "Loaded **{cog}**"
-    no_color = "Loaded {cog}"
     sum = "Loaded {sum} cogs"
     directory_sum = "Loaded {sum} cogs from {directory}"
     path = "Loaded {path}"
+    default = "Loaded {cog}"
 
     def __str__(self):
         return self.name

@@ -70,6 +70,7 @@ class DBHandler:
     async def close(self):
         """Close the current connection to the database."""
         if self.connection is not None:
+            await self.connection.commit()
             await self.connection.close()
 
     async def one(self, sql: str, *args, **kwargs):

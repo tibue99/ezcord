@@ -412,6 +412,21 @@ class Bot(discord.Bot):
 
         return webhook_sent
 
+    def get_cmd(self, name: str, bold: bool = True) -> str:
+        """Helper method to get a command mention. Returns a string if the command was not found.
+
+        Parameters
+        ----------
+        name:
+            The name of the command to get.
+        bold:
+            Whether to bold the command name. Defaults to ``True``.
+        """
+        cmd = self.get_application_command(name)
+        if cmd is None:
+            return f"**/{name}**" if bold else f"/{name}"
+        return cmd.mention
+
     def add_help_command(
         self,
         *,

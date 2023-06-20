@@ -309,8 +309,7 @@ class Bot(discord.Bot):
 
     async def _ready_event(self):
         """Prints the bot's information when it's ready."""
-        if len(self.ready_event_adds) > 0 or len(self.ready_event_removes) > 0:
-            await asyncio.sleep(0.5)
+        await asyncio.sleep(0.1)
 
         modifications = self.ready_event_adds, self.ready_event_removes
         print_ready(self, self.ready_event, modifications=modifications)

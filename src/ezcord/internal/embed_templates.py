@@ -88,3 +88,51 @@ def get_error_text(
 
     description = location + guild_txt + user_txt + format_error(error)
     return description
+
+
+def replace_values(s: str, interaction: discord.Interaction) -> str:
+    user = interaction.user
+    s = s.replace("{user}", f"{user}")
+    s = s.replace("{username}", user.name)
+    s = s.replace("{user_mention}", user.mention)
+    s = s.replace("{user_id}", f"{user.id}")
+    s = s.replace("{user_avatar}", user.display_avatar.url)
+
+    if interaction.guild:
+        s = s.replace("{servername}", interaction.guild.name)
+    else:
+        s = s.replace("{servername}", interaction.client.user.name)
+
+    if interaction.guild and interaction.guild.icon:
+        s = s.replace("{server_icon}", interaction.guild.icon.url)
+    else:
+        s = s.replace("{server_icon}", interaction.client.user.display_avatar.url)
+
+    return s
+
+
+def replace_dict(content: dict | str, interaction: discord.Interaction) -> dict | str:
+    """Recursively loop through a dictionary and replace certain values
+    with information from the current interaction.
+    """
+    if isinstance(content, str):
+        return replace_values(content, interaction)
+
+    for key, value in content.items():
+        if isinstance(value, str):
+            content[key] = replace_values(value, interaction)
+        elif isinstance(value, list):
+            items = []
+            for element in value:
+                items.append(replace_dict(element, interaction))
+            content[key] = items
+        elif isinstance(value, dict):
+            content[key] = replace_dict(value, interaction)
+
+    return content
+
+
+def replace_embed_values(embed: discord.Embed, interaction: discord.Interaction):
+    embed_dict = embed.to_dict()
+    embed_dict = replace_dict(embed_dict, interaction)
+    return discord.Embed.from_dict(embed_dict)

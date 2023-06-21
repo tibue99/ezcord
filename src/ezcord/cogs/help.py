@@ -8,7 +8,7 @@ from discord.commands import slash_command
 from ..bot import Bot, Cog
 from ..components import EzView
 from ..enums import HelpStyle
-from ..internal import t
+from ..internal import replace_embed_values, t
 from ..logs import log
 
 
@@ -33,6 +33,8 @@ class Help(Cog, hidden=True):
         embed = self.bot.help["embed"]
         if embed is None:
             embed = discord.Embed(title=t("embed_title"), color=discord.Color.blue())
+        else:
+            embed = replace_embed_values(embed, ctx.interaction)
 
         options = []
         commands = {}
@@ -115,9 +117,11 @@ class CategorySelect(discord.ui.Select):
         embed = self.bot.help["embed"]
         if embed is None:
             embed = discord.Embed(
-                title=f"`{emoji}` - {title}",
                 color=discord.Color.blue(),
             )
+        else:
+            embed = replace_embed_values(embed, interaction)
+        embed.title = f"`{emoji}` - {title}"
         embed.clear_fields()
 
         commands = cmds["cmds"]

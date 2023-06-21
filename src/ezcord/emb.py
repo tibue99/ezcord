@@ -20,7 +20,7 @@ import copy
 
 import discord
 
-from .internal import copy_kwargs, load_embed, save_embeds
+from .internal import copy_kwargs, load_embed, replace_dict, save_embeds
 
 
 def set_embed_templates(
@@ -125,45 +125,6 @@ async def _send_embed(
         await target.send(content=content, embed=embed, **kwargs)
 
 
-def _replace_values(s: str, interaction: discord.Interaction) -> str:
-    user = interaction.user
-    s = s.replace("{user}", f"{user}")
-    s = s.replace("{username}", user.name)
-    s = s.replace("{user_mention}", user.mention)
-    s = s.replace("{user_id}", f"{user.id}")
-    s = s.replace("{user_avatar}", user.display_avatar.url)
-
-    if interaction.guild:
-        s = s.replace("{servername}", interaction.guild.name)
-    else:
-        s = s.replace("{servername}", interaction.client.user.name)
-
-    if interaction.guild and interaction.guild.icon:
-        s = s.replace("{server_icon}", interaction.guild.icon.url)
-    else:
-        s = s.replace("{server_icon}", interaction.client.user.display_avatar.url)
-
-    return s
-
-
-def _loop_object(content: dict | str, interaction: discord.Interaction) -> dict | str:
-    if isinstance(content, str):
-        return _replace_values(content, interaction)
-
-    for key, value in content.items():
-        if isinstance(value, str):
-            content[key] = _replace_values(value, interaction)
-        elif isinstance(value, list):
-            items = []
-            for element in value:
-                items.append(_loop_object(element, interaction))
-            content[key] = items
-        elif isinstance(value, dict):
-            content[key] = _loop_object(value, interaction)
-
-    return content
-
-
 def _insert_info(
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     embed: discord.Embed | str,
@@ -179,7 +140,7 @@ def _insert_info(
 
     if isinstance(embed, discord.Embed):
         embed = embed.to_dict()
-    embed_dic = _loop_object(embed, interaction)
+    embed_dic = replace_dict(embed, interaction)
 
     if isinstance(embed, dict):
         return discord.Embed.from_dict(embed_dic)

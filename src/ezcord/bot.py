@@ -448,9 +448,9 @@ class Bot(discord.Bot):
         show_categories:
             Whether to display the categories of the help command front page. Defaults to ``True``.
         ephemeral:
-            Whether the help command should be ephemeral. Defaults to ``False``.
+            Whether the help command should be ephemeral. Defaults to ``True``.
         """
-        self.load_extension(f".cogs.help", package="src.ezcord")
+        self.load_extension(f".cogs.help", package="ezcord")
         self.help = {
             "style": style,
             "embed": embed,

@@ -432,7 +432,9 @@ class Bot(discord.Bot):
         style: HelpStyle = HelpStyle.embed_description,
         embed: discord.Embed | None = None,
         show_categories: bool = True,
+        timeout: int = 500,
         ephemeral: bool = True,
+        author_only: bool = True,
     ):
         """Add a help command that uses a select menu to group commands by cogs.
 
@@ -447,15 +449,22 @@ class Bot(discord.Bot):
             embed will be used.
         show_categories:
             Whether to display the categories of the help command front page. Defaults to ``True``.
+        timeout:
+            The timeout for the select menu. Defaults to ``500``.
         ephemeral:
             Whether the help command should be ephemeral. Defaults to ``True``.
+        author_only:
+            Whether the help command should only be visible to the author. Defaults to ``True``.
+            This only works if ``ephemeral`` is ``False``.
         """
         self.load_extension(f".cogs.help", package="ezcord")
         self.help = {
             "style": style,
             "embed": embed,
             "show_categories": show_categories,
+            "timeout": timeout,
             "ephemeral": ephemeral,
+            "author_only": author_only,
         }
 
 

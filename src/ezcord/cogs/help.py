@@ -5,8 +5,8 @@ import random
 import discord
 from discord.commands import slash_command
 
+from .. import emb
 from ..bot import Bot, Cog
-from ..components import EzView
 from ..enums import HelpStyle
 from ..internal import replace_embed_values, t
 from ..logs import log
@@ -107,8 +107,8 @@ class CategorySelect(discord.ui.Select):
         self.commands = commands
 
     async def callback(self, interaction: discord.Interaction):
-        if interaction.user != self.member:
-            return await interaction.response.send_message(t("wrong_user"), ephemeral=True)
+        if self.bot.help["author_only"] and interaction.user != self.member:
+            return await emb.error(interaction, t("wrong_user"))
 
         cmds = self.commands[self.values[0]]
         title = self.values[0].title()
@@ -173,7 +173,7 @@ class CategorySelect(discord.ui.Select):
         )
 
 
-class CategoryView(EzView):
+class CategoryView(discord.ui.View):
     def __init__(
         self,
         options: list[discord.SelectOption],
@@ -181,5 +181,5 @@ class CategoryView(EzView):
         member: discord.Member | discord.User,
         commands: dict[str, dict],
     ):
-        super().__init__(timeout=500, disable_on_timeout=True)
+        super().__init__(timeout=bot.help["timeout"], disable_on_timeout=True)
         self.add_item(CategorySelect(options, bot, member, commands))

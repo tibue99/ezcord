@@ -28,8 +28,8 @@ def get_group(cog: Cog) -> str | None:
 
 
 class Help(Cog, hidden=True):
-    @slash_command(name="help", description=t("cmd_description"))
-    async def help(self, ctx):
+    @slash_command(name=t("cmd_name"), description=t("cmd_description"))
+    async def help(self, ctx: discord.ApplicationContext):
         embed = self.bot.help["embed"]
         if embed is None:
             embed = discord.Embed(title=t("embed_title"), color=discord.Color.blue())
@@ -37,7 +37,7 @@ class Help(Cog, hidden=True):
             embed = replace_embed_values(embed, ctx.interaction)
 
         options = []
-        commands = {}
+        commands: dict[str, dict] = {}
         for name, cog in self.bot.cogs.items():
             if hasattr(cog, "hidden") and cog.hidden:
                 continue

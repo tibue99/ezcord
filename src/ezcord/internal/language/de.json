@@ -14,9 +14,10 @@
     "no_perms": "Mir fehlen die folgenden Berechtigungen, um diesen Befehl auszuführen."
   },
   "help": {
+    "cmd_name": "help",
+    "cmd_description": "Zeigt alle Befehle an.",
     "wrong_user": "Dieser Help Command gehört dir nicht.",
     "placeholder": "\uD83D\uDD30 › Wähle eine Kategorie aus",
-    "cmd_description": "Zeigt alle Befehle an.",
     "embed_title": "Meine Befehle",
     "default_description": "Alle Befehle der Kategorie **{}**.",
     "no_commands": "Ups, ich konnte keine Befehle finden."

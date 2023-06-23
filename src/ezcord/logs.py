@@ -321,8 +321,11 @@ def set_log(
     space_after_level = True
     if "%(levelname)s " not in log_format and "%(levelname)s{end} " not in log_format:
         space_after_level = False
-        if space_mode == "never" or space_mode == "auto":
+        if space_mode == "auto":
             level_spacing = 0
+
+    if space_mode == "never":
+        level_spacing = 0
 
     color_formatter = _ColorFormatter(
         file, log_format, time_format, dc_codeblocks, level_spacing, space_after_level, colors

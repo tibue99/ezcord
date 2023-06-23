@@ -90,6 +90,9 @@ def print_custom_ready(
     new_info: dict | None = None,
     colors: list[str] | None = None,
 ):
+    if not bot.user:
+        return log.error("The ready function must be called within the on_ready event.")
+
     colors = list(map(get_escape_code, colors or DEFAULT_COLORS))
 
     if default_info:

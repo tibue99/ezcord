@@ -174,7 +174,8 @@ class _ColorFormatter(logging.Formatter):
             if len(split) > 1:
                 new_record.msg = split[0] + "\n***" + split[1] + "***"
 
-        new_record.msg = replace_dc_format(new_record.msg, current_level_color, self.file)
+        remove_stars = self.file or "{end}" not in self.LOG_FORMAT
+        new_record.msg = replace_dc_format(new_record.msg, current_level_color, remove_stars)
 
         formatter = logging.Formatter(log_format, self.TIME_FORMAT)
         return formatter.format(new_record)

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import traceback
+from copy import deepcopy
 from functools import cache
 from pathlib import Path
 
@@ -133,6 +134,6 @@ def replace_dict(content: dict | str, interaction: discord.Interaction) -> dict 
 
 
 def replace_embed_values(embed: discord.Embed, interaction: discord.Interaction):
-    embed_dict = embed.to_dict()
+    embed_dict = deepcopy(embed).to_dict()
     embed_dict = replace_dict(embed_dict, interaction)
     return discord.Embed.from_dict(embed_dict)

@@ -54,13 +54,15 @@ def remove_escapes(string: str) -> str:
     return re.sub(r"\x1b\[[0-9;]*m", "", string)
 
 
-def replace_dc_format(string: str, color: str | None = None, file: bool = False) -> str:
-    """Replaces Discord markdown with ansi colors."""
+def replace_dc_format(string: str, color: str | None = None, remove_stars: bool = False) -> str:
+    """Replaces Discord markdown with ansi colors.
+    If logs are written to a file or the log message if fully colored, ``remove`` should be ``True``.
+    """
     if color is None:
         color = DEFAULT_COLOR
     color = get_escape_code(color)
 
-    if file:
+    if remove_stars:
         string = string.replace("***", "").replace("**", "")
         string = remove_escapes(string)
     else:

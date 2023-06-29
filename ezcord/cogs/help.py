@@ -28,6 +28,10 @@ def get_group(cog: Cog) -> str | None:
 
 
 class Help(Cog, hidden=True):
+    def __init__(self, bot: Bot):
+        super().__init__(bot)
+        self.help.guild_only = bot.help["guild_only"]
+
     @slash_command(name=t("cmd_name"), description=t("cmd_description"))
     async def help(self, ctx: discord.ApplicationContext):
         embed = self.bot.help["embed"]

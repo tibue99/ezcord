@@ -435,6 +435,7 @@ class Bot(discord.Bot):
         timeout: int = 500,
         ephemeral: bool = True,
         author_only: bool = True,
+        guild_only: bool = True,
     ):
         """Add a help command that uses a select menu to group commands by cogs.
 
@@ -456,8 +457,9 @@ class Bot(discord.Bot):
         author_only:
             Whether the help command should only be visible to the author. Defaults to ``True``.
             This only works if ``ephemeral`` is ``False``.
+        guild_only:
+            Whether the help command should only be visible in guilds. Defaults to ``True``.
         """
-        self.load_extension(f".cogs.help", package="ezcord")
         self.help = {
             "style": style,
             "embed": embed,
@@ -465,7 +467,9 @@ class Bot(discord.Bot):
             "timeout": timeout,
             "ephemeral": ephemeral,
             "author_only": author_only,
+            "guild_only": guild_only,
         }
+        self.load_extension(f".cogs.help", package="ezcord")
 
 
 class PrefixBot(Bot, commands.Bot):

@@ -21,6 +21,7 @@ import copy
 import discord
 
 from .internal import copy_kwargs, load_embed, replace_dict, save_embeds
+from .logs import log
 
 
 def set_embed_templates(
@@ -93,6 +94,7 @@ async def _send_embed(
     target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
     embed: discord.Embed | str,
     ephemeral: bool = True,
+    edit: bool = False,
     **kwargs,
 ):
     """Respond to an interaction or send an embed to a target.
@@ -115,6 +117,13 @@ async def _send_embed(
         embed = None
 
     if isinstance(target, discord.ApplicationContext) or isinstance(target, discord.Interaction):
+        if edit:
+            try:
+                await target.edit(content=content, embed=embed, **kwargs)
+                return
+            except AttributeError:
+                log.error("'edit=True' can only be used with Pycord master branch.")
+
         if not target.response.is_done():
             await target.response.send_message(
                 content=content, embed=embed, ephemeral=ephemeral, **kwargs
@@ -153,22 +162,10 @@ async def _process_message(
     embed: discord.Embed | str,
     txt: str | None,
     title: str | None,
+    edit: bool,
     ephemeral: bool,
     **kwargs,
 ):
-    """Adds embed attributes to the embed before sending it.
-
-    Parameters
-    ----------
-    target:
-        The target to send the message to.
-    txt:
-        The text to send.
-    title:
-        The title of the embed. Defaults to ``None``.
-    ephemeral:
-        Whether the message should be ephemeral.
-    """
     if isinstance(embed, discord.Embed):
         embed = copy.deepcopy(embed)
         if txt is not None:
@@ -180,7 +177,7 @@ async def _process_message(
 
     embed = _insert_info(target, embed)
 
-    await _send_embed(target, embed, ephemeral, **kwargs)
+    await _send_embed(target, embed, ephemeral, edit, **kwargs)
 
 
 @copy_kwargs(discord.InteractionResponse.send_message)
@@ -189,6 +186,7 @@ async def error(
     txt: str | None = None,
     *,
     title: str | None = None,
+    edit: bool = False,
     ephemeral: bool = True,
     **kwargs,
 ):
@@ -203,11 +201,13 @@ async def error(
         you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
     title:
         The title of the embed. Defaults to ``None``.
+    edit:
+        Whether to edit the last message instead of sending a new one. Defaults to ``False``.
     ephemeral:
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("error_embed")
-    await _process_message(target, embed, txt, title, ephemeral, **kwargs)
+    await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
 
 
 @copy_kwargs(discord.abc.Messageable.send)
@@ -216,6 +216,7 @@ async def success(
     txt: str | None = None,
     *,
     title: str | None = None,
+    edit: bool = False,
     ephemeral: bool = True,
     **kwargs,
 ):
@@ -230,11 +231,13 @@ async def success(
         you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
     title:
         The title of the embed. Defaults to ``None``.
+    edit:
+        Whether to edit the last message instead of sending a new one. Defaults to ``False``.
     ephemeral:
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("success_embed")
-    await _process_message(target, embed, txt, title, ephemeral, **kwargs)
+    await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
 
 
 @copy_kwargs(discord.abc.Messageable.send)
@@ -243,6 +246,7 @@ async def warn(
     txt: str | None = None,
     *,
     title: str | None = None,
+    edit: bool = False,
     ephemeral: bool = True,
     **kwargs,
 ):
@@ -257,11 +261,13 @@ async def warn(
         you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
     title:
         The title of the embed. Defaults to ``None``.
+    edit:
+        Whether to edit the last message instead of sending a new one. Defaults to ``False``.
     ephemeral:
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("warn_embed")
-    await _process_message(target, embed, txt, title, ephemeral, **kwargs)
+    await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
 
 
 @copy_kwargs(discord.abc.Messageable.send)
@@ -270,6 +276,7 @@ async def info(
     txt: str | None = None,
     *,
     title: str | None = None,
+    edit: bool = False,
     ephemeral: bool = True,
     **kwargs,
 ):
@@ -284,11 +291,13 @@ async def info(
         you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
     title:
         The title of the embed. Defaults to ``None``.
+    edit:
+        Whether to edit the last message instead of sending a new one. Defaults to ``False``.
     ephemeral:
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("info_embed")
-    await _process_message(target, embed, txt, title, ephemeral, **kwargs)
+    await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
 
 
 @copy_kwargs(discord.abc.Messageable.send)
@@ -298,6 +307,7 @@ async def send(
     txt: str | None = None,
     *,
     title: str | None = None,
+    edit: bool = False,
     ephemeral: bool = True,
     **kwargs,
 ):
@@ -314,8 +324,10 @@ async def send(
         you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
     title:
         The title of the embed. Defaults to ``None``.
+    edit:
+        Whether to edit the last message instead of sending a new one. Defaults to ``False``.
     ephemeral:
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed(template)
-    await _process_message(target, embed, txt, title, ephemeral, **kwargs)
+    await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)

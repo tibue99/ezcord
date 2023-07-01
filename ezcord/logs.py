@@ -75,7 +75,10 @@ def _format_log_colors(log_format: str, file: bool, final_colors: dict[int, str]
                 color_formats[level] = log_format.format(color=final_colors[level], end=Fore.RESET)
     else:
         for level in final_colors:
-            color_formats[level] = final_colors[level] + log_format + Fore.RESET
+            if file:
+                color_formats[level] = log_format
+            else:
+                color_formats[level] = final_colors[level] + log_format + Fore.RESET
 
     return color_formats
 
@@ -242,7 +245,7 @@ def set_log(
     name: str = DEFAULT_LOG,
     log_level: int = logging.INFO,
     *,
-    file: bool = False,
+    file: bool | str = False,
     log_format: str | LogFormat = LogFormat.default,
     time_format: str | TimeFormat = TimeFormat.default,
     discord_log_level: int = logging.WARNING,
@@ -264,6 +267,7 @@ def set_log(
         The log level for default log messages ``logging.INFO``.
     file:
         Whether to log to a file. Defaults to ``False``.
+        You can also pass a path to a log file.
     log_format:
         The log format. Defaults to :attr:`.LogFormat.default`.
     time_format:
@@ -311,11 +315,14 @@ def set_log(
     logger.setLevel(log_level)
 
     handler: logging.FileHandler | logging.StreamHandler
-    if file:
+    if isinstance(file, bool) and file:
         if not os.path.exists("logs"):
             os.mkdir("logs")
         filename = name.split(".")[-1]
         handler = logging.FileHandler(f"logs/{filename}.log", mode="w", encoding="utf-8")
+    elif isinstance(file, str):
+        handler = logging.FileHandler(file, mode="w", encoding="utf-8")
+        file = True
     else:
         handler = logging.StreamHandler(sys.stdout)
 

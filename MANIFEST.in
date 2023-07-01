@@ -1,1 +1,1 @@
-include src/ezcord/internal/language/*.json
+include ezcord/internal/language/*.json

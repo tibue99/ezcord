@@ -33,10 +33,10 @@ Modify language files
 Language files
 --------------
 
-.. literalinclude:: ../../src/ezcord/internal/language/en.json
+.. literalinclude:: ../../ezcord/internal/language/en.json
    :language: python
    :caption: The default language file for English.
 
-.. literalinclude:: ../../src/ezcord/internal/language/de.json
+.. literalinclude:: ../../ezcord/internal/language/de.json
    :language: python
    :caption: The default language file for German.

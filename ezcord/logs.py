@@ -230,7 +230,8 @@ async def _send_discord_log(webhook_url: str, record: logging.LogRecord, msg):
             )
         except discord.HTTPException:
             log.error(
-                "Error while sending log message to webhook. Please check if the URL is correct."
+                "Error while sending log message to webhook. Please check if the URL is correct.",
+                extra={"webhook_sent": True},
             )
 
 

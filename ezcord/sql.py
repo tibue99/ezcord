@@ -73,6 +73,10 @@ class DBHandler:
             await self.connection.commit()
             await self.connection.close()
 
+    async def _close(self, db):
+        if not self.connection:
+            await db.close()
+
     async def one(self, sql: str, *args, **kwargs):
         """Returns one result row. If no row is found, ``None`` is returned.
 
@@ -93,10 +97,14 @@ class DBHandler:
         """
         args = self._process_args(args)
         db = await self._connect(**kwargs)
-        async with db.execute(sql, args) as cursor:
-            result = await cursor.fetchone()
-        if not self.connection:
-            await db.close()
+        try:
+            async with db.execute(sql, args) as cursor:
+                result = await cursor.fetchone()
+        except Exception as e:
+            await self._close(db)
+            raise e
+
+        await self._close(db)
 
         if result is None:
             return None
@@ -125,10 +133,14 @@ class DBHandler:
         """
         args = self._process_args(args)
         db = await self._connect(**kwargs)
-        async with db.execute(sql, args) as cursor:
-            result = await cursor.fetchall()
-        if not self.connection:
-            await db.close()
+        try:
+            async with db.execute(sql, args) as cursor:
+                result = await cursor.fetchall()
+        except Exception as e:
+            await self._close(db)
+            raise e
+
+        await self._close(db)
         if len(result) == 0 or len(result[0]) == 1:
             return [row[0] for row in result]
 
@@ -151,7 +163,13 @@ class DBHandler:
         """
         args = self._process_args(args)
         db = await self._connect(**kwargs)
-        await db.execute(sql, args)
+        try:
+            await db.execute(sql, args)
+        except Exception as e:
+            if end or not self.connection:
+                await db.commit()
+                await db.close()
+            raise e
         if end or not self.connection:
             await db.commit()
             await db.close()

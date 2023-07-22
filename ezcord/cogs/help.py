@@ -90,6 +90,8 @@ class Help(Cog, hidden=True):
             options = options[:25]
             embed.fields = embed.fields[:25]
         view = CategoryView(options, self.bot, ctx.user, commands)
+        for button in self.bot.help["url_buttons"]:
+            view.add_item(button)
         await ctx.respond(view=view, embed=embed, ephemeral=self.bot.help["ephemeral"])
 
 
@@ -172,9 +174,10 @@ class CategorySelect(discord.ui.Select):
                     log.error("Help embed length limit reached. Some commands are not shown.")
                     break
 
-        await interaction.response.edit_message(
-            embed=embed, view=CategoryView(self.options, self.bot, self.member, self.commands)
-        )
+        view = CategoryView(self.options, self.bot, self.member, self.commands)
+        for button in self.bot.help["url_buttons"]:
+            view.add_item(button)
+        await interaction.response.edit_message(embed=embed, view=view)
 
 
 class CategoryView(discord.ui.View):

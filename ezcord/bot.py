@@ -469,8 +469,6 @@ class Bot(discord.Bot):
         for button in url_buttons:
             if not isinstance(button, discord.ui.Button):
                 raise TypeError(f"URL button must be of type 'Button', not {type(button)}.")
-            if not button.url:
-                raise ValueError("The button must have a URL.")
 
         self.help = {
             "style": style,

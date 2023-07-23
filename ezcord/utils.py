@@ -47,3 +47,22 @@ def create_text_file(text: str, filename: str = "data.txt", **kwargs) -> discord
     :class:`discord.File`
     """
     return discord.File(io.BytesIO(text.encode()), filename=filename, **kwargs)
+
+
+def create_html_file(html: str, filename: str = "data.html", **kwargs) -> discord.File:
+    """Create a :class:`discord.File` object from an HTML string.
+
+    Parameters
+    ----------
+    html:
+        The HTML string to convert to an HTML file.
+    filename:
+        The filename to use for the HTML file.
+    **kwargs:
+        Keyword arguments for :class:`discord.File`.
+
+    Returns
+    -------
+    :class:`discord.File`
+    """
+    return create_text_file(html, filename, **kwargs)

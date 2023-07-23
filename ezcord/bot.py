@@ -368,9 +368,10 @@ class Bot(discord.Bot):
                 error_txt = f"{t('error', f'```{error_msg}```')}"
                 try:
                     await error_emb(ctx, error_txt, title=t("error_title"))
-                except discord.HTTPException:
-                    # invalid interaction, probably took too long to respond
-                    pass
+                except discord.HTTPException as e:
+                    # ignore invalid interaction error, probably took too long to respond
+                    if e.code != 10062:
+                        self.logger.error("Could not send error message to user", exc_info=e)
 
             webhook_sent = False
             if self.error_webhook_url:

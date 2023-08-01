@@ -90,7 +90,7 @@ class Help(Cog, hidden=True):
             options = options[:25]
             embed.fields = embed.fields[:25]
         view = CategoryView(options, self.bot, ctx.user, commands)
-        for button in self.bot.help["url_buttons"]:
+        for button in self.bot.help["buttons"]:
             view.add_item(button)
         await ctx.respond(view=view, embed=embed, ephemeral=self.bot.help["ephemeral"])
 
@@ -175,7 +175,7 @@ class CategorySelect(discord.ui.Select):
                     break
 
         view = CategoryView(self.options, self.bot, self.member, self.commands)
-        for button in self.bot.help["url_buttons"]:
+        for button in self.bot.help["buttons"]:
             view.add_item(button)
         await interaction.response.edit_message(embed=embed, view=view)
 

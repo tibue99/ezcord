@@ -437,7 +437,7 @@ class Bot(discord.Bot):
         ephemeral: bool = True,
         author_only: bool = True,
         guild_only: bool = True,
-        url_buttons: list[discord.Button] | None = None,
+        buttons: list[discord.Button] | None = None,
     ):
         """Add a help command that uses a select menu to group commands by cogs.
 
@@ -461,12 +461,12 @@ class Bot(discord.Bot):
             This only works if ``ephemeral`` is ``False``.
         guild_only:
             Whether the help command should only be visible in guilds. Defaults to ``True``.
-        url_buttons:
-            A list of URL buttons to add to the help command. Defaults to ``None``.
+        buttons:
+            A list of buttons to add to the help command. Defaults to ``None``.
         """
-        if url_buttons is None:
-            url_buttons = []
-        for button in url_buttons:
+        if buttons is None:
+            buttons = []
+        for button in buttons:
             if not isinstance(button, discord.ui.Button):
                 raise TypeError(f"URL button must be of type 'Button', not {type(button)}.")
 
@@ -478,7 +478,7 @@ class Bot(discord.Bot):
             "ephemeral": ephemeral,
             "author_only": author_only,
             "guild_only": guild_only,
-            "url_buttons": url_buttons,
+            "buttons": buttons,
         }
         self.load_extension(f".cogs.help", package="ezcord")
 

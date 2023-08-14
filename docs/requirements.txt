@@ -1,3 +1,4 @@
+py-cord
 sphinx
 furo
 sphinx-autodoc-typehints

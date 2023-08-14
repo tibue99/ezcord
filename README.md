@@ -9,6 +9,17 @@ An easy-to-use extension for the [Pycord](https://github.com/Pycord-Development/
 ## ⚠️ Note
 Please use this library with the [Pycord master branch](https://github.com/Pycord-Development/pycord).
 
+## Features
+- Easy cog loading
+- Automatic error handling
+- Error report webhooks
+- Embed templates
+- Beautiful ready event
+- Custom logging
+- Automated help command
+- Datetime and file utilities
+- Wrapper for [aiosqlite](https://github.com/omnilib/aiosqlite)
+
 ## Installing
 Python 3.9 or higher is required.
 ```

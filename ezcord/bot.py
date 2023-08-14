@@ -334,7 +334,7 @@ class Bot(discord.Bot):
             webhook_sent = False
 
         self.logger.exception(
-            f"Error in event **{event_method}**",
+            f"Error in event **{event_method}** ```{traceback.format_exc(limit=0)}```",
             extra={"webhook_sent": webhook_sent},
         )
 

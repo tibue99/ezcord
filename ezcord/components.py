@@ -139,7 +139,7 @@ class EzView(discord.ui.View):
         webhook_sent = await _send_error_webhook(interaction, description)
 
         log.exception(
-            f"Error in View **{type(item.view).__name__}**",
+            f"Error in View **{type(item.view).__name__}** ```{error}```",
             exc_info=error,
             extra={"webhook_sent": webhook_sent},
         )

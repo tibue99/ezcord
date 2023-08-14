@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import traceback
 from pathlib import Path
 from typing import Any
 
@@ -323,21 +324,19 @@ class Bot(discord.Bot):
                         f"The cog group '{cog.group}' for cog '{cog.qualified_name}' does not exist."
                     )
 
-    # This requires the following PR to be in a stable Pycord release:
-    # https://github.com/Pycord-Development/pycord/pull/1945
-    #
-    # async def on_error(
-    #     self, event_method: str, exception: Exception, *args: Any, **kwargs: Any
-    # ) -> None:
-    #     """This overrides the default ``on_error`` event to send an error webhook."""
-    #     description = format_error(exception)
-    #     webhook_sent = await self._send_error_webhook(description)
-    #
-    #     self.logger.exception(
-    #         f"Error while executing **{event_method}**",
-    #         exc_info=exception,
-    #         extra={"webhook_sent": webhook_sent},
-    #     )
+    async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
+        """This overrides the default ``on_error`` event to send an error webhook."""
+
+        if self.error_webhook_url:
+            description = f"- **Event:** {event_method}\n```py\n{traceback.format_exc()}```"
+            webhook_sent = await self._send_error_webhook(description[:3750])
+        else:
+            webhook_sent = False
+
+        self.logger.exception(
+            f"Error in event **{event_method}**",
+            extra={"webhook_sent": webhook_sent},
+        )
 
     async def _error_event(self, ctx: discord.ApplicationContext, error: discord.DiscordException):
         """The event that handles application command errors."""

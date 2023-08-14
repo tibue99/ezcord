@@ -7,6 +7,7 @@ from discord.commands import slash_command
 
 from .. import emb
 from ..bot import Bot, Cog
+from ..components import View
 from ..enums import HelpStyle
 from ..internal import replace_embed_values, t
 from ..logs import log
@@ -180,7 +181,7 @@ class CategorySelect(discord.ui.Select):
         await interaction.response.edit_message(embed=embed, view=view)
 
 
-class CategoryView(discord.ui.View):
+class CategoryView(View):
     def __init__(
         self,
         options: list[discord.SelectOption],

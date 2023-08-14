@@ -6,6 +6,9 @@
 
 An easy-to-use extension for the [Pycord](https://github.com/Pycord-Development/pycord) library with some utility functions.
 
+## ⚠️ Note
+Please use this library with the [Pycord master branch](https://github.com/Pycord-Development/pycord).
+
 ## Installing
 Python 3.9 or higher is required.
 ```

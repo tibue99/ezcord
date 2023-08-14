@@ -15,6 +15,7 @@
             class MyView(discord.ui.View):  # wrong
                 ...
 """
+from __future__ import annotations
 
 import asyncio
 import inspect
@@ -159,22 +160,23 @@ class EzView(discord.ui.View):
             await coro(interaction)
 
     async def on_timeout(self) -> None:
-        """Makes sure that items are only disabled if the message still has components.
-
-        This is called when ``disable_on_timeout`` is set to ``True``.
+        """If ``disable_on_timeout`` is set to ``True``, this will disable all components,
+        unless the viw has been explicitly stopped.
         """
-        if not self.disable_on_timeout:
-            return
+        if self.disable_on_timeout:
+            self.disable_all_items()
 
-        if self._message:
-            try:
-                msg = await self._message.channel.fetch_message(self._message.id)
-            except (discord.NotFound, discord.Forbidden):
-                return
+            # Fixes Pycord's NotFound error if message is ephemeral
+            # and interaction has already been responded to
+            message = self.parent or self._message  # type: ignore
 
-            if len(msg.components) > 0:
-                self.disable_all_items()
-                await self._message.edit(view=self)
+            if message:
+                try:
+                    m = await message.edit(view=self)
+                except discord.NotFound:
+                    return
+                if m:
+                    self._message = m
 
 
 class EzModal(discord.ui.Modal):

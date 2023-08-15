@@ -8,11 +8,11 @@ from pathlib import Path
 from typing import Any
 
 import aiohttp
-import discord
-from discord.ext import bridge, commands
+from discord.ext import commands
 
 from .emb import error as error_emb
 from .enums import CogLog, HelpStyle, ReadyEvent
+from .internal.dc import CogMeta, bridge, discord
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .times import dc_timestamp
 
@@ -27,7 +27,13 @@ from .internal import (  # isort: skip
 )
 
 
-class Bot(discord.Bot):
+try:
+    _main_bot = discord.Bot
+except AttributeError:
+    _main_bot = commands.Bot
+
+
+class Bot(_main_bot):  # type: ignore
     """The EzCord bot class. This is a subclass of :class:`discord.Bot`.
 
     .. hint::
@@ -502,10 +508,10 @@ class BridgeBot(Bot, bridge.Bot):
         super().__init__(*args, **kwargs)
 
 
-class _CogMeta(discord.cog.CogMeta):
+class _CogMeta(CogMeta):
     """A metaclass for cogs that adds an ``emoji`` attribute."""
 
-    def __new__(cls, *args, **kwargs) -> discord.cog.CogMeta:
+    def __new__(cls, *args, **kwargs) -> CogMeta:
         name, bases, attrs = args
         attrs["emoji"] = kwargs.pop("emoji", None)
         attrs["group"] = kwargs.pop("group", None)

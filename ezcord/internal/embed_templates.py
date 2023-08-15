@@ -7,18 +7,17 @@ from copy import deepcopy
 from functools import cache
 from pathlib import Path
 
-import discord
-from discord import Color, Embed
+from ..internal.dc import discord
 
-_TEMPLATES: dict[str, Embed] = {
-    "success_embed": Embed(color=Color.green()),
-    "error_embed": Embed(color=Color.red()),
-    "warn_embed": Embed(color=Color.gold()),
-    "info_embed": Embed(color=Color.blue()),
+_TEMPLATES: dict[str, discord.Embed] = {
+    "success_embed": discord.Embed(color=discord.Color.green()),
+    "error_embed": discord.Embed(color=discord.Color.red()),
+    "warn_embed": discord.Embed(color=discord.Color.gold()),
+    "info_embed": discord.Embed(color=discord.Color.blue()),
 }
 
 
-def save_embeds(**kwargs: Embed | str):
+def save_embeds(**kwargs: discord.Embed | str):
     """Save multiple embeds to a JSON file.
 
     If one of the default values is not included, a default template will be saved.
@@ -40,7 +39,7 @@ def save_embeds(**kwargs: Embed | str):
 
 
 @cache
-def load_embed(name: str) -> Embed | str:
+def load_embed(name: str) -> discord.Embed | str:
     """Load an embed template from a JSON file."""
     parent = Path(__file__).parent.absolute()
     json_path = parent.joinpath("embeds.json")
@@ -54,7 +53,7 @@ def load_embed(name: str) -> Embed | str:
         return embeds[name]
 
     try:
-        return Embed.from_dict(embeds[name])
+        return discord.Embed.from_dict(embeds[name])
     except KeyError:
         if name in _TEMPLATES.keys():
             save_embeds()

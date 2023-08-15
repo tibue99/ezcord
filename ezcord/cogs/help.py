@@ -2,14 +2,12 @@ from __future__ import annotations
 
 import random
 
-import discord
-from discord.commands import slash_command
-
 from .. import emb
 from ..bot import Bot, Cog
 from ..components import View
 from ..enums import HelpStyle
 from ..internal import replace_embed_values, t
+from ..internal.dc import discord, slash_command
 from ..logs import log
 
 

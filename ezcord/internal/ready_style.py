@@ -5,11 +5,11 @@ from __future__ import annotations
 from collections import OrderedDict
 from itertools import cycle, islice
 
-import discord
 from colorama import Fore
 
 from .. import __version__
 from ..enums import ReadyEvent
+from ..internal.dc import discord
 from ..logs import log
 from .colors import get_escape_code
 

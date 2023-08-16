@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+from copy import deepcopy
 
 import discord
 from discord.commands import slash_command
@@ -92,7 +93,7 @@ class Help(Cog, hidden=True):
             embed.fields = embed.fields[:25]
         view = CategoryView(options, self.bot, ctx.user, commands)
         for button in self.bot.help["buttons"]:
-            view.add_item(button)
+            view.add_item(deepcopy(button))
         await ctx.respond(view=view, embed=embed, ephemeral=self.bot.help["ephemeral"])
 
 
@@ -177,7 +178,7 @@ class CategorySelect(discord.ui.Select):
 
         view = CategoryView(self.options, self.bot, self.member, self.commands)
         for button in self.bot.help["buttons"]:
-            view.add_item(button)
+            view.add_item(deepcopy(button))
         await interaction.response.edit_message(embed=embed, view=view)
 
 

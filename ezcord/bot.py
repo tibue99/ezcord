@@ -9,6 +9,7 @@ from typing import Any
 
 import aiohttp
 from discord.ext import commands
+from dotenv import load_dotenv
 
 from .emb import error as error_emb
 from .enums import CogLog, HelpStyle, ReadyEvent
@@ -104,7 +105,9 @@ class Bot(_main_bot):  # type: ignore
         load_lang(language)
         set_lang(language) if language != {} else set_lang("en")
 
+        self.error_event_added = False
         if error_handler or error_webhook_url:
+            self.error_event_added = True
             self.add_listener(self._error_event, "on_application_command_error")
 
         self.ready_event = ready_event
@@ -473,7 +476,7 @@ class Bot(_main_bot):  # type: ignore
             buttons = []
         for button in buttons:
             if not isinstance(button, discord.ui.Button):
-                raise TypeError(f"URL button must be of type 'Button', not {type(button)}.")
+                raise TypeError(f"Button must be of type 'Button', not {type(button)}.")
 
         self.help = {
             "style": style,
@@ -486,6 +489,40 @@ class Bot(_main_bot):  # type: ignore
             "buttons": buttons,
         }
         self.load_extension(f".cogs.help", package="ezcord")
+
+    def run(
+        self,
+        token: str | None = None,
+        env_path: str | os.PathLike[str] = ".env",
+        var_name: str = "TOKEN",
+        **kwargs: Any,
+    ) -> None:
+        """This overrides the default :meth:`discord.Bot.run` method and automatically loads the token.
+
+        Parameters
+        ----------
+        token:
+            The bot token. If this is ``None``, the token will be loaded from the environment.
+        env_path:
+            The path to the environment file. Defaults to ``.env``.
+        var_name:
+            The name of the token variable in the environment file. Defaults to ``TOKEN``.
+        **kwargs:
+            Additional keyword arguments for :meth:`discord.Bot.run`.
+        """
+        load_dotenv(env_path)
+        env_token = os.getenv("TOKEN")
+        if env_token is not None:
+            token = env_token
+
+        if not self.error_webhook_url:
+            error_webhook_url = os.environ.get("ERROR_WEBHOOK_URL")
+            if error_webhook_url is not None:
+                self.error_webhook_url = error_webhook_url
+                if not self.error_event_added:
+                    self.add_listener(self._error_event, "on_application_command_error")
+
+        super().run(token, **kwargs)
 
 
 class PrefixBot(Bot, commands.Bot):

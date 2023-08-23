@@ -168,7 +168,11 @@ class EzView(discord.ui.View):
 
             # Fixes Pycord's NotFound error if message is ephemeral
             # and interaction has already been responded to
-            message = self.parent or self._message  # type: ignore
+            try:
+                message = self.parent or self._message  # type: ignore
+            except AttributeError:
+                # Older Pycord versions are missing parent attribute
+                return await super().on_timeout()
 
             if message:
                 try:

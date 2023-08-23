@@ -5,11 +5,11 @@ from __future__ import annotations
 from collections import OrderedDict
 from itertools import cycle, islice
 
-import discord
 from colorama import Fore
 
 from .. import __version__
 from ..enums import ReadyEvent
+from ..internal.dc import discord
 from ..logs import log
 from .colors import get_escape_code
 
@@ -36,15 +36,20 @@ READY_TITLE: str = f"Bot is online with EzCord {__version__}"
 DEFAULT_COLORS: list[str] = [Fore.CYAN, Fore.MAGENTA, Fore.YELLOW, Fore.GREEN, Fore.BLUE, Fore.RED]
 
 
-def get_default_info(bot: discord.Bot) -> list[tuple[str, str]]:
-    cmds = [
-        cmd for cmd in bot.walk_application_commands() if type(cmd) != discord.SlashCommandGroup
-    ]
+def get_default_info(bot: discord.ext.commands.Bot) -> list[tuple[str, str]]:
+    try:
+        lib_name = "Pycord"
+        cmds = [
+            cmd for cmd in bot.walk_application_commands() if type(cmd) != discord.SlashCommandGroup
+        ]
+    except AttributeError:
+        lib_name = "Version"
+        cmds = bot.commands  # prevents errors with other libs
 
     return [
         ("Bot", f"{bot.user}"),
         ("ID", f"{bot.user.id}"),
-        ("Pycord", discord.__version__),
+        (lib_name, discord.__version__),
         ("Commands", f"{len(cmds):,}"),
         ("Guilds", f"{len(bot.guilds):,}"),
         ("Latency", f"{round(bot.latency * 1000):,}ms"),

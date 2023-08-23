@@ -10,10 +10,10 @@ import sys
 from typing import Literal
 
 import aiohttp
-import discord
 from colorama import Fore
 
 from .enums import LogFormat, TimeFormat
+from .internal.dc import discord
 
 from .internal.colors import (  # isort: skip
     DEFAULT_COLOR,

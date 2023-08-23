@@ -23,9 +23,9 @@ import os
 from typing import Callable
 
 import aiohttp
-import discord
 
 from .internal import get_error_text
+from .internal.dc import discord
 from .logs import log
 
 _view_error_handlers: list[Callable] = []

@@ -8,12 +8,12 @@ from pathlib import Path
 from typing import Any
 
 import aiohttp
-import discord
-from discord.ext import bridge, commands
+from discord.ext import commands
 from dotenv import load_dotenv
 
 from .emb import error as error_emb
 from .enums import CogLog, HelpStyle, ReadyEvent
+from .internal.dc import CogMeta, bridge, discord
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .times import dc_timestamp
 
@@ -28,7 +28,13 @@ from .internal import (  # isort: skip
 )
 
 
-class Bot(discord.Bot):
+try:
+    _main_bot = discord.Bot  # Pycord
+except AttributeError:
+    _main_bot = commands.Bot
+
+
+class Bot(_main_bot):  # type: ignore
     """The EzCord bot class. This is a subclass of :class:`discord.Bot`.
 
     .. hint::
@@ -488,7 +494,7 @@ class Bot(discord.Bot):
         self,
         token: str | None = None,
         env_path: str | os.PathLike[str] = ".env",
-        var_name: str = "TOKEN",
+        token_var: str = "TOKEN",
         **kwargs: Any,
     ) -> None:
         """This overrides the default :meth:`discord.Bot.run` method and automatically loads the token.
@@ -499,13 +505,13 @@ class Bot(discord.Bot):
             The bot token. If this is ``None``, the token will be loaded from the environment.
         env_path:
             The path to the environment file. Defaults to ``.env``.
-        var_name:
+        token_var:
             The name of the token variable in the environment file. Defaults to ``TOKEN``.
         **kwargs:
             Additional keyword arguments for :meth:`discord.Bot.run`.
         """
         load_dotenv(env_path)
-        env_token = os.getenv("TOKEN")
+        env_token = os.getenv(token_var)
         if env_token is not None:
             token = env_token
 
@@ -539,10 +545,10 @@ class BridgeBot(Bot, bridge.Bot):
         super().__init__(*args, **kwargs)
 
 
-class _CogMeta(discord.cog.CogMeta):
+class _CogMeta(CogMeta):
     """A metaclass for cogs that adds an ``emoji`` attribute."""
 
-    def __new__(cls, *args, **kwargs) -> discord.cog.CogMeta:
+    def __new__(cls, *args, **kwargs) -> CogMeta:
         name, bases, attrs = args
         attrs["emoji"] = kwargs.pop("emoji", None)
         attrs["group"] = kwargs.pop("group", None)

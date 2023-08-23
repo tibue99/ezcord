@@ -18,9 +18,8 @@ from __future__ import annotations
 
 import copy
 
-import discord
-
 from .internal import copy_kwargs, load_embed, replace_dict, save_embeds
+from .internal.dc import discord
 from .logs import log
 
 

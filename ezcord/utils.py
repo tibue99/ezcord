@@ -3,7 +3,7 @@
 import io
 import json
 
-import discord
+from .internal.dc import discord
 
 
 def create_json_file(

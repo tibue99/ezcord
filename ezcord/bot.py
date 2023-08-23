@@ -29,7 +29,7 @@ from .internal import (  # isort: skip
 
 
 try:
-    _main_bot = discord.Bot
+    _main_bot = discord.Bot  # Pycord
 except AttributeError:
     _main_bot = commands.Bot
 
@@ -494,7 +494,7 @@ class Bot(_main_bot):  # type: ignore
         self,
         token: str | None = None,
         env_path: str | os.PathLike[str] = ".env",
-        var_name: str = "TOKEN",
+        token_var: str = "TOKEN",
         **kwargs: Any,
     ) -> None:
         """This overrides the default :meth:`discord.Bot.run` method and automatically loads the token.
@@ -505,13 +505,13 @@ class Bot(_main_bot):  # type: ignore
             The bot token. If this is ``None``, the token will be loaded from the environment.
         env_path:
             The path to the environment file. Defaults to ``.env``.
-        var_name:
+        token_var:
             The name of the token variable in the environment file. Defaults to ``TOKEN``.
         **kwargs:
             Additional keyword arguments for :meth:`discord.Bot.run`.
         """
         load_dotenv(env_path)
-        env_token = os.getenv("TOKEN")
+        env_token = os.getenv(token_var)
         if env_token is not None:
             token = env_token
 

@@ -30,6 +30,10 @@ and requires [git](https://git-scm.com/downloads) to be installed.
 ```
 pip install git+https://github.com/tibue99/ezcord
 ```
+If you need the latest version in your `requirements.txt` file, you put this in it:
+```
+ezcord @ git+https://github.com/tibue99/ezcord
+```
 
 ## Useful Links
 - [Documentation](https://ezcord.readthedocs.io/)

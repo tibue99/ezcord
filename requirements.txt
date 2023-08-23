@@ -1,3 +1,4 @@
 aiohttp
 colorama
 aiosqlite
+python-dotenv

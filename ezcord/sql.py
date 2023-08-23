@@ -18,21 +18,30 @@ class DBHandler:
     connection:
         A connection to the database. If not provided, a new connection will be created.
         If ``transaction`` is ``True``, this will be ignored.
+    auto_setup:
+        Whether to call :meth:`setup` when the first instance of this class is created. Defaults to ``True``.
+        This is called in the ``on_ready`` event of the bot.
     **kwargs:
         Keyword arguments for :func:`aiosqlite.connect`.
     """
+
+    _auto_setup: dict[type[DBHandler], DBHandler] = {}
 
     def __init__(
         self,
         path: str,
         connection: aiosqlite.Connection | None = None,
         transaction: bool = False,
+        auto_setup: bool = True,
         **kwargs,
     ):
         self.DB = path
         self.connection = connection
         self.transaction = transaction
         self.kwargs = kwargs
+
+        if auto_setup and self.__class__ not in DBHandler._auto_setup:
+            DBHandler._auto_setup[self.__class__] = self
 
     @staticmethod
     def _process_args(args) -> tuple:

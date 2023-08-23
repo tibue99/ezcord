@@ -15,6 +15,7 @@ from .emb import error as error_emb
 from .enums import CogLog, HelpStyle, ReadyEvent
 from .internal.dc import CogMeta, bridge, discord
 from .logs import DEFAULT_LOG, custom_log, set_log
+from .sql import DBHandler
 from .times import dc_timestamp
 
 from .internal import (  # isort: skip
@@ -114,6 +115,7 @@ class Bot(_main_bot):  # type: ignore
         if ready_event:
             self.add_listener(self._ready_event, "on_ready")
         self.add_listener(self._check_cog_groups, "on_ready")
+        self.add_listener(self._db_setup, "on_ready")
 
         self.ready_event_adds: dict = {}
         self.ready_event_removes: list[int | str] = []
@@ -323,6 +325,13 @@ class Bot(_main_bot):  # type: ignore
 
         modifications = self.ready_event_adds, self.ready_event_removes
         print_ready(self, self.ready_event, modifications=modifications)
+
+    @staticmethod
+    async def _db_setup():
+        """Calls the setup method of all registered :class:`.DBHandler` instances."""
+        for instance in DBHandler._auto_setup.values():
+            if hasattr(instance, "setup") and callable(instance.setup):
+                await instance.setup()
 
     async def _check_cog_groups(self):
         """Checks if all cog groups are valid."""

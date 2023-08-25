@@ -60,6 +60,54 @@ def plural_en(amount: int, word: str) -> str:
         return f"{word}s"
     return word
 
+def plural_es(amount: int, word: str) -> str:
+    """Pluralize a given word in Spanish.
+
+    Parameters
+    ----------
+    amount:
+        The amount to check.
+    word:
+        The word to pluralize.
+
+    Returns
+    -------
+    :class:`str`
+        The pluralized word.
+    """
+    if amount != 1:
+        if word.endswith("ión"):
+            return f"{word[:-3]}iones"
+        elif word.endswith("z"):
+            return f"{word[:-1]}ces"
+        else:
+            return f"{word}s"
+    return word
+
+def plural_fr(amount: int, word: str) -> str:
+    """Pluralize a given word in French.
+
+    Parameters
+    ----------
+    amount:
+        The amount to check.
+    word:
+        The word to pluralize.
+
+    Returns
+    -------
+    :class:`str`
+        The pluralized word.
+    """
+    if amount != 1:
+        if word.endswith("al"):
+            return f"{word}aux"
+        elif word.endswith("ail"):
+            return f"{word}s"
+        else:
+            return f"{word}s"
+    return word
+
 
 def tp(key: str, amount: int, *args: str, relative: bool = True) -> str:
     """Load a string in the selected language and pluralize it.
@@ -80,6 +128,13 @@ def tp(key: str, amount: int, *args: str, relative: bool = True) -> str:
 
     if lang == "de":
         return plural_de(amount, word, relative)
+    
+    elif lang == "es":
+        return plural_es(amount, word)
+    
+    elif lang == "fr":
+        return plural_fr(amount, word)
+    
     else:
         return plural_en(amount, word)
 

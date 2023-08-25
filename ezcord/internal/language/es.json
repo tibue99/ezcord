@@ -1,0 +1,25 @@
+{
+    "times": {
+        "min": "minuto",
+        "sec": "segundo",
+        "hour": "hora",
+        "day": "día"
+    },
+    "bot": {
+        "error_title": "Error",
+        "error": "Se ha producido el siguiente error: {}",
+        "cooldown_title": "Cooldown",
+        "cooldown": "Inténtalo de nuevo {}.",
+        "no_perms_title": "Falta de permisos",
+        "no_perms": "Me faltan los siguientes permisos para ejecutar este comando."
+    },
+    "help": {
+        "cmd_name": "help",
+        "cmd_description": "Mostrar todos los comandos",
+        "wrong_user": "¡Este comando de ayuda no te pertenece!",
+        "placeholder": "\uD83D\uDD30 › Elija una categoría",
+        "embed_title": "Mis órdenes",
+        "default_description": "Todos los comandos de la categoría **{}**.",
+        "no_commands": "Uy, no he encontrado ningún comando."
+    }
+}

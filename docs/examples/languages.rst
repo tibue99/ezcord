@@ -40,3 +40,11 @@ Language files
 .. literalinclude:: ../../ezcord/internal/language/de.json
    :language: python
    :caption: The default language file for German.
+
+.. literalinclude:: ../../ezcord/internal/language/fr.json
+   :language: python
+   :caption: The default language file for French.
+
+.. literalinclude:: ../../ezcord/internal/language/es.json
+   :language: python
+   :caption: The default language file for Spanish.

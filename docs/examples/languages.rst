@@ -8,6 +8,8 @@ You can modify the default language files and even create your own language file
 
    - English (``en``)
    - German (``de``)
+   - French (``fr``)
+   - Spanish (``es``)
 
 
 Modify language files
@@ -20,7 +22,7 @@ Modify language files
 
    For example, if you want to create a French language file, the file name could be ``ez_fr.json``.
 
-2. Copy the contents of the :ref:`language` into your new file and modify it.
+2. Copy the contents of a :ref:`language file <language>` into your new file and modify it.
 3. Pass the language string into :meth:`~ezcord.bot.Bot` to set your language.
 
 .. code-block:: python

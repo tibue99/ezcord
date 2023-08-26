@@ -60,6 +60,7 @@ def plural_en(amount: int, word: str) -> str:
         return f"{word}s"
     return word
 
+
 def plural_es(amount: int, word: str) -> str:
     """Pluralize a given word in Spanish.
 
@@ -83,6 +84,7 @@ def plural_es(amount: int, word: str) -> str:
         else:
             return f"{word}s"
     return word
+
 
 def plural_fr(amount: int, word: str) -> str:
     """Pluralize a given word in French.
@@ -128,13 +130,10 @@ def tp(key: str, amount: int, *args: str, relative: bool = True) -> str:
 
     if lang == "de":
         return plural_de(amount, word, relative)
-    
     elif lang == "es":
         return plural_es(amount, word)
-    
     elif lang == "fr":
         return plural_fr(amount, word)
-    
     else:
         return plural_en(amount, word)
 

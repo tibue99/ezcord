@@ -65,7 +65,7 @@ class Bot(_main_bot):  # type: ignore
     language:
         The language to use for user output.
 
-        The default languages are ``en`` and ``de``. If you add your own language file as
+        The default languages are ``en``, ``de``, ``es`` and ``fr``. If you add your own language file as
         described in :doc:`the language example </examples/languages>`, you can use that language as well.
     ready_event:
         The style for :meth:`on_ready_event`. Defaults to :attr:`.ReadyEvent.default`.

@@ -1,0 +1,25 @@
+{
+    "times": {
+        "min": "minute",
+        "sec": "deuxième",
+        "hour": "heure",
+        "day": "jour"
+    },
+    "bot": {
+        "error_title": "Error",
+        "error": "L'erreur suivante s'est produite : {}",
+        "cooldown_title": "Cooldown",
+        "cooldown": "Réessayez {}.",
+        "no_perms_title": "Permissions manquantes",
+        "no_perms": "Il me manque les autorisations suivantes pour exécuter cette commande."
+    },
+    "help": {
+        "cmd_name": "help",
+        "cmd_description": "Afficher toutes les commandes",
+        "wrong_user": "Cette commande d'aide ne vous appartient pas !",
+        "placeholder": "\uD83D\uDD30 › Choisir une catégorie",
+        "embed_title": "Mes commandes",
+        "default_description": "Toutes les commandes de la catégorie **{}**.",
+        "no_commands": "Oups, je n'ai pas trouvé de commande."
+    }
+}

@@ -6,9 +6,7 @@ import itertools
 import json
 from typing import Any
 
-from discord.utils import AutocompleteFunc, V, Values
-
-from .internal.dc import discord
+from .internal.dc import AutocompleteFunc, V, Values, discord
 
 
 def create_json_file(

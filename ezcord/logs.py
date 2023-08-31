@@ -247,6 +247,7 @@ def set_log(
     log_level: int = logging.INFO,
     *,
     file: bool | str = False,
+    file_mode: str = "w",
     log_format: str | LogFormat = LogFormat.default,
     time_format: str | TimeFormat = TimeFormat.default,
     discord_log_level: int = logging.WARNING,
@@ -269,6 +270,8 @@ def set_log(
     file:
         Whether to log to a file. Defaults to ``False``.
         You can also pass a path to a log file.
+    file_mode:
+        The file mode for the log file. Defaults to ``w``.
     log_format:
         The log format. Defaults to :attr:`.LogFormat.default`.
     time_format:
@@ -320,9 +323,9 @@ def set_log(
         if not os.path.exists("logs"):
             os.mkdir("logs")
         filename = name.split(".")[-1]
-        handler = logging.FileHandler(f"logs/{filename}.log", mode="w", encoding="utf-8")
+        handler = logging.FileHandler(f"logs/{filename}.log", mode=file_mode, encoding="utf-8")
     elif isinstance(file, str):
-        handler = logging.FileHandler(file, mode="w", encoding="utf-8")
+        handler = logging.FileHandler(file, mode=file_mode, encoding="utf-8")
         file = True
     else:
         handler = logging.StreamHandler(sys.stdout)

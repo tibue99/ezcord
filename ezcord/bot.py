@@ -4,6 +4,7 @@ import asyncio
 import logging
 import os
 import traceback
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -98,7 +99,6 @@ class Bot(_main_bot):  # type: ignore
             self.logger = logging.getLogger(DEFAULT_LOG)
             self.logger.addHandler(logging.NullHandler())
 
-        self.help: dict = {}
         self.error_handler = error_handler
         self.error_webhook_url = error_webhook_url
         self.ignored_errors = ignored_errors or []
@@ -455,10 +455,19 @@ class Bot(_main_bot):  # type: ignore
         author_only: bool = True,
         guild_only: bool = True,
         buttons: list[discord.Button] | None = None,
+        title: str = "{emoji} - {name}",
+        description: str = "{description}",
     ):
         """Add a help command that uses a select menu to group commands by cogs.
 
         If you use :class:`Cog`, you can pass in emojis to use for the select menu.
+
+        .. hint::
+            Title and description can be formatted with the following placeholders:
+
+            - ``{emoji}`` - The emoji of the cog.
+            - ``{name}`` - The name of the cog.
+            - ``{description}`` - The description of the cog.
 
         Parameters
         ----------
@@ -480,23 +489,30 @@ class Bot(_main_bot):  # type: ignore
             Whether the help command should only be visible in guilds. Defaults to ``True``.
         buttons:
             A list of buttons to add to the help command. Defaults to ``None``.
+        title:
+            The title format of each category.
+        description:
+            The description format of each category.
         """
+
         if buttons is None:
             buttons = []
         for button in buttons:
             if not isinstance(button, discord.ui.Button):
                 raise TypeError(f"Button must be of type 'Button', not {type(button)}.")
 
-        self.help = {
-            "style": style,
-            "embed": embed,
-            "show_categories": show_categories,
-            "timeout": timeout,
-            "ephemeral": ephemeral,
-            "author_only": author_only,
-            "guild_only": guild_only,
-            "buttons": buttons,
-        }
+        self.help = _CustomHelp(
+            style,
+            embed,
+            show_categories,
+            timeout,
+            ephemeral,
+            author_only,
+            guild_only,
+            buttons,
+            title,
+            description,
+        )
         self.load_extension(f".cogs.help", package="ezcord")
 
     def run(
@@ -576,3 +592,17 @@ class Cog(commands.Cog, metaclass=_CogMeta):
 
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
+
+
+@dataclass
+class _CustomHelp:
+    style: HelpStyle
+    embed: discord.Embed | None
+    show_categories: bool
+    timeout: int | None
+    ephemeral: bool
+    author_only: bool
+    guild_only: bool
+    buttons: list[discord.Button]
+    title: str
+    description: str

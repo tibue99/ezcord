@@ -27,14 +27,20 @@ def get_group(cog: Cog) -> str | None:
     return None
 
 
+def replace_placeholders(s: str, **kwargs: str):
+    for key, value in kwargs.items():
+        s = s.replace(f"{{{key}}}", value)
+    return s
+
+
 class Help(Cog, hidden=True):
     def __init__(self, bot: Bot):
         super().__init__(bot)
-        self.help.guild_only = bot.help["guild_only"]
+        self.help.guild_only = bot.help.guild_only
 
     @slash_command(name=t("cmd_name"), description=t("cmd_description"))
     async def help(self, ctx: discord.ApplicationContext):
-        embed = self.bot.help["embed"]
+        embed = self.bot.help.embed
         if embed is None:
             embed = discord.Embed(title=t("embed_title"), color=discord.Color.blue())
         else:
@@ -58,12 +64,16 @@ class Help(Cog, hidden=True):
                 continue
 
             emoji = get_emoji(cog)
-            emoji_str = f"`{emoji}` ・ "
             commands[name]["emoji"] = emoji
 
             desc = cog.description
             if not cog.description:
                 desc = t("default_description", name)
+
+            field_name = replace_placeholders(self.bot.help.title, name=name, emoji=emoji)
+            desc = replace_placeholders(
+                self.bot.help.description, description=desc, name=name, emoji=emoji
+            )
 
             for command in cog.walk_commands():
                 if type(command) in [
@@ -78,8 +88,8 @@ class Help(Cog, hidden=True):
             if not group:
                 option = discord.SelectOption(label=name, emoji=emoji)
                 options.append(option)
-                if self.bot.help["show_categories"]:
-                    embed.add_field(name=f"{emoji_str or ''}{name}", value=desc, inline=False)
+                if self.bot.help.show_categories:
+                    embed.add_field(name=field_name, value=desc, inline=False)
 
         if len(options) == 0:
             return await ctx.respond(t("no_commands"), ephemeral=True)
@@ -90,9 +100,9 @@ class Help(Cog, hidden=True):
             options = options[:25]
             embed.fields = embed.fields[:25]
         view = CategoryView(options, self.bot, ctx.user, commands)
-        for button in self.bot.help["buttons"]:
+        for button in self.bot.help.buttons:
             view.add_item(deepcopy(button))
-        await ctx.respond(view=view, embed=embed, ephemeral=self.bot.help["ephemeral"])
+        await ctx.respond(view=view, embed=embed, ephemeral=self.bot.help.ephemeral)
 
 
 def setup(bot: Bot):
@@ -113,21 +123,21 @@ class CategorySelect(discord.ui.Select):
         self.commands = commands
 
     async def callback(self, interaction: discord.Interaction):
-        if self.bot.help["author_only"] and interaction.user != self.member:
+        if self.bot.help.author_only and interaction.user != self.member:
             return await emb.error(interaction, t("wrong_user"))
 
         cmds = self.commands[self.values[0]]
         title = self.values[0].title()
         emoji = cmds["emoji"]
 
-        embed = self.bot.help["embed"]
+        embed = self.bot.help.embed
         if embed is None:
             embed = discord.Embed(
                 color=discord.Color.blue(),
             )
         else:
             embed = replace_embed_values(embed, interaction)
-        embed.title = f"`{emoji}` - {title}"
+        embed.title = replace_placeholders(self.bot.help.title, name=title, emoji=emoji)
         embed.clear_fields()
 
         commands = cmds["cmds"]
@@ -136,7 +146,7 @@ class CategorySelect(discord.ui.Select):
             HelpStyle.codeblocks_inline,
             HelpStyle.codeblocks,
         ]
-        style = self.bot.help["style"]
+        style = self.bot.help.style
         if len(commands) > 25 and style in embed_field_styles:
             style = HelpStyle.embed_description
 
@@ -175,7 +185,7 @@ class CategorySelect(discord.ui.Select):
                     break
 
         view = CategoryView(self.options, self.bot, self.member, self.commands)
-        for button in self.bot.help["buttons"]:
+        for button in self.bot.help.buttons:
             view.add_item(deepcopy(button))
         await interaction.response.edit_message(embed=embed, view=view)
 
@@ -188,5 +198,5 @@ class CategoryView(View):
         member: discord.Member | discord.User,
         commands: dict[str, dict],
     ):
-        super().__init__(timeout=bot.help["timeout"], disable_on_timeout=True)
+        super().__init__(timeout=bot.help.timeout, disable_on_timeout=True)
         self.add_item(CategorySelect(options, bot, member, commands))

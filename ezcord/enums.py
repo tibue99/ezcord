@@ -63,7 +63,8 @@ class CogLog(str, Enum):
     sum = "Loaded {sum} cogs"
     directory_sum = "Loaded {sum} cogs from {directory}"
     path = "Loaded {path}"
-    default = "Loaded {cog}"
+    all_cogs = "Loaded {cog}"
+    default = sum
 
     def __str__(self):
         return self.name

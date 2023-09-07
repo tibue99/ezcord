@@ -518,26 +518,33 @@ class Bot(_main_bot):  # type: ignore
     def run(
         self,
         token: str | None = None,
-        env_path: str | os.PathLike[str] = ".env",
+        *,
+        env_path: str | os.PathLike[str] | None = ".env",
         token_var: str = "TOKEN",
         **kwargs: Any,
     ) -> None:
-        """This overrides the default :meth:`discord.Bot.run` method and automatically loads the token.
+        """This overrides the default :meth:`discord.Bot.run` method and automatically loads the token
+        from the environment.
 
         Parameters
         ----------
         token:
             The bot token. If this is ``None``, the token will be loaded from the environment.
         env_path:
-            The path to the environment file. Defaults to ``.env``.
+            The path to the environment file. Defaults to ``.env``. If this is ``None``, environment
+            variables are not loaded automatically.
         token_var:
             The name of the token variable in the environment file. Defaults to ``TOKEN``.
         **kwargs:
             Additional keyword arguments for :meth:`discord.Bot.run`.
         """
+        if not env_path:
+            super().run(token, **kwargs)
+            return
+
         load_dotenv(env_path)
         env_token = os.getenv(token_var)
-        if env_token is not None:
+        if token is None and env_token is not None:
             token = env_token
 
         if not self.error_webhook_url:

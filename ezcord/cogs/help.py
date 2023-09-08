@@ -70,6 +70,8 @@ class Help(Cog, hidden=True):
             if not cog.description:
                 desc = t("default_description", name)
 
+            commands[name]["description"] = desc
+
             field_name = replace_placeholders(self.bot.help.title, name=name, emoji=emoji)
             desc = replace_placeholders(
                 self.bot.help.description, description=desc, name=name, emoji=emoji
@@ -140,6 +142,11 @@ class CategorySelect(discord.ui.Select):
         embed.title = replace_placeholders(self.bot.help.title, name=title, emoji=emoji)
         embed.clear_fields()
 
+        if self.bot.help.show_description:
+            embed.description = desc = cmds["description"] + "\n"
+        else:
+            desc = ""
+
         commands = cmds["cmds"]
         embed_field_styles = [
             HelpStyle.embed_fields,
@@ -153,7 +160,7 @@ class CategorySelect(discord.ui.Select):
         if style == HelpStyle.embed_fields:
             for command in commands:
                 embed.add_field(
-                    name=f"{command.mention}",
+                    name=f"**{command.mention}**",
                     value=f"`{command.description}`",
                     inline=False,
                 )
@@ -161,22 +168,22 @@ class CategorySelect(discord.ui.Select):
         elif style == HelpStyle.codeblocks or style == HelpStyle.codeblocks_inline:
             for command in commands:
                 embed.add_field(
-                    name=f"{command.mention}",
+                    name=f"**{command.mention}**",
                     value=f"```{command.description}```",
                     inline=style == HelpStyle.codeblocks_inline,
                 )
 
         elif style == HelpStyle.embed_description:
-            embed.description = ""
+            embed.description = desc
             for command in commands:
                 if len(embed.description) <= 3500:
-                    embed.description += f"{command.mention}\n{command.description}\n\n"
+                    embed.description += f"**{command.mention}**\n{command.description}\n\n"
                 else:
                     log.error("Help embed length limit reached. Some commands are not shown.")
                     break
 
         elif style == HelpStyle.markdown:
-            embed.description = ""
+            embed.description = desc
             for command in commands:
                 if len(embed.description) <= 3500:
                     embed.description += f"### {command.mention}\n{command.description}\n"

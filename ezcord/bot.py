@@ -450,13 +450,14 @@ class Bot(_main_bot):  # type: ignore
         style: HelpStyle = HelpStyle.embed_description,
         embed: discord.Embed | None = None,
         show_categories: bool = True,
+        show_description: bool = True,
         timeout: int = 500,
         ephemeral: bool = True,
         author_only: bool = True,
         guild_only: bool = True,
         buttons: list[discord.Button] | None = None,
-        title: str = "{emoji} - {name}",
-        description: str = "{description}",
+        title_format: str = "{emoji} - {name}",
+        description_format: str = "{description}",
     ):
         """Add a help command that uses a select menu to group commands by cogs.
 
@@ -478,6 +479,8 @@ class Bot(_main_bot):  # type: ignore
             embed will be used.
         show_categories:
             Whether to display the categories of the help command front page. Defaults to ``True``.
+        show_description:
+            Whether to display the description in each category page. Defaults to ``True``.
         timeout:
             The timeout for the select menu. Defaults to ``500``.
         ephemeral:
@@ -489,9 +492,9 @@ class Bot(_main_bot):  # type: ignore
             Whether the help command should only be visible in guilds. Defaults to ``True``.
         buttons:
             A list of buttons to add to the help command. Defaults to ``None``.
-        title:
+        title_format:
             The title format of each category.
-        description:
+        description_format:
             The description format of each category.
         """
 
@@ -505,13 +508,14 @@ class Bot(_main_bot):  # type: ignore
             style,
             embed,
             show_categories,
+            show_description,
             timeout,
             ephemeral,
             author_only,
             guild_only,
             buttons,
-            title,
-            description,
+            title_format,
+            description_format,
         )
         self.load_extension(f".cogs.help", package="ezcord")
 
@@ -606,6 +610,7 @@ class _CustomHelp:
     style: HelpStyle
     embed: discord.Embed | None
     show_categories: bool
+    show_description: bool
     timeout: int | None
     ephemeral: bool
     author_only: bool

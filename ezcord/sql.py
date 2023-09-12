@@ -73,8 +73,7 @@ class DBHandler:
             self.connection = await aiosqlite.connect(self.DB, **con_args)
             return self.connection
 
-        db = await aiosqlite.connect(self.DB, **con_args)
-        return db
+        return await aiosqlite.connect(self.DB, **con_args)
 
     async def close(self):
         """Close the current connection to the database."""
@@ -155,7 +154,7 @@ class DBHandler:
 
         return result
 
-    async def exec(self, sql: str, *args, end: bool = False, **kwargs) -> None:
+    async def exec(self, sql: str, *args, end: bool = False, **kwargs) -> aiosqlite.Cursor | None:
         """Executes a SQL query.
 
         Parameters
@@ -173,7 +172,7 @@ class DBHandler:
         args = self._process_args(args)
         db = await self._connect(**kwargs)
         try:
-            await db.execute(sql, args)
+            cursor = await db.execute(sql, args)
         except Exception as e:
             if end or not self.connection:
                 await db.commit()
@@ -182,3 +181,4 @@ class DBHandler:
         if end or not self.connection:
             await db.commit()
             await db.close()
+        return cursor

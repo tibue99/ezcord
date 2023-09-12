@@ -4,10 +4,10 @@ repos:
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
-      - id: debug-statements
+      - id: check-docstring-first
 
   - repo: https://github.com/psf/black
-    rev: 23.1.0
+    rev: 23.9.1
     hooks:
       - id: black
         args: [--safe, --line-length=100]
@@ -16,15 +16,16 @@ repos:
     rev: 5.12.0
     hooks:
       - id: isort
+        args: ["--profile", "black"]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.1.1
+    rev: v1.5.1
     hooks:
       - id: mypy
         args: [--disable-error-code=name-defined, --disable-error-code=import]
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.1
+    rev: v3.10.1
     hooks:
       - id: pyupgrade
         args: [--py39-plus]

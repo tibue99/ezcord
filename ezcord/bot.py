@@ -14,21 +14,19 @@ from dotenv import load_dotenv
 
 from .emb import error as error_emb
 from .enums import CogLog, HelpStyle, ReadyEvent
-from .internal.dc import CogMeta, bridge, discord
-from .logs import DEFAULT_LOG, custom_log, set_log
-from .sql import DBHandler
-from .times import dc_timestamp
-
-from .internal import (  # isort: skip
+from .internal import (
     READY_TITLE,
+    get_error_text,
     load_lang,
     print_custom_ready,
     print_ready,
     set_lang,
     t,
-    get_error_text,
 )
-
+from .internal.dc import CogMeta, bridge, discord
+from .logs import DEFAULT_LOG, custom_log, set_log
+from .sql import DBHandler
+from .times import dc_timestamp
 
 try:
     _main_bot = discord.Bot  # Pycord

@@ -13,14 +13,13 @@ import aiohttp
 from colorama import Fore
 
 from .enums import LogFormat, TimeFormat
-from .internal.dc import discord
-
-from .internal.colors import (  # isort: skip
+from .internal.colors import (
     DEFAULT_COLOR,
     DEFAULT_LOG_COLORS,
     get_escape_code,
     replace_dc_format,
 )
+from .internal.dc import discord
 
 DEFAULT_LOG = "ezcord"
 log = logging.getLogger(DEFAULT_LOG)

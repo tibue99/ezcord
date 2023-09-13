@@ -154,7 +154,7 @@ class DBHandler:
 
         return result
 
-    async def exec(self, sql: str, *args, end: bool = False, **kwargs) -> aiosqlite.Cursor | None:
+    async def exec(self, sql: str, *args, end: bool = False, **kwargs) -> aiosqlite.Cursor:
         """Executes a SQL query.
 
         Parameters

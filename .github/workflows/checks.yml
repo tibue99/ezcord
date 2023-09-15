@@ -29,6 +29,6 @@ jobs:
 
       - name: Test Discord.py
         run: |
-          pip uninstall py-cord
+          pip uninstall -y py-cord
           pip install discord.py
           pytest

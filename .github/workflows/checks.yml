@@ -1,0 +1,48 @@
+name: Unit Tests
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+  pycord:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Pycord
+        run: |
+          pip install py-cord
+
+      - name: Test with pytest
+        run: |
+          pytest
+
+  dpy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Pycord
+        run: |
+          pip install discord.py
+      - name: Test with pytest
+        run: |
+          pytest

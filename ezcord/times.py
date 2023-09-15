@@ -114,6 +114,11 @@ def convert_to_seconds(string: str) -> int:
     string:
         The string to convert.
 
+    Returns
+    -------
+    :class:`int`
+        The amount of seconds.
+
     Example
     -------
     >>> convert_to_seconds("1m 9s")
@@ -124,11 +129,6 @@ def convert_to_seconds(string: str) -> int:
     90
     >>> convert_to_seconds("1h 5m 10s")
     3910
-
-    Returns
-    -------
-    :class:`int`
-        The amount of seconds.
     """
     units = {"s": "seconds", "m": "minutes", "h": "hours", "d": "days", "t": "days", "w": "weeks"}
 

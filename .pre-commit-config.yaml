@@ -5,6 +5,15 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-docstring-first
+      - id: check-yaml
+
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.2.1
+    hooks:
+    -   id: autoflake
+        args:
+        - --remove-all-unused-imports
+        - --remove-unused-variables
 
   - repo: https://github.com/psf/black
     rev: 23.9.1
@@ -29,3 +38,10 @@ repos:
     hooks:
       - id: pyupgrade
         args: [--py39-plus]
+
+  - repo: https://github.com/DanielNoord/pydocstringformatter
+    rev: v0.7.3
+    hooks:
+      - id: pydocstringformatter
+        args:
+          [--style=numpydoc, --no-numpydoc-name-type-spacing]

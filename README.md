@@ -42,6 +42,9 @@ ezcord @ git+https://github.com/tibue99/ezcord
 - [Pycord Docs](https://docs.pycord.dev/)
 
 ## Example
+- For more examples see the [exaple bot repository](https://github.com/tibue99/ezcord_template)
+or the [documentation](https://ezcord.readthedocs.io/en/latest/examples/examples.html).
+
 ```py
 import ezcord
 import discord

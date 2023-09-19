@@ -39,7 +39,11 @@ def test_libs():
 
     intents = discord.Intents.default()
     intents.message_content = True
-    assert ezcord.Bot(command_prefix="!", intents=intents)
+    bot = ezcord.Bot(command_prefix="!", intents=intents)
+
+    assert bot
+    with pytest.raises(TypeError):
+        bot.run()
 
 
 @pytest.mark.asyncio

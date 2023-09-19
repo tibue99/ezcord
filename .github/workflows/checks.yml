@@ -39,3 +39,9 @@ jobs:
           pip uninstall -y discord.py
           pip install nextcord
           pytest
+
+      - name: Test Disnake
+        run: |
+          pip uninstall -y nextcord
+          pip install disnake
+          pytest

@@ -1,0 +1,47 @@
+name: Unit Tests
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+          pip install pytest-asyncio
+
+      - name: Test Pycord
+        run: |
+          pip install py-cord
+          pytest
+
+      - name: Test Discord.py
+        run: |
+          pip uninstall -y py-cord
+          pip install discord.py
+          pytest
+
+      - name: Test Nextcord
+        run: |
+          pip uninstall -y discord.py
+          pip install nextcord
+          pytest
+
+      - name: Test Disnake
+        run: |
+          pip uninstall -y nextcord
+          pip install disnake
+          pytest

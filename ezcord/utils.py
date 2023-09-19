@@ -80,7 +80,6 @@ def ez_autocomplete(values: Values) -> AutocompleteFunc:
     values: Iterable[str]
         Accepts an iterable of :class:`str`, a callable (sync or async) that takes a single argument
         of :class:`~discord.AutocompleteContext`, or a coroutine. Must resolve to an iterable of :class:`str`.
-
     """
 
     async def autocomplete_callback(ctx: discord.AutocompleteContext) -> V:

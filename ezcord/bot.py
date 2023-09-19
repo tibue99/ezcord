@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Any
 
 import aiohttp
-from discord.ext import commands
 from dotenv import load_dotenv
 
 from .emb import error as error_emb
@@ -23,7 +22,7 @@ from .internal import (
     set_lang,
     t,
 )
-from .internal.dc import CogMeta, bridge, discord
+from .internal.dc import CogMeta, bridge, commands, discord
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .sql import DBHandler
 from .times import dc_timestamp

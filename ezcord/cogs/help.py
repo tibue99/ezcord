@@ -8,7 +8,7 @@ from ..bot import Bot, Cog
 from ..components import View
 from ..enums import HelpStyle
 from ..internal import replace_embed_values, t
-from ..internal.dc import discord, slash_command
+from ..internal.dc import discord
 from ..logs import log
 
 
@@ -38,7 +38,7 @@ class Help(Cog, hidden=True):
         super().__init__(bot)
         self.help.guild_only = bot.help.guild_only
 
-    @slash_command(name=t("cmd_name"), description=t("cmd_description"))
+    @discord.slash_command(name=t("cmd_name"), description=t("cmd_description"))
     async def help(self, ctx: discord.ApplicationContext):
         embed = self.bot.help.embed
         if embed is None:

@@ -293,24 +293,23 @@ def set_log(
         A dictionary of log levels and their corresponding colors. If only one color is given,
         all log levels will be colored with that color.
 
-        Example
-        -------
-        .. code-block:: python
-
-            import logging
-            from colorama import Fore
-            import ezcord
-
-            colors = {
-                logging.DEBUG: "blue",
-                logging.INFO: Fore.MAGENTA,
-            }
-
-            ezcord.set_log(colors=colors)
-
     Returns
     -------
     :class:`logging.Logger`
+
+    Example
+    -------
+    .. code-block:: python
+
+        import logging
+        import ezcord
+
+        colors = {
+            logging.DEBUG: "blue",
+            logging.INFO: "red",
+        }
+
+        ezcord.set_log(colors=colors)
     """
     logger = logging.getLogger(name)
     if logger.handlers:

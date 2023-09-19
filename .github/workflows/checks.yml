@@ -32,3 +32,9 @@ jobs:
           pip uninstall -y py-cord
           pip install discord.py
           pytest
+
+      - name: Test Nextcord
+        run: |
+          pip uninstall -y discord.py
+          pip install nextcord
+          pytest

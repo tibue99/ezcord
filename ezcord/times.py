@@ -4,9 +4,8 @@ import re
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 
-from discord.utils import format_dt, utcnow
-
 from .internal import tp
+from .internal.dc import discord
 
 
 def set_utc(dt: datetime) -> datetime:
@@ -81,7 +80,7 @@ def convert_dt(dt: datetime | timedelta, relative: bool = True) -> str:
         return convert_time(abs(dt.total_seconds()), relative)
 
     if isinstance(dt, datetime):
-        return convert_time(abs((dt - utcnow()).total_seconds()), relative)
+        return convert_time(abs((dt - discord.utils.utcnow()).total_seconds()), relative)
 
 
 def dc_timestamp(
@@ -102,8 +101,8 @@ def dc_timestamp(
     :class:`str`
         A Discord timestamp.
     """
-    dt = utcnow() + timedelta(seconds=seconds)
-    return format_dt(dt, style)
+    dt = discord.utils.utcnow() + timedelta(seconds=seconds)
+    return discord.utils.format_dt(dt, style)
 
 
 def convert_to_seconds(string: str) -> int:

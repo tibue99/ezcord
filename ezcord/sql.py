@@ -43,6 +43,12 @@ class DBHandler:
         if auto_setup and self.__class__ not in DBHandler._auto_setup:
             DBHandler._auto_setup[self.__class__] = self
 
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        return await self.close()
+
     @staticmethod
     def _process_args(args) -> tuple:
         """If SQL query parameters are passed as a tuple instead of single values,

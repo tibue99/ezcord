@@ -40,7 +40,7 @@ class DBHandler:
         self.transaction = transaction
         self.kwargs = kwargs
 
-        if auto_setup and self.__class__ not in DBHandler._auto_setup:
+        if auto_setup:
             DBHandler._auto_setup[self.__class__] = self
 
     async def __aenter__(self):

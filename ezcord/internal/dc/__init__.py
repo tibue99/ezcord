@@ -1,6 +1,11 @@
 from collections.abc import Iterable
 
-from .dc_imports import discord
+from ...errors import MissingDiscordLibrary
+
+try:
+    from .dc_imports import discord
+except ImportError:
+    raise MissingDiscordLibrary()
 
 commands = __import__(f"{discord.lib}.ext.commands", fromlist=[""])
 

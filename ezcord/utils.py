@@ -4,6 +4,7 @@ import asyncio
 import io
 import itertools
 import json
+import random
 from typing import Any
 
 from .internal.dc import AutocompleteFunc, V, Values, discord
@@ -69,6 +70,12 @@ def create_html_file(html: str, filename: str = "data.html", **kwargs) -> discor
     :class:`discord.File`
     """
     return create_text_file(html, filename, **kwargs)
+
+
+def random_avatar() -> str:
+    """Returns the URL of a random default avatar."""
+
+    return f"https://cdn.discordapp.com/embed/avatars/{random.randint(0, 5)}.png"
 
 
 def ez_autocomplete(values: Values) -> AutocompleteFunc:

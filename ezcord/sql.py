@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 
 import aiosqlite
@@ -67,6 +68,10 @@ class DBHandler:
         cls.auto_connect = True
         cls.kwargs = {**self.kwargs, **kwargs}
         return cls
+
+    async def connect(self, **kwargs):
+        """Alias for :meth:`start`."""
+        return self.start(**kwargs)
 
     async def _connect(self, **kwargs) -> aiosqlite.Connection:
         """Connect to an SQLite database. This is useful for transactions."""
@@ -188,3 +193,7 @@ class DBHandler:
             await db.commit()
             await db.close()
         return cursor
+
+    async def execute(self, sql: str, *args, end: bool = False, **kwargs) -> aiosqlite.Cursor:
+        """Alias for :meth:`exec`."""
+        return await self.exec(sql, *args, end=end, **kwargs)

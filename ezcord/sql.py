@@ -59,12 +59,13 @@ class DBHandler:
                 return args[0]
         return args
 
-    def start(self):
+    def start(self, **kwargs):
         """Returns an instance of :class:`.DBHandler` with the current settings
         and ``auto_connect=True``.
         """
         cls = deepcopy(self)
         cls.auto_connect = True
+        cls.kwargs = {**self.kwargs, **kwargs}
         return cls
 
     async def _connect(self, **kwargs) -> aiosqlite.Connection:

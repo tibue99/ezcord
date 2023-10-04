@@ -12,12 +12,12 @@ class DBHandler:
     ----------
     path:
         The path to the database file.
-    transaction:
+    auto_connect:
         Automatically create a new connection that will be used for all queries.
-        A transaction must be closed with :meth:`close` or by using ``end=True`` in :meth:`exec`.
+        Must be closed with :meth:`close` or by using ``end=True`` in :meth:`exec`.
     connection:
         A connection to the database. If not provided, a new connection will be created.
-        If ``transaction`` is ``True``, this will be ignored.
+        If ``auto_connect`` is ``True``, this will be ignored.
     auto_setup:
         Whether to call :meth:`setup` when the first instance of this class is created. Defaults to ``True``.
         This is called in the ``on_ready`` event of the bot.
@@ -31,13 +31,13 @@ class DBHandler:
         self,
         path: str,
         connection: aiosqlite.Connection | None = None,
-        transaction: bool = False,
+        auto_connect: bool = False,
         auto_setup: bool = True,
         **kwargs,
     ):
         self.DB = path
         self.connection = connection
-        self.transaction = transaction
+        self.auto_connect = auto_connect
         self.kwargs = kwargs
 
         if auto_setup:
@@ -61,10 +61,10 @@ class DBHandler:
 
     def start(self):
         """Returns an instance of :class:`.DBHandler` with the current settings
-        and ``transaction=True``.
+        and ``auto_connect=True``.
         """
         cls = deepcopy(self)
-        cls.transaction = True
+        cls.auto_connect = True
         return cls
 
     async def _connect(self, **kwargs) -> aiosqlite.Connection:
@@ -75,7 +75,7 @@ class DBHandler:
 
         con_args = {**kwargs, **self.kwargs}
 
-        if self.transaction:
+        if self.auto_connect:
             self.connection = await aiosqlite.connect(self.DB, **con_args)
             return self.connection
 
@@ -169,7 +169,6 @@ class DBHandler:
             The SQL query to execute.
         end:
             Whether to commit and close the connection after executing the query.
-            This is only needed for transactions.
         *args:
             Arguments for the query.
         **kwargs:

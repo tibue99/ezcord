@@ -62,14 +62,26 @@ class DBHandler:
     async def __aexit__(self, exc_type, exc_value, traceback):
         return await self.close()
 
-    @staticmethod
-    def _process_args(args) -> tuple:
+    def _process_args(self, args) -> tuple:
         """If SQL query parameters are passed as a tuple instead of single values,
         the tuple will be unpacked.
+
+        If ``conv_json`` is ``True``, all dicts will be converted to JSON strings.
         """
+
         if len(args) == 1 and isinstance(args, tuple):
             if isinstance(args[0], tuple):
-                return args[0]
+                args = args[0]
+
+        if self.conv_json:
+            json_args: tuple = ()
+            for arg in args:
+                if isinstance(arg, dict):
+                    json_args = json_args + (json.dumps(arg),)
+                else:
+                    json_args = json_args + (arg,)
+            args = json_args
+
         return args
 
     def start(
@@ -94,7 +106,7 @@ class DBHandler:
         -------
         .. code-block:: python3
 
-            async with DBHandler.start("ezcord.db") as db:
+            async with DBHandler("ezcord.db").start() as db:
                 await db.exec("CREATE TABLE IF NOT EXISTS vip (id INTEGER PRIMARY KEY, name TEXT)")
                 await db.exec("INSERT INTO vip (name) VALUES (?)", ("Timo",))
         """
@@ -146,6 +158,37 @@ class DBHandler:
         if not self.connection:
             await db.close()
 
+    @staticmethod
+    def _convert_tuple_json(result: tuple) -> tuple:
+        if not isinstance(result, tuple):
+            result = (result,)
+
+        new_result: tuple = ()
+        for value in result:
+            if isinstance(value, str):
+                try:
+                    value = json.loads(value)
+                except json.JSONDecodeError:
+                    pass
+            new_result = new_result + (value,)
+
+        return new_result
+
+    def _convert_json_one(self, result: tuple) -> tuple:
+        """Converts all JSON strings from :meth:`one` to dicts (if enabled)."""
+
+        if not self.conv_json or not result:
+            return result
+
+        return self._convert_tuple_json(result)
+
+    def _convert_json_all(self, result: list) -> list:
+        """Converts all JSON strings from :meth:`all` to dicts (if enabled)."""
+
+        if self.conv_json:
+            return [self._convert_tuple_json(row) for row in result]
+        return result
+
     async def one(self, sql: str, *args, **kwargs):
         """Returns one result row. If no row is found, ``None`` is returned.
 
@@ -177,6 +220,8 @@ class DBHandler:
 
         if result is None:
             return None
+
+        result = self._convert_json_one(result)
         if len(result) == 1:
             return result[0]
 
@@ -210,6 +255,8 @@ class DBHandler:
             raise e
 
         await self._close(db)
+
+        result = self._convert_json_all(result)
         if len(result) == 0 or len(result[0]) == 1:
             return [row[0] for row in result]
 

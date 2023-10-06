@@ -13,15 +13,22 @@ class DBHandler:
     ----------
     path:
         The path to the database file.
-    auto_connect:
-        Automatically create a new connection that will be used for all queries.
-        Must be closed with :meth:`close` or by using ``end=True`` in :meth:`exec`.
     connection:
         A connection to the database. If not provided, a new connection will be created.
         If ``auto_connect`` is ``True``, this will be ignored.
+    auto_connect:
+        Automatically create a new connection that will be used for all queries.
+        This is used by :meth:`start`.
+
+        When used without a context manager, this must be closed with :meth:`close`
+        or by using ``end=True`` in :meth:`exec`.
     auto_setup:
         Whether to call :meth:`setup` when the first instance of this class is created. Defaults to ``True``.
         This is called in the ``on_ready`` event of the bot.
+    conv_json:
+        Whether to auto-convert JSON. Defaults to ``False``.
+    foreign_keys:
+        Whether to enforce foreign keys. Defaults to ``False``.
     **kwargs:
         Keyword arguments for :func:`aiosqlite.connect`.
     """
@@ -31,14 +38,19 @@ class DBHandler:
     def __init__(
         self,
         path: str,
+        *,
         connection: aiosqlite.Connection | None = None,
         auto_connect: bool = False,
         auto_setup: bool = True,
+        conv_json: bool = False,
+        foreign_keys: bool = False,
         **kwargs,
     ):
         self.DB = path
         self.connection = connection
         self.auto_connect = auto_connect
+        self.conv_json = conv_json
+        self.foreign_keys = foreign_keys
         self.kwargs = kwargs
 
         if auto_setup:
@@ -60,13 +72,42 @@ class DBHandler:
                 return args[0]
         return args
 
-    def start(self, **kwargs):
-        """Returns an instance of :class:`.DBHandler` with the current settings
+    def start(
+        self, conv_json: bool | None = None, foreign_keys: bool | None = None, **kwargs
+    ) -> DBHandler:
+        """Returns a new instance of :class:`.DBHandler` with the current settings
         and ``auto_connect=True``.
+
+        This can be used as an asynchronous context manager. The connection will commit
+        automatically after exiting the context manager.
+
+        Parameters
+        ----------
+        conv_json:
+            Whether to auto-convert JSON.
+        foreign_keys:
+            Whether to enforce foreign keys.
+        **kwargs:
+            Additional keyword arguments for :func:`aiosqlite.connect`.
+
+        Example
+        -------
+        .. code-block:: python3
+
+            async with DBHandler.start("ezcord.db") as db:
+                await db.exec("CREATE TABLE IF NOT EXISTS vip (id INTEGER PRIMARY KEY, name TEXT)")
+                await db.exec("INSERT INTO vip (name) VALUES (?)", ("Timo",))
         """
         cls = deepcopy(self)
         cls.auto_connect = True
         cls.kwargs = {**self.kwargs, **kwargs}
+
+        # override settings if provided
+        if conv_json is not None:
+            cls.conv_json = conv_json
+        if foreign_keys is not None:
+            cls.foreign_keys = foreign_keys
+
         return cls
 
     async def connect(self, **kwargs):
@@ -74,7 +115,12 @@ class DBHandler:
         return self.start(**kwargs)
 
     async def _connect(self, **kwargs) -> aiosqlite.Connection:
-        """Connect to an SQLite database. This is useful for transactions."""
+        """Connect to an SQLite database. If the class instance has an active connection,
+        that connection will be returned instead.
+
+        If ``auto_connect`` is ``True``, a connection will be created and stored
+        as the instance connection.
+        """
 
         if self.connection is not None:
             return self.connection
@@ -88,7 +134,10 @@ class DBHandler:
         return await aiosqlite.connect(self.DB, **con_args)
 
     async def close(self):
-        """Close the current connection to the database."""
+        """Commits and closes the current connection to the database.
+
+        This is called automatically when using :meth:`start` as a context manager.
+        """
         if self.connection is not None:
             await self.connection.commit()
             await self.connection.close()

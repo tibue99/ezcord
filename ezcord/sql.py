@@ -57,6 +57,7 @@ class DBHandler:
             DBHandler._auto_setup[self.__class__] = self
 
     async def __aenter__(self):
+        self.auto_connect = True
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
@@ -138,12 +139,15 @@ class DBHandler:
             return self.connection
 
         con_args = {**kwargs, **self.kwargs}
+        con = await aiosqlite.connect(self.DB, **con_args)
 
         if self.auto_connect:
-            self.connection = await aiosqlite.connect(self.DB, **con_args)
-            return self.connection
+            self.connection = con
 
-        return await aiosqlite.connect(self.DB, **con_args)
+        if self.foreign_keys:
+            await con.execute("PRAGMA foreign_keys = ON")
+
+        return con
 
     async def close(self):
         """Commits and closes the current connection to the database.

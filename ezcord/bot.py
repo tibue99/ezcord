@@ -326,7 +326,9 @@ class Bot(_main_bot):  # type: ignore
     @staticmethod
     async def _db_setup():
         """Calls the setup method of all registered :class:`.DBHandler` instances."""
-        for instance in DBHandler._auto_setup.values():
+
+        setup_copy = DBHandler._auto_setup.copy()
+        for instance in setup_copy.values():
             if hasattr(instance, "setup") and callable(instance.setup):
                 await instance.setup()
 

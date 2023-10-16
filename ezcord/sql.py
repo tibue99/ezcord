@@ -123,9 +123,20 @@ class DBHandler:
 
         return cls
 
-    async def connect(self, **kwargs):
-        """Alias for :meth:`start`."""
-        return self.start(**kwargs)
+    # @classmethod
+    # async def connect(cls, **kwargs) -> DBHandler:
+    #     """Alias for :meth:`start, but without the need to create an instance first.`
+    #
+    #     Example
+    #     -------
+    #     .. code-block:: python3
+    #
+    #         async with DBHandler.connect("ezcord.db") as db:
+    #             await db.exec("CREATE TABLE IF NOT EXISTS vip (id INTEGER PRIMARY KEY, name TEXT)")
+    #
+    #     """
+    #
+    #     return cls(**kwargs).start()
 
     async def _connect(self, **kwargs) -> aiosqlite.Connection:
         """Connect to an SQLite database. If the class instance has an active connection,

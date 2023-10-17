@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 
 import aiosqlite
@@ -12,17 +13,34 @@ class DBHandler:
     ----------
     path:
         The path to the database file.
-    transaction:
-        Automatically create a new connection that will be used for all queries.
-        A transaction must be closed with :meth:`close` or by using ``end=True`` in :meth:`exec`.
     connection:
         A connection to the database. If not provided, a new connection will be created.
-        If ``transaction`` is ``True``, this will be ignored.
+        If ``auto_connect`` is ``True``, this will be ignored.
+    auto_connect:
+        Automatically create a new connection that will be used for all queries.
+        This is used by :meth:`start`.
+
+        When used without a context manager, this must be closed with :meth:`close`
+        or by using ``end=True`` in :meth:`exec`.
     auto_setup:
         Whether to call :meth:`setup` when the first instance of this class is created. Defaults to ``True``.
         This is called in the ``on_ready`` event of the bot.
+    conv_json:
+        Whether to auto-convert JSON. Defaults to ``False``.
+    foreign_keys:
+        Whether to enforce foreign keys. Defaults to ``False``.
     **kwargs:
         Keyword arguments for :func:`aiosqlite.connect`.
+
+    Example
+    -------
+    You can use this class with an asynchronous context manager:
+
+    .. code-block:: python3
+
+            async with DBHandler("ezcord.db") as db:
+                await db.exec("CREATE TABLE IF NOT EXISTS vip (id INTEGER PRIMARY KEY, name TEXT)")
+                await db.exec("INSERT INTO vip (name) VALUES (?)", "Timo")
     """
 
     _auto_setup: dict[type[DBHandler], DBHandler] = {}
@@ -30,59 +48,130 @@ class DBHandler:
     def __init__(
         self,
         path: str,
+        *,
         connection: aiosqlite.Connection | None = None,
-        transaction: bool = False,
+        auto_connect: bool = False,
         auto_setup: bool = True,
+        conv_json: bool = False,
+        foreign_keys: bool = False,
         **kwargs,
     ):
         self.DB = path
         self.connection = connection
-        self.transaction = transaction
+        self.auto_connect = auto_connect
+        self.conv_json = conv_json
+        self.foreign_keys = foreign_keys
         self.kwargs = kwargs
 
         if auto_setup:
             DBHandler._auto_setup[self.__class__] = self
 
     async def __aenter__(self):
+        self.auto_connect = True
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         return await self.close()
 
-    @staticmethod
-    def _process_args(args) -> tuple:
+    def _process_args(self, args) -> tuple:
         """If SQL query parameters are passed as a tuple instead of single values,
         the tuple will be unpacked.
+
+        If ``conv_json`` is ``True``, all dicts will be converted to JSON strings.
         """
+
         if len(args) == 1 and isinstance(args, tuple):
             if isinstance(args[0], tuple):
-                return args[0]
+                args = args[0]
+
+        if self.conv_json:
+            json_args: tuple = ()
+            for arg in args:
+                if isinstance(arg, dict):
+                    json_args = json_args + (json.dumps(arg),)
+                else:
+                    json_args = json_args + (arg,)
+            args = json_args
+
         return args
 
-    def start(self):
-        """Returns an instance of :class:`.DBHandler` with the current settings
-        and ``transaction=True``.
+    def start(
+        self, *, conv_json: bool | None = None, foreign_keys: bool | None = None, **kwargs
+    ) -> DBHandler:
+        """Opens a new connection with the current DB settings. Additional settings can
+        be provided as keyword arguments.
+
+        This should be used as an asynchronous context manager. The connection will commit
+        automatically after exiting the context manager.
+
+        Parameters
+        ----------
+        conv_json:
+            Whether to auto-convert JSON.
+        foreign_keys:
+            Whether to enforce foreign keys.
+        **kwargs:
+            Additional keyword arguments for :func:`aiosqlite.connect`.
+
+        Example
+        -------
+        .. code-block:: python3
+
+            class VipDB(DBHandler):
+                def __init__(self):
+                    super().__init__("ezcord.db")
+
+                async def setup(self):
+                    async with self.start() as db:
+                        await db.exec(
+                            "CREATE TABLE IF NOT EXISTS vip (id INTEGER PRIMARY KEY, name TEXT)"
+                        )
+                        await db.exec("INSERT INTO vip (name) VALUES (?)", "Timo")
         """
         cls = deepcopy(self)
-        cls.transaction = True
+        cls.auto_connect = True
+        cls.kwargs = {**self.kwargs, **kwargs}
+
+        # override settings if provided
+        if conv_json is not None:
+            cls.conv_json = conv_json
+        if foreign_keys is not None:
+            cls.foreign_keys = foreign_keys
+
         return cls
 
+    async def connect(self, **kwargs) -> DBHandler:
+        """Alias for :meth:`start`."""
+
+        return self.start(**kwargs)
+
     async def _connect(self, **kwargs) -> aiosqlite.Connection:
-        """Connect to an SQLite database. This is useful for transactions."""
+        """Connect to an SQLite database. If the class instance has an active connection,
+        that connection will be returned instead.
+
+        If ``auto_connect`` is ``True``, a connection will be created and stored
+        as the instance connection.
+        """
 
         if self.connection is not None:
             return self.connection
 
         con_args = {**kwargs, **self.kwargs}
+        con = await aiosqlite.connect(self.DB, **con_args)
 
-        if self.transaction:
-            self.connection = await aiosqlite.connect(self.DB, **con_args)
-            return self.connection
+        if self.auto_connect:
+            self.connection = con
 
-        return await aiosqlite.connect(self.DB, **con_args)
+        if self.foreign_keys:
+            await con.execute("PRAGMA foreign_keys = ON")
+
+        return con
 
     async def close(self):
-        """Close the current connection to the database."""
+        """Commits and closes the current connection to the database.
+
+        This is called automatically when using :meth:`start` as a context manager.
+        """
         if self.connection is not None:
             await self.connection.commit()
             await self.connection.close()
@@ -90,6 +179,37 @@ class DBHandler:
     async def _close(self, db):
         if not self.connection:
             await db.close()
+
+    @staticmethod
+    def _convert_tuple_json(result: tuple) -> tuple:
+        if not isinstance(result, tuple):
+            result = (result,)
+
+        new_result: tuple = ()
+        for value in result:
+            if isinstance(value, str):
+                try:
+                    value = json.loads(value)
+                except json.JSONDecodeError:
+                    pass
+            new_result = new_result + (value,)
+
+        return new_result
+
+    def _convert_json_one(self, result: tuple) -> tuple:
+        """Converts all JSON strings from :meth:`one` to dicts (if enabled)."""
+
+        if not self.conv_json or not result:
+            return result
+
+        return self._convert_tuple_json(result)
+
+    def _convert_json_all(self, result: list) -> list:
+        """Converts all JSON strings from :meth:`all` to dicts (if enabled)."""
+
+        if self.conv_json:
+            return [self._convert_tuple_json(row) for row in result]
+        return result
 
     async def one(self, sql: str, *args, **kwargs):
         """Returns one result row. If no row is found, ``None`` is returned.
@@ -122,6 +242,8 @@ class DBHandler:
 
         if result is None:
             return None
+
+        result = self._convert_json_one(result)
         if len(result) == 1:
             return result[0]
 
@@ -155,6 +277,8 @@ class DBHandler:
             raise e
 
         await self._close(db)
+
+        result = self._convert_json_all(result)
         if len(result) == 0 or len(result[0]) == 1:
             return [row[0] for row in result]
 
@@ -169,7 +293,6 @@ class DBHandler:
             The SQL query to execute.
         end:
             Whether to commit and close the connection after executing the query.
-            This is only needed for transactions.
         *args:
             Arguments for the query.
         **kwargs:
@@ -188,3 +311,7 @@ class DBHandler:
             await db.commit()
             await db.close()
         return cursor
+
+    async def execute(self, sql: str, *args, end: bool = False, **kwargs) -> aiosqlite.Cursor:
+        """Alias for :meth:`exec`."""
+        return await self.exec(sql, *args, end=end, **kwargs)

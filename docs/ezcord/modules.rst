@@ -13,3 +13,4 @@ Here is an overview of all features.
    enums
    components
    sql
+   errors

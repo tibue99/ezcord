@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta
 
+import pytest
+
 import ezcord
+from ezcord import ConvertTimeError
 
 
 def test_convert_time():
@@ -21,3 +24,22 @@ def test_convert_so_seconds():
     assert ezcord.convert_to_seconds("1.5m") == 90
     assert ezcord.convert_to_seconds("1,5 min") == 90
     assert ezcord.convert_to_seconds("1h 5m 10s") == 3910
+
+    # tests with no units
+    assert ezcord.convert_to_seconds("1 2m 3") == 120
+    assert ezcord.convert_to_seconds("2") == 120
+    assert ezcord.convert_to_seconds("2", default_unit="s", error=True) == 2
+    assert ezcord.convert_to_seconds("2", default_unit=None) == 0
+
+    with pytest.raises(ConvertTimeError):
+        ezcord.convert_to_seconds("1 2 3", default_unit=None, error=True)
+
+    # tests with invalid units
+    assert ezcord.convert_to_seconds("") == 0
+    assert ezcord.convert_to_seconds("z") == 0
+
+    with pytest.raises(ConvertTimeError):
+        assert ezcord.convert_to_seconds("", error=True)
+
+    with pytest.raises(ConvertTimeError):
+        assert ezcord.convert_to_seconds("z", error=True)

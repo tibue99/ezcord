@@ -4,6 +4,7 @@ import re
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 
+from .errors import ConvertTimeError
 from .internal import tp
 from .internal.dc import discord
 
@@ -105,18 +106,31 @@ def dc_timestamp(
     return discord.utils.format_dt(dt, style)
 
 
-def convert_to_seconds(string: str) -> int:
+def convert_to_seconds(
+    string: str, error: bool = False, default_unit: Literal["s", "m", "h", "d"] | None = "m"
+) -> int:
     """Convert a string to seconds. Supports multiple units and decimal separators.
 
     Parameters
     ----------
     string:
         The string to convert.
+    error:
+        Whether to raise an error if the string could not be converted. If set to ``False``,
+        the function will return ``0`` instead. Defaults to ``False``.
+    default_unit:
+        The default unit to use if no valid unit is specified. Defaults to ``m``.
+        If at least one valid unit is found, all numbers without a valid unit are ignored.
 
     Returns
     -------
     :class:`int`
         The amount of seconds.
+
+    Raises
+    ------
+    :exc:`ConvertTimeError`
+         No valid number was found, or ``default_unit`` is ``None`` while no valid unit was found.
 
     Example
     -------
@@ -134,10 +148,24 @@ def convert_to_seconds(string: str) -> int:
     pattern = re.compile(r"(?P<value>\d+([.,]\d+)?) *(?P<unit>[smhdtw]?)", flags=re.IGNORECASE)
     matches = pattern.finditer(string)
 
+    no_unit = "0"
     found_units = {}
     for match in matches:
-        unit = match.group("unit").lower()
+        unit_char = match.group("unit").lower()
         value = float(match.group("value").replace(",", "."))
-        found_units[units.get(unit, "seconds")] = value
+
+        unit = units.get(unit_char, no_unit)
+        found_units[unit] = value
+
+    if no_unit in found_units:  # Number without valid unit found
+        if len(found_units) <= 1:
+            # No valid unit found -> Default unit is associated with the number
+            if default_unit is not None:
+                found_units[units[default_unit]] = found_units[no_unit]
+
+        del found_units[no_unit]
+
+    if error and not found_units:
+        raise ConvertTimeError(f"Could not convert '{string}' to seconds.")
 
     return int(timedelta(**found_units).total_seconds())

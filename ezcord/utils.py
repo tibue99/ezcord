@@ -12,7 +12,13 @@ from .internal.dc import AutocompleteFunc, V, Values, discord
 
 
 def create_json_file(
-    dictionary: dict, filename: str = "data.json", indent: int = 2, **kwargs
+    dictionary: dict,
+    filename: str = "data.json",
+    *,
+    indent: int = 2,
+    description: str | None = None,
+    spoiler: bool = False,
+    **kwargs,
 ) -> discord.File:
     """Create a :class:`discord.File` object from a dictionary.
 
@@ -24,15 +30,24 @@ def create_json_file(
         The filename to use for the JSON file.
     indent:
         The indent to use for the JSON file.
+    description:
+        The description to use for the discord file.
+    spoiler:
+        Whether the Discord file should be a spoiler.
     **kwargs:
-        Keyword arguments for :class:`discord.File`.
+        Additional keyword arguments for :py:func:`json.dumps`.
 
     Returns
     -------
     :class:`discord.File`
     """
-    content = json.dumps(dictionary, indent=indent).encode()
-    return discord.File(io.BytesIO(content), filename=filename, **kwargs)
+    content = json.dumps(dictionary, indent=indent, **kwargs).encode()
+    return discord.File(
+        io.BytesIO(content),
+        filename=filename,
+        description=description,
+        spoiler=spoiler,
+    )
 
 
 def create_text_file(text: str, filename: str = "data.txt", **kwargs) -> discord.File:

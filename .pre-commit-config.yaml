@@ -3,7 +3,7 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -31,13 +31,13 @@ repos:
         args: ["--profile", "black"]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.1
+    rev: v1.6.0
     hooks:
       - id: mypy
         args: [--disable-error-code=name-defined, --disable-error-code=import]
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.11.0
+    rev: v3.15.0
     hooks:
       - id: pyupgrade
         args: [--py39-plus]

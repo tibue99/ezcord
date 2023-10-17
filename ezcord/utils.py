@@ -7,6 +7,7 @@ import json
 import random
 from typing import Any
 
+from .internal import get_lang
 from .internal.dc import AutocompleteFunc, V, Values, discord
 
 
@@ -76,6 +77,29 @@ def random_avatar() -> str:
     """Returns the URL of a random default avatar."""
 
     return f"https://cdn.discordapp.com/embed/avatars/{random.randint(0, 5)}.png"
+
+
+def codeblock(content: int | str, *, lang: str = "yaml", unit: str = ""):
+    """Returns a codeblock with the given content.
+
+    Parameters
+    ----------
+    content:
+        The content of the codeblock. If the content is an integer, it will be
+        formatted with commas (or dots if the language is German).
+    lang:
+        The language of the codeblock. Defaults to ``yaml``.
+    unit:
+        The text to display after the given content. This is only used if the content is an integer.
+    """
+
+    if isinstance(content, str):
+        return f"```{lang}\n{content}```"
+
+    block = f"```{lang}\n{content:,} {unit}```"
+    if get_lang() == "de":
+        block = block.replace(",", ".")
+    return block
 
 
 def ez_autocomplete(values: Values) -> AutocompleteFunc:

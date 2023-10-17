@@ -31,6 +31,16 @@ class DBHandler:
         Whether to enforce foreign keys. Defaults to ``False``.
     **kwargs:
         Keyword arguments for :func:`aiosqlite.connect`.
+
+    Example
+    -------
+    You can use this class with an asynchronous context manager:
+
+    .. code-block:: python3
+
+            async with DBHandler("ezcord.db") as db:
+                await db.exec("CREATE TABLE IF NOT EXISTS vip (id INTEGER PRIMARY KEY, name TEXT)")
+                await db.exec("INSERT INTO vip (name) VALUES (?)", "Timo")
     """
 
     _auto_setup: dict[type[DBHandler], DBHandler] = {}
@@ -86,12 +96,12 @@ class DBHandler:
         return args
 
     def start(
-        self, conv_json: bool | None = None, foreign_keys: bool | None = None, **kwargs
+        self, *, conv_json: bool | None = None, foreign_keys: bool | None = None, **kwargs
     ) -> DBHandler:
-        """Returns a new instance of :class:`.DBHandler` with the current settings
-        and ``auto_connect=True``.
+        """Opens a new connection with the current DB settings. Additional settings can
+        be provided as keyword arguments.
 
-        This can be used as an asynchronous context manager. The connection will commit
+        This should be used as an asynchronous context manager. The connection will commit
         automatically after exiting the context manager.
 
         Parameters
@@ -107,9 +117,16 @@ class DBHandler:
         -------
         .. code-block:: python3
 
-            async with DBHandler("ezcord.db").start() as db:
-                await db.exec("CREATE TABLE IF NOT EXISTS vip (id INTEGER PRIMARY KEY, name TEXT)")
-                await db.exec("INSERT INTO vip (name) VALUES (?)", ("Timo",))
+            class VipDB(DBHandler):
+                def __init__(self):
+                    super().__init__("ezcord.db")
+
+                async def setup(self):
+                    async with self.start() as db:
+                        await db.exec(
+                            "CREATE TABLE IF NOT EXISTS vip (id INTEGER PRIMARY KEY, name TEXT)"
+                        )
+                        await db.exec("INSERT INTO vip (name) VALUES (?)", "Timo")
         """
         cls = deepcopy(self)
         cls.auto_connect = True
@@ -123,20 +140,10 @@ class DBHandler:
 
         return cls
 
-    # @classmethod
-    # async def connect(cls, **kwargs) -> DBHandler:
-    #     """Alias for :meth:`start, but without the need to create an instance first.`
-    #
-    #     Example
-    #     -------
-    #     .. code-block:: python3
-    #
-    #         async with DBHandler.connect("ezcord.db") as db:
-    #             await db.exec("CREATE TABLE IF NOT EXISTS vip (id INTEGER PRIMARY KEY, name TEXT)")
-    #
-    #     """
-    #
-    #     return cls(**kwargs).start()
+    async def connect(self, **kwargs) -> DBHandler:
+        """Alias for :meth:`start`."""
+
+        return self.start(**kwargs)
 
     async def _connect(self, **kwargs) -> aiosqlite.Connection:
         """Connect to an SQLite database. If the class instance has an active connection,

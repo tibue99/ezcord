@@ -445,6 +445,7 @@ class Bot(_main_bot):  # type: ignore
         buttons: list[discord.Button] | None = None,
         title_format: str = "{emoji} - {name}",
         description_format: str = "{description}",
+        permission_check: bool = True,
     ):
         """Add a help command that uses a select menu to group commands by cogs.
 
@@ -483,6 +484,8 @@ class Bot(_main_bot):  # type: ignore
             The title format of each category.
         description_format:
             The description format of each category.
+        permission_check:
+            Whether to check for permissions before showing a command. Defaults to ``True``.
         """
 
         if buttons is None:
@@ -503,6 +506,7 @@ class Bot(_main_bot):  # type: ignore
             buttons,
             title_format,
             description_format,
+            permission_check,
         )
         self.load_extension(f".cogs.help", package="ezcord")
 
@@ -605,3 +609,4 @@ class _CustomHelp:
     buttons: list[discord.Button]
     title: str
     description: str
+    permission_check: bool

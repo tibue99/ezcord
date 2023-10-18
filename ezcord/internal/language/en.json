@@ -20,6 +20,6 @@
     "placeholder": "\uD83D\uDD30 › Choose a category",
     "embed_title": "My commands",
     "default_description": "All commands of category **{}**.",
-    "no_commands": "Oops, I didn't find any commands."
+    "no_commands": "Oops, I couldn't find any commands that you have access to."
   }
 }

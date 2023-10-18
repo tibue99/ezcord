@@ -33,6 +33,16 @@ def replace_placeholders(s: str, **kwargs: str):
     return s
 
 
+def get_perm_parent(cmd: discord.SlashCommand) -> discord.SlashCommandGroup | None:
+    """Iterates through parent groups until it finds a group with default_member_permissions set."""
+    while cmd.default_member_permissions is None:
+        cmd = cmd.parent
+        if cmd is None:
+            return None
+
+    return cmd
+
+
 class Help(Cog, hidden=True):
     def __init__(self, bot: Bot):
         super().__init__(bot)
@@ -84,6 +94,19 @@ class Help(Cog, hidden=True):
                     discord.SlashCommandGroup,
                 ]:
                     continue
+
+                if self.bot.help.permission_check:
+                    if command.default_member_permissions and not command.parent:
+                        if command.default_member_permissions.is_subset(
+                            ctx.author.guild_permissions
+                        ):
+                            continue
+
+                    parent = get_perm_parent(command)
+                    if parent and not parent.default_member_permissions.is_subset(
+                        ctx.author.guild_permissions
+                    ):
+                        continue
 
                 commands[name]["cmds"].append(command)
 
@@ -190,6 +213,9 @@ class CategorySelect(discord.ui.Select):
                 else:
                     log.error("Help embed length limit reached. Some commands are not shown.")
                     break
+
+        if len(commands) == 0:
+            embed.description = t("no_commands")
 
         view = CategoryView(self.options, self.bot, self.member, self.commands)
         for button in self.bot.help.buttons:

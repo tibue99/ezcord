@@ -20,6 +20,6 @@
     "placeholder": "\uD83D\uDD30 › Wähle eine Kategorie aus",
     "embed_title": "Meine Befehle",
     "default_description": "Alle Befehle der Kategorie **{}**.",
-    "no_commands": "Ups, ich konnte keine Befehle finden."
+    "no_commands": "Ups, ich konnte keine Befehle finden, auf die du Zugriff hast."
   }
 }

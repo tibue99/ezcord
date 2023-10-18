@@ -108,13 +108,17 @@ def codeblock(content: int | str, *, lang: str = "yaml", unit: str = ""):
         The text to display after the given content. This is only used if the content is an integer.
     """
 
-    if isinstance(content, str):
-        return f"```{lang}\n{content}```"
+    if isinstance(content, int):
+        number = f"{content:,}"
+        if get_lang() == "de":
+            number = number.replace(",", ".")
+        block = f"```{lang}\n{number}"
+        if unit:
+            block += f" {unit}"
+        block += "```"
+        return block
 
-    block = f"```{lang}\n{content:,} {unit}```"
-    if get_lang() == "de":
-        block = block.replace(",", ".")
-    return block
+    return f"```{lang}\n{content}```"
 
 
 def ez_autocomplete(values: Values) -> AutocompleteFunc:

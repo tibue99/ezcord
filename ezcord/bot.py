@@ -135,7 +135,6 @@ class Bot(_main_bot):  # type: ignore
         log_format: CogLog | str | None,
         directory: str,
         color: str | None = None,
-        subdir: bool = False,
     ):
         """Sends a log message for a loaded cog."""
 
@@ -143,7 +142,9 @@ class Bot(_main_bot):  # type: ignore
             return
 
         log_format = log_format.replace("{cog}", cog_name)
-        log_format = log_format.replace("{path}", f"{directory}.{cog_name}" if subdir else cog_name)
+
+        dot = "." if directory else ""
+        log_format = log_format.replace("{path}", f"{directory}{dot}{cog_name}")
         log_format = log_format.replace("{directory}", f"{directory}")
 
         self._send_cog_log(custom_log_level, log_format, color=color)
@@ -213,39 +214,26 @@ class Bot(_main_bot):  # type: ignore
 
         loaded_cogs = 0
         for directory in directories:
-            path = Path(directory)
+            for root, dirs, files in os.walk(directory):
+                path = Path(root)
+                loaded_dir_cogs = 0
+                for filename in files:
+                    name = filename[:-3]
+                    if (
+                        filename.endswith(".py")
+                        and not filename.startswith("_")
+                        and filename not in ignored_cogs
+                    ):
+                        self.load_extension(f"{'.'.join(path.parts)}.{name}")
+                        loaded_dir_cogs += 1
+                        self._cog_log(
+                            f"{name}", custom_log_level, log, ".".join(path.parts[1:]), log_color
+                        )
+                loaded_cogs += loaded_dir_cogs
 
-            loaded_root_cogs = 0
-            for filename in os.listdir(directory):
-                name = filename[:-3]
-                if filename.endswith(".py") and name not in ignored_cogs:
-                    self.load_extension(f"{'.'.join(path.parts)}.{name}")
-                    loaded_root_cogs += 1
-                    self._cog_log(f"{name}", custom_log_level, log, directory, log_color)
-
-            loaded_cogs += loaded_root_cogs
-            self._cog_count_log(custom_log_level, log, loaded_root_cogs, log_color, directory)
-
-            if subdirectories:
-                for element in os.scandir(directory):
-                    if not element.is_dir():
-                        continue
-
-                    loaded_dir_cogs = 0
-                    dirname = element.name
-
-                    for sub_file in os.scandir(element.path):
-                        name = sub_file.name[:-3]
-                        if sub_file.name.endswith(".py") and name not in ignored_cogs:
-                            self.load_extension(f"{'.'.join(path.parts)}.{dirname}.{name}")
-                            loaded_dir_cogs += 1
-                            self._cog_log(
-                                f"{name}", custom_log_level, log, dirname, log_color, subdir=True
-                            )
-
-                    self._cog_count_log(custom_log_level, log, loaded_dir_cogs, log_color, dirname)
-                    loaded_cogs += loaded_dir_cogs
-
+                self._cog_count_log(custom_log_level, log, loaded_dir_cogs, log_color, path.stem)
+                if not subdirectories:
+                    break
         self._cog_count_log(custom_log_level, log, loaded_cogs, log_color)
 
     def add_ready_info(

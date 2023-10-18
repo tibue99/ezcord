@@ -1,5 +1,7 @@
 """Some utility functions for Pycord and Python."""
 
+from __future__ import annotations
+
 import asyncio
 import io
 import itertools

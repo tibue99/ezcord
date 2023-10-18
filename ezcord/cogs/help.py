@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import random
 from copy import deepcopy
 
@@ -16,7 +17,7 @@ def get_emoji(cog: Cog) -> str:
     if hasattr(cog, "emoji") and cog.emoji:
         emoji = cog.emoji
     else:
-        emoji = random.choice(["🔰", "👻", "📝", "👥", "🦕", "🐧"])
+        emoji = random.choice(["🔰", "👻", "🍪", "👥", "🦕", "🐧", "✨", "😩", "🍔"])
 
     return emoji
 
@@ -41,6 +42,24 @@ def get_perm_parent(cmd: discord.SlashCommand) -> discord.SlashCommandGroup | No
             return None
 
     return cmd
+
+
+async def pass_checks(command: discord.SlashCommand, ctx: discord.ApplicationContext) -> bool:
+    """Returns True if the current user passes all checks."""
+    passed = True
+    for check in deepcopy(command.checks):
+        try:
+            if inspect.iscoroutinefunction(check):
+                await check(ctx)
+            else:
+                if not check(ctx):
+                    passed = False
+                    break
+        except Exception:
+            passed = False
+            break
+
+    return passed
 
 
 class Help(Cog, hidden=True):
@@ -96,6 +115,9 @@ class Help(Cog, hidden=True):
                     continue
 
                 if self.bot.help.permission_check:
+                    if not await pass_checks(command, ctx):
+                        continue
+
                     if command.default_member_permissions and not command.parent:
                         if command.default_member_permissions.is_subset(
                             ctx.author.guild_permissions

@@ -5,8 +5,6 @@ venv
 .env
 *.db
 *.log
-*.ini
-embeds.json
 
 # Packaging
 build/

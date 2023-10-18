@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import json
-import os
 import traceback
 from copy import deepcopy
 from functools import cache
-from pathlib import Path
 
 from ..internal.dc import discord
+from .config import EzConfig
 
 _TEMPLATES: dict[str, discord.Embed] = {
     "success_embed": discord.Embed(color=discord.Color.green()),
@@ -18,7 +16,7 @@ _TEMPLATES: dict[str, discord.Embed] = {
 
 
 def save_embeds(**kwargs: discord.Embed | str):
-    """Save multiple embeds to a JSON file.
+    """Save embeds to config.
 
     If one of the default values is not included, a default template will be saved.
     """
@@ -33,21 +31,17 @@ def save_embeds(**kwargs: discord.Embed | str):
         else:
             embeds[name] = embed.to_dict()
 
-    parent = Path(__file__).parent.absolute()
-    with open(os.path.join(parent, "embeds.json"), "w") as file:
-        json.dump(embeds, file, indent=2)
+    EzConfig.embed_templates = embeds
 
 
 @cache
 def load_embed(name: str) -> discord.Embed | str:
-    """Load an embed template from a JSON file."""
-    parent = Path(__file__).parent.absolute()
-    json_path = parent.joinpath("embeds.json")
-    if not json_path.exists():
+    """Load an embed template."""
+
+    if not EzConfig.embed_templates:
         save_embeds()
 
-    with open(os.path.join(parent, "embeds.json")) as file:
-        embeds = json.load(file)
+    embeds = EzConfig.embed_templates
 
     if isinstance(embeds[name], str):
         return embeds[name]

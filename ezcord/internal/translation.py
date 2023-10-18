@@ -1,12 +1,11 @@
 """Internal language utilities for the library."""
 
 import inspect
-import os
-from configparser import ConfigParser
 from functools import cache
 from pathlib import Path
 
 from ..logs import log
+from .config import EzConfig
 from .language.languages import load_lang
 
 
@@ -171,25 +170,16 @@ def t(key: str, *args: str):
 
 @cache
 def get_lang():
-    """Get the language from the config file."""
-    parent = Path(__file__).parent.absolute()
-    config = ConfigParser()
-    config.read(os.path.join(parent, "config.ini"))
-
-    return config["DEFAULT"]["lang"]
+    """Get the language from the config class."""
+    return EzConfig.lang
 
 
 def set_lang(lang: str):
-    """Set the language in the config file.
+    """Set the language for the bot.
 
     Parameters
     ----------
     lang:
         The language to set.
     """
-    parent = Path(__file__).parent.absolute()
-    config = ConfigParser()
-    config["DEFAULT"] = {"lang": lang}
-
-    with open(os.path.join(parent, "config.ini"), "w") as f:
-        config.write(f)
+    EzConfig.lang = lang

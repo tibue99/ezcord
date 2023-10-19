@@ -119,7 +119,7 @@ class Help(Cog, hidden=True):
                         continue
 
                     if command.default_member_permissions and not command.parent:
-                        if command.default_member_permissions.is_subset(
+                        if not command.default_member_permissions.is_subset(
                             ctx.author.guild_permissions
                         ):
                             continue
@@ -130,8 +130,13 @@ class Help(Cog, hidden=True):
                     ):
                         continue
 
+                if ctx.guild and command.guild_ids and ctx.guild.id not in command.guild_ids:
+                    continue
+
                 commands[name]["cmds"].append(command)
 
+            if len(commands[name]["cmds"]) == 0:
+                continue
             if not group:
                 option = discord.SelectOption(label=name, emoji=emoji)
                 options.append(option)

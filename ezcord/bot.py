@@ -222,7 +222,7 @@ class Bot(_main_bot):  # type: ignore
                     if (
                         filename.endswith(".py")
                         and not filename.startswith("_")
-                        and filename not in ignored_cogs
+                        and name not in ignored_cogs
                     ):
                         self.load_extension(f"{'.'.join(path.parts)}.{name}")
                         loaded_dir_cogs += 1

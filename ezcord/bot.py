@@ -438,6 +438,7 @@ class Bot(_main_bot):  # type: ignore
         embed: discord.Embed | None = None,
         show_categories: bool = True,
         show_description: bool = True,
+        show_cmd_count: bool = False,
         timeout: int = 500,
         ephemeral: bool = True,
         author_only: bool = True,
@@ -469,6 +470,9 @@ class Bot(_main_bot):  # type: ignore
             Whether to display the categories of the help command front page. Defaults to ``True``.
         show_description:
             Whether to display the description in each category page. Defaults to ``True``.
+        show_cmd_count:
+            Whether to display the command count of each category in the select menu.
+            Defaults to ``False``.
         timeout:
             The timeout for the select menu. Defaults to ``500``.
         ephemeral:
@@ -499,6 +503,7 @@ class Bot(_main_bot):  # type: ignore
             embed,
             show_categories,
             show_description,
+            show_cmd_count,
             timeout,
             ephemeral,
             author_only,
@@ -602,6 +607,7 @@ class _CustomHelp:
     embed: discord.Embed | None
     show_categories: bool
     show_description: bool
+    show_cmd_count: bool
     timeout: int | None
     ephemeral: bool
     author_only: bool

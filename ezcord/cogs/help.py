@@ -135,10 +135,16 @@ class Help(Cog, hidden=True):
 
                 commands[name]["cmds"].append(command)
 
-            if len(commands[name]["cmds"]) == 0:
+            cmd_count = len(commands[name]["cmds"])
+
+            if cmd_count == 0:
                 continue
             if not group:
-                option = discord.SelectOption(label=name, emoji=emoji)
+                if self.bot.help.show_cmd_count:
+                    label = f"{name} ({cmd_count})"
+                else:
+                    label = name
+                option = discord.SelectOption(label=label, emoji=emoji, value=name)
                 options.append(option)
                 if self.bot.help.show_categories:
                     embed.add_field(name=field_name, value=desc, inline=False)

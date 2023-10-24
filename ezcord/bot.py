@@ -6,7 +6,7 @@ import os
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import aiohttp
 from dotenv import load_dotenv
@@ -515,13 +515,70 @@ class Bot(_main_bot):  # type: ignore
         )
         self.load_extension(f".cogs.help", package="ezcord")
 
+    def add_status_changer(
+        self,
+        interval: int = 60,
+        status: discord.Status = discord.Status.online,
+        *,
+        custom: list[str] | None = None,
+        watching: list[str] | None = None,
+        listening: list[str] | None = None,
+        playing: list[str] | None = None,
+        streaming: list[discord.Streaming] | None = None,
+        **kwargs: Callable | str,
+    ):
+        """Add a status changer that changes the bot's status every ``interval`` seconds.
+
+        .. note::
+
+            You can use the following variables in status texts:
+
+            - ``{guild_count}`` - The number of guilds the bot is in.
+            - ``{user_count}`` - The number of users the bot can see.
+
+            You can create custom variables by passing in variable names and values
+            as ``**kwargs``.
+
+        Parameters
+        ----------
+        interval:
+            The interval in seconds to change the status. Defaults to ``60``.
+        status:
+            The status to use. Defaults to :attr:`discord.Status.online`.
+        custom:
+            A list of custom status messages to display.
+        playing:
+            A list of status names to use for the ``playing`` status.
+        watching:
+            A list of status names to use for the ``watching`` status.
+        listening:
+            A list of status names to use for the ``listening`` status.
+        streaming:
+            A list of status names to use for the ``streaming`` status.
+        **kwargs:
+            Additional variables to use in status texts. This can either be a string value or
+            a callable that returns a string value.
+        """
+
+        self.status_changer = _StatusChanger(
+            interval,
+            status,
+            custom,
+            playing,
+            watching,
+            listening,
+            streaming,
+            kwargs,
+        )
+        self.load_extension(f".cogs.status_changer", package="ezcord")
+
     def run(
         self,
         token: str | None = None,
         *,
         env_path: str | os.PathLike[str] | None = ".env",
         token_var: str = "TOKEN",
-        **kwargs: Any,
+        **kwargs: Callable | str,
     ) -> None:
         """This overrides the default :meth:`discord.Bot.run` method and automatically loads the token
         from the environment.
@@ -616,3 +673,15 @@ class _CustomHelp:
     title: str
     description: str
     permission_check: bool
+
+
+@dataclass
+class _StatusChanger:
+    interval: int
+    status: discord.Status
+    custom: list[str] | None
+    playing: list[str] | None
+    watching: list[str] | None
+    listening: list[str] | None
+    streaming: discord.Streaming | None
+    kwargs: dict[str, Callable | str]

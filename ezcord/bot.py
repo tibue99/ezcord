@@ -526,7 +526,7 @@ class Bot(_main_bot):  # type: ignore
         shuffle: bool = False,
         **kwargs: Callable | str,
     ):
-        """Add a status changer that changes the bot's status every ``interval`` seconds.
+        """Add a status changer that changes the bot's activity every ``interval`` seconds.
 
         .. note::
 
@@ -552,6 +552,21 @@ class Bot(_main_bot):  # type: ignore
         **kwargs:
             Additional variables to use in status texts. This can either be a string value or
             a callable that returns a string value.
+
+        Example
+        -------
+        .. code-block:: python3
+
+            def get_coins():  # This can also be async
+                return 69
+
+            bot.add_status_changer(
+                [
+                    "{guild_count} Servers",  # Strings will be converted to CustomActivity
+                    discord.Game("with {coins} coins")
+                ],
+                coins=get_coins
+            )
         """
 
         self.status_changer = _StatusChanger(

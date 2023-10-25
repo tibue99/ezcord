@@ -6,7 +6,7 @@ import os
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import aiohttp
 from dotenv import load_dotenv
@@ -515,13 +515,76 @@ class Bot(_main_bot):  # type: ignore
         )
         self.load_extension(f".cogs.help", package="ezcord")
 
+    def add_status_changer(
+        self,
+        activities: list[
+            str | discord.Activity | discord.CustomActivity | discord.Game | discord.Streaming
+        ],
+        *,
+        interval: int = 60,
+        status: discord.Status = discord.Status.online,
+        shuffle: bool = False,
+        **kwargs: Callable | str,
+    ):
+        """Add a status changer that changes the bot's activity every ``interval`` seconds.
+
+        .. note::
+
+            You can use the following variables in status texts:
+
+            - ``{guild_count}`` - The number of guilds the bot is in.
+            - ``{user_count}`` - The number of users the bot can see.
+
+            You can create custom variables by passing in variable names and values
+            as ``**kwargs``.
+
+        Parameters
+        ----------
+        activities:
+            A list of activities to use for the status. Strings will be converted
+            to :class:`discord.CustomActivity`.
+        interval:
+            The interval in seconds to change the status. Defaults to ``60``.
+        status:
+            The status to use. Defaults to :attr:`discord.Status.online`.
+        shuffle:
+            Whether to use a random order for the activities. Defaults to ``False``.
+        **kwargs:
+            Additional variables to use in status texts. This can either be a string value or
+            a callable that returns a string value.
+
+        Example
+        -------
+        .. code-block:: python3
+
+            def get_coins():  # This can also be async
+                return 69
+
+            bot.add_status_changer(
+                [
+                    "{guild_count} Servers",  # Strings will be converted to CustomActivity
+                    discord.Game("with {coins} coins")
+                ],
+                coins=get_coins
+            )
+        """
+
+        self.status_changer = _StatusChanger(
+            activities,
+            interval,
+            status,
+            shuffle,
+            kwargs,
+        )
+        self.load_extension(f".cogs.status_changer", package="ezcord")
+
     def run(
         self,
         token: str | None = None,
         *,
         env_path: str | os.PathLike[str] | None = ".env",
         token_var: str = "TOKEN",
-        **kwargs: Any,
+        **kwargs: Callable | str,
     ) -> None:
         """This overrides the default :meth:`discord.Bot.run` method and automatically loads the token
         from the environment.
@@ -616,3 +679,12 @@ class _CustomHelp:
     title: str
     description: str
     permission_check: bool
+
+
+@dataclass
+class _StatusChanger:
+    activities: list
+    interval: int
+    status: discord.Status
+    shuffle: bool
+    kwargs: dict[str, Callable | str]

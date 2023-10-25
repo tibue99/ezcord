@@ -517,14 +517,13 @@ class Bot(_main_bot):  # type: ignore
 
     def add_status_changer(
         self,
+        activities: list[
+            str | discord.Activity | discord.CustomActivity | discord.Game | discord.Streaming
+        ],
+        *,
         interval: int = 60,
         status: discord.Status = discord.Status.online,
-        *,
-        custom: list[str] | None = None,
-        watching: list[str] | None = None,
-        listening: list[str] | None = None,
-        playing: list[str] | None = None,
-        streaming: list[discord.Streaming] | None = None,
+        shuffle: bool = False,
         **kwargs: Callable | str,
     ):
         """Add a status changer that changes the bot's status every ``interval`` seconds.
@@ -541,33 +540,25 @@ class Bot(_main_bot):  # type: ignore
 
         Parameters
         ----------
+        activities:
+            A list of activities to use for the status. Strings will be converted
+            to :class:`discord.CustomActivity`.
         interval:
             The interval in seconds to change the status. Defaults to ``60``.
         status:
             The status to use. Defaults to :attr:`discord.Status.online`.
-        custom:
-            A list of custom status messages to display.
-        playing:
-            A list of status names to use for the ``playing`` status.
-        watching:
-            A list of status names to use for the ``watching`` status.
-        listening:
-            A list of status names to use for the ``listening`` status.
-        streaming:
-            A list of status names to use for the ``streaming`` status.
+        shuffle:
+            Whether to use a random order for the activities. Defaults to ``False``.
         **kwargs:
             Additional variables to use in status texts. This can either be a string value or
             a callable that returns a string value.
         """
 
         self.status_changer = _StatusChanger(
+            activities,
             interval,
             status,
-            custom,
-            playing,
-            watching,
-            listening,
-            streaming,
+            shuffle,
             kwargs,
         )
         self.load_extension(f".cogs.status_changer", package="ezcord")
@@ -677,11 +668,8 @@ class _CustomHelp:
 
 @dataclass
 class _StatusChanger:
+    activities: list
     interval: int
     status: discord.Status
-    custom: list[str] | None
-    playing: list[str] | None
-    watching: list[str] | None
-    listening: list[str] | None
-    streaming: discord.Streaming | None
+    shuffle: bool
     kwargs: dict[str, Callable | str]

@@ -1,45 +1,22 @@
 import inspect
 import random
-from dataclasses import asdict
 from itertools import cycle
 
 from ..bot import Bot, Cog
 from ..internal.dc import discord
 
 
-def watching(name):
-    return discord.Activity(type=discord.ActivityType.watching, name=name)
-
-
-def listening(name):
-    return discord.Activity(type=discord.ActivityType.listening, name=name)
-
-
-ACTIVITY_TYPES = {
-    "custom": discord.CustomActivity,
-    "watching": watching,
-    "listening": listening,
-    "playing": discord.Game,
-}
-
-
 class Activity(Cog, hidden=True):
     def __init__(self, bot: Bot):
         super().__init__(bot)
 
-        activities: list[discord.Activity] = []
-        for key, value in asdict(self.bot.status_changer).items():
-            if key == "streaming":
-                for act in value:
-                    activities.append(act)
-                continue
-            if key not in ACTIVITY_TYPES or value is None:
-                continue
-            for act_name in value:
-                # convert string name to discord.Activity
-                activities.append(ACTIVITY_TYPES[key](act_name))
+        activities = [
+            discord.CustomActivity(name=act) if isinstance(act, str) else act
+            for act in self.bot.status_changer.activities
+        ]
 
-        random.shuffle(activities)
+        if self.bot.status_changer.shuffle:
+            random.shuffle(activities)
 
         self.activities = cycle(activities)
 
@@ -51,6 +28,7 @@ class Activity(Cog, hidden=True):
 
     @discord.ext.tasks.loop()
     async def change_activity(self):
+        """Replaces default variables and user variables in the activity name."""
         replace_values = {
             "guild_count": f"{len(self.bot.guilds):,}",
             "user_count": f"{len(self.bot.users):,}",
@@ -58,19 +36,18 @@ class Activity(Cog, hidden=True):
 
         act = next(self.activities)
 
-        for key, value in replace_values.items():
-            act.name = act.name.replace("{" + key + "}", value)
+        for var, replace_value in replace_values.items():
+            act.name = act.name.replace("{" + var + "}", str(replace_value))
 
-        if self.bot.status_changer.kwargs:
-            for key, value in self.bot.status_changer.kwargs.items():
-                if inspect.iscoroutinefunction(value):
-                    act_name = await value()
-                elif callable(value):
-                    act_name = value()
-                else:
-                    act_name = value
+        for key, value in self.bot.status_changer.kwargs.items():
+            if inspect.iscoroutinefunction(value):
+                replace_value = await value()
+            elif callable(value):
+                replace_value = value()
+            else:
+                replace_value = value
 
-                act.name = act.name.replace("{" + str(key) + "}", str(act_name))
+            act.name = act.name.replace("{" + str(key) + "}", str(replace_value))
 
         await self.bot.change_presence(activity=act, status=self.bot.status_changer.status)
 

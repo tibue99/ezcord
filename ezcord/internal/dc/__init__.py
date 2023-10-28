@@ -8,6 +8,7 @@ except ImportError:
     raise MissingDiscordLibrary()
 
 commands = __import__(f"{discord.lib}.ext.commands", fromlist=[""])
+tasks = __import__(f"{discord.lib}.ext.tasks", fromlist=[""])
 
 
 try:

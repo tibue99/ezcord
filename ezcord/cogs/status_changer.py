@@ -3,7 +3,7 @@ import random
 from itertools import cycle
 
 from ..bot import Bot, Cog
-from ..internal.dc import discord
+from ..internal.dc import discord, tasks
 
 
 class Activity(Cog, hidden=True):
@@ -26,7 +26,7 @@ class Activity(Cog, hidden=True):
             self.change_activity.change_interval(seconds=self.bot.status_changer.interval)
             self.change_activity.start()
 
-    @discord.ext.tasks.loop()
+    @tasks.loop()
     async def change_activity(self):
         """Replaces default variables and user variables in the activity name."""
         replace_values = {

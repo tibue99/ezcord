@@ -434,7 +434,7 @@ class Bot(_main_bot):  # type: ignore
     def add_help_command(
         self,
         *,
-        style: HelpStyle = HelpStyle.embed_description,
+        style: HelpStyle = HelpStyle.default,
         embed: discord.Embed | None = None,
         show_categories: bool = True,
         show_description: bool = True,

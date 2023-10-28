@@ -230,7 +230,7 @@ class CategorySelect(discord.ui.Select):
                 )
 
         elif style == HelpStyle.embed_description:
-            embed.description = desc
+            embed.description = desc + "\n"
             for command in commands:
                 if len(embed.description) <= 3500:
                     embed.description += f"**{command.mention}**\n{command.description}\n\n"

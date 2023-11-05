@@ -141,7 +141,7 @@ class Blacklist(Cog, hidden=True):
 
     leave = admin.create_subgroup("leave")
 
-    @leave.command(name="server", description="Make the bot leave all guilds with a given owner")
+    @leave.command(name="owner", description="Make the bot leave all guilds with a given owner")
     @discord.option("owner_id", description="Leave all servers with the specified owner")
     async def leave_guild(
         self,
@@ -157,7 +157,7 @@ class Blacklist(Cog, hidden=True):
         await guild.leave()
         await ctx.respond(f"I left **{guild.name}** ({guild.id})", ephemeral=True)
 
-    @leave.command(name="owner", description="Make the bot leave a guild")
+    @leave.command(name="server", description="Make the bot leave a server")
     @discord.option("guild_id", description="Leave the server with the given ID", default=None)
     async def leave_owner(
         self,

@@ -23,7 +23,8 @@
     "no_commands": "Ups, ich konnte keine Befehle finden, auf die du Zugriff hast."
   },
   "blacklist": {
-    "cmd_group_name": "admin",
-    "no_perms": "Du wurdest von der Nutzung dieses Bots ausgeschlossen. Wenn du denkst, dass dies ein Fehler ist, kontaktiere meinen Owner."
+    "admin_group": "admin",
+    "no_perms": "Du wurdest von der Nutzung dieses Bots ausgeschlossen. Wenn du denkst, dass dies ein Fehler ist, kontaktiere meinen Owner.",
+    "guild_error": "Ich habe deinen Server **{}** verlassen, da du keine Rechte hast, um mich zu nutzen. Wenn du denkst, dass dies ein Fehler ist, kontaktiere meinen Owner."
   }
 }

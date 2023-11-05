@@ -598,7 +598,7 @@ class Bot(_main_bot):  # type: ignore
         db_name:
             The name of the database.
         raise_error:
-            Whether to raise `errors.Blacklisted` error in case a blacklisted user uses the bot.
+            Whether to raise :class:`.errors.Blacklisted` error in case a blacklisted user uses the bot.
             If this is ``False``, :class:`discord.CheckFailure` will be raised instead.
             :class:`discord.CheckFailure` is ignored by the Ezcord error handler.
         """

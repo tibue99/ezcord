@@ -23,7 +23,8 @@
     "no_commands": "Oops, I couldn't find any commands that you have access to."
   },
   "blacklist": {
-    "cmd_group_name": "admin",
-    "no_perms": "You have been banned from using this bot. If you think this is a mistake, please contact my owner."
+    "admin_group": "admin",
+    "no_perms": "You have been banned from using this bot. If you think this is a mistake, please contact my owner.",
+    "guild_error": "I left your server **{}** because you don't have permissions to use me. If you think this is a mistake, please contact my owner."
   }
 }

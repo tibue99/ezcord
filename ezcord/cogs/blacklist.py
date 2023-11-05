@@ -51,10 +51,20 @@ class Blacklist(Cog, hidden=True):
         return True
 
     admin = discord.SlashCommandGroup(
-        t("cmd_group_name"),
+        t("admin_group"),
         guild_ids=EzConfig.admin_guilds,
         default_member_permissions=discord.Permissions(administrator=True),
     )
+
+    @Cog.listener()
+    async def on_guild_join(self, guild: discord.Guild):
+        bans = await self.db.get_bans()
+        if guild.owner.id in bans:
+            try:
+                await guild.owner.send(t("guild_error", guild.name))
+            except discord.Forbidden:
+                pass
+            await guild.leave()
 
     blacklist = admin.create_subgroup("blacklist")
 
@@ -101,6 +111,98 @@ class Blacklist(Cog, hidden=True):
         file = create_text_file(desc, "bans.txt")
         await ctx.respond(file=file, ephemeral=True)
 
+    @admin.command(description="Show all bot servers")
+    async def show_servers(self, ctx):
+        await ctx.defer(ephemeral=True)
+        longest_name = max([guild.name for guild in self.bot.guilds], key=len)
+        sep = f"<{len(longest_name)}"
+
+        desc = ""
+        for guild in self.bot.guilds:
+            desc += f"{guild.name:{sep}} - {guild.member_count:<6,}"
+            desc += f" - {guild.id}"
+            desc += f" - {guild.owner} ({guild.owner.id})"
+            desc += "\n"
+
+        file = create_text_file(desc, "guilds.txt")
+        await ctx.respond(file=file, ephemeral=True)
+
+    leave = admin.create_subgroup("leave")
+
+    @leave.command(name="server", description="Make the bot leave all guilds with a given owner")
+    @discord.option("owner_id", description="Leave all servers with the specified owner")
+    async def leave_guild(
+        self,
+        ctx: discord.ApplicationContext,
+        guild_id: str,
+    ):
+        await ctx.defer(ephemeral=True)
+        try:
+            guild = await self.bot.fetch_guild(guild_id)
+        except Exception as e:
+            return await ctx.respond(f"I could not load this server: ```{e}```", ephemeral=True)
+
+        await guild.leave()
+        await ctx.respond(f"I left **{guild.name}** ({guild.id})", ephemeral=True)
+
+    @leave.command(name="owner", description="Make the bot leave a guild")
+    @discord.option("guild_id", description="Leave the server with the given ID", default=None)
+    async def leave_owner(
+        self,
+        ctx: discord.ApplicationContext,
+        owner: discord.User,
+    ):
+        await ctx.defer(ephemeral=True)
+        guilds = []
+        member_count = 0
+        for guild in self.bot.guilds:
+            if guild.owner.id == owner.id:
+                guilds.append(guild)
+                member_count += guild.member_count
+
+        return await ctx.respond(
+            f"I found **{len(guilds)}** servers with **{owner}** as the owner "
+            f"(with a total of **{member_count}** members).",
+            ephemeral=True,
+            view=LeaveGuilds(guilds),
+        )
+
 
 def setup(bot: Bot):
     bot.add_cog(Blacklist(bot))
+
+
+class LeaveGuilds(discord.ui.View):
+    def __init__(self, guilds: list[discord.Guild]):
+        self.guilds = guilds
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Leave all", style=discord.ButtonStyle.red)
+    async def leave(self, _: discord.ui.Button, interaction: discord.Interaction):
+        for child in self.children:
+            child.disabled = True
+        embed = discord.Embed(
+            description="I'll now leave all servers. This may take a while."
+            "\n\nI'll ping you when I'm done.",
+        )
+        await interaction.edit(embed=embed, view=self)
+
+        leave_count = 0
+        for guild in self.guilds:
+            try:
+                await guild.leave()
+                leave_count += 1
+            except Exception as e:
+                print(f"Could not leave guild {guild.id}: ```\n{e}```")
+                continue
+
+        await interaction.respond(
+            f"{interaction.user.mention} I successfully left **{leave_count}** servers.",
+            ephemeral=True,
+        )
+
+    @discord.ui.button(label="Cancel", style=discord.ButtonStyle.grey)
+    async def cancel(self, _: discord.ui.Button, interaction: discord.Interaction):
+        for child in self.children:
+            child.disabled = True
+        await interaction.edit(view=self)

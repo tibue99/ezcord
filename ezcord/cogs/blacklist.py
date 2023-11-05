@@ -1,3 +1,6 @@
+import aiosqlite
+
+from .. import emb
 from ..bot import Bot, Cog
 from ..errors import Blacklisted
 from ..internal import EzConfig, t
@@ -26,7 +29,8 @@ class BanDB(DBHandler):
         )
 
     async def remove_ban(self, user_id: int):
-        await self.exec(f"DELETE FROM {self.db_name} WHERE user_id = ?", (user_id,))
+        result = await self.exec(f"DELETE FROM {self.db_name} WHERE user_id = ?", (user_id,))
+        return result.rowcount
 
     async def get_bans(self):
         return await self.all(f"SELECT user_id FROM {self.db_name}")
@@ -80,16 +84,24 @@ class Blacklist(Cog, hidden=True):
         reason: str,
     ):
         if choice == "Add ban":
-            await self.db.add_ban(user.id, reason)
+            if user.id == ctx.author.id:
+                return await emb.error(ctx, "You can't ban yourself.")
+            if user.bot:
+                return await emb.error(ctx, "You can't ban a bot.")
+
+            try:
+                await self.db.add_ban(user.id, reason)
+            except aiosqlite.IntegrityError:
+                return await emb.error(ctx, "This user is already banned.")
             await ctx.respond(
                 f"The user was banned successfully.\n- **Name:** {user}\n- **ID:** {user.id}",
                 ephemeral=True,
             )
         else:
-            await self.db.remove_ban(user.id)
-            await ctx.respond(
-                f"The user **{user}** - {user.id} was unbanned successfully.", ephemeral=True
-            )
+            rowcount = await self.db.remove_ban(user.id)
+            if rowcount == 0:
+                return await emb.error(ctx, "This user is not banned.")
+            await ctx.respond(f"The user **{user}** was unbanned successfully.", ephemeral=True)
 
     @blacklist.command(name="show", description="Show the bot blacklist")
     async def show_blacklist(self, ctx):

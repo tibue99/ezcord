@@ -21,5 +21,9 @@
     "embed_title": "My commands",
     "default_description": "All commands of category **{}**.",
     "no_commands": "Oops, I couldn't find any commands that you have access to."
+  },
+  "blacklist": {
+    "cmd_group_name": "admin",
+    "no_perms": "You have been banned from using this bot. If you think this is a mistake, please contact my owner."
   }
 }

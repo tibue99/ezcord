@@ -15,6 +15,7 @@ from .emb import error as error_emb
 from .enums import CogLog, HelpStyle, ReadyEvent
 from .internal import (
     READY_TITLE,
+    EzConfig,
     get_error_text,
     load_lang,
     print_custom_ready,
@@ -345,7 +346,7 @@ class Bot(_main_bot):  # type: ignore
 
     async def _error_event(self, ctx: discord.ApplicationContext, error: discord.DiscordException):
         """The event that handles application command errors."""
-        if type(error) in self.ignored_errors:
+        if type(error) in self.ignored_errors + [discord.CheckFailure]:
             return
 
         if isinstance(error, commands.CommandOnCooldown):
@@ -578,6 +579,39 @@ class Bot(_main_bot):  # type: ignore
         )
         self.load_extension(f".cogs.status_changer", package="ezcord")
 
+    def add_blacklist(
+        self,
+        admin_server_ids: list[int],
+        *,
+        db_path: str = "blacklist.db",
+        db_name: str = "blacklist",
+        raise_error: bool = False,
+    ):
+        """Add a blacklist that bans users from using the bot.
+
+        Parameters
+        ----------
+        admin_server_ids:
+            A list of server IDs that are allowed to use the blacklist.
+        db_path:
+            The path to the database file.
+        db_name:
+            The name of the database.
+        raise_error:
+            Whether to raise `errors.Blacklisted` error in case a blacklisted user uses the bot.
+            If this is ``False``, :class:`discord.CheckFailure` will be raised instead.
+            :class:`discord.CheckFailure` is ignored by the Ezcord error handler.
+        """
+
+        EzConfig.admin_guilds = admin_server_ids
+
+        self.blacklist = _Blacklist(
+            db_path,
+            db_name,
+            raise_error,
+        )
+        self.load_extension(f".cogs.blacklist", package="ezcord")
+
     def run(
         self,
         token: str | None = None,
@@ -688,3 +722,10 @@ class _StatusChanger:
     status: discord.Status
     shuffle: bool
     kwargs: dict[str, Callable | str]
+
+
+@dataclass
+class _Blacklist:
+    db_path: str
+    db_name: str
+    raise_error: bool

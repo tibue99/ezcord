@@ -11,3 +11,7 @@ class MissingDiscordLibrary(EzcordException):
 
 class ConvertTimeError(EzcordException):
     """Raised when a time conversion fails."""
+
+
+class Blacklisted(EzcordException):
+    """Raised when a user is blacklisted."""

@@ -21,5 +21,9 @@
     "embed_title": "Meine Befehle",
     "default_description": "Alle Befehle der Kategorie **{}**.",
     "no_commands": "Ups, ich konnte keine Befehle finden, auf die du Zugriff hast."
+  },
+  "blacklist": {
+    "cmd_group_name": "admin",
+    "no_perms": "Du wurdest von der Nutzung dieses Bots ausgeschlossen. Wenn du denkst, dass dies ein Fehler ist, kontaktiere meinen Owner."
   }
 }

@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class EzConfig:
     """A class to store configuration values.
 
@@ -6,3 +9,6 @@ class EzConfig:
 
     lang: str = "en"
     embed_templates: dict = {}
+
+    # Blacklist
+    admin_guilds: list[int] | None = None

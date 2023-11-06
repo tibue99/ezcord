@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
+
+@dataclass
+class Blacklist:
+    db_path: str
+    db_name: str
+    raise_error: bool
+
 
 class EzConfig:
     """A class to store configuration values.
@@ -12,3 +21,4 @@ class EzConfig:
 
     # Blacklist
     admin_guilds: list[int] | None = None
+    blacklist: Blacklist

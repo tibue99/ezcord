@@ -2,11 +2,24 @@ import aiosqlite
 
 from .. import emb
 from ..bot import Bot, Cog
+from ..components import event
 from ..errors import Blacklisted
 from ..internal import EzConfig, t
 from ..internal.dc import discord
 from ..sql import DBHandler
 from ..utils import create_text_file
+
+
+@event
+async def view_check(interaction: discord.Interaction):
+    bans = await _db.get_bans()
+    if interaction.user.id in bans:
+        if EzConfig.blacklist.raise_error:
+            raise Blacklisted()
+        else:
+            await interaction.respond(t("no_perms"), ephemeral=True)
+        return False
+    return True
 
 
 class BanDB(DBHandler):
@@ -39,15 +52,17 @@ class BanDB(DBHandler):
         return await self.all(f"SELECT user_id, reason, dt FROM {self.db_name}")
 
 
+_db = BanDB(EzConfig.blacklist.db_path, EzConfig.blacklist.db_name)
+
+
 class Blacklist(Cog, hidden=True):
     def __init__(self, bot: Bot):
         super().__init__(bot)
-        self.db = BanDB(bot.blacklist.db_path, bot.blacklist.db_name)
 
     async def bot_check(self, ctx):
-        bans = await self.db.get_bans()
+        bans = await _db.get_bans()
         if ctx.author.id in bans:
-            if self.bot.blacklist.raise_error:
+            if EzConfig.blacklist.raise_error:
                 raise Blacklisted()
             else:
                 await ctx.respond(t("no_perms"), ephemeral=True)
@@ -62,7 +77,7 @@ class Blacklist(Cog, hidden=True):
 
     @Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
-        bans = await self.db.get_bans()
+        bans = await _db.get_bans()
         if guild.owner.id in bans:
             try:
                 await guild.owner.send(t("guild_error", guild.name))
@@ -90,7 +105,7 @@ class Blacklist(Cog, hidden=True):
                 return await emb.error(ctx, "You can't ban a bot.")
 
             try:
-                await self.db.add_ban(user.id, reason)
+                await _db.add_ban(user.id, reason)
             except aiosqlite.IntegrityError:
                 return await emb.error(ctx, "This user is already banned.")
             await ctx.respond(
@@ -98,7 +113,7 @@ class Blacklist(Cog, hidden=True):
                 ephemeral=True,
             )
         else:
-            rowcount = await self.db.remove_ban(user.id)
+            rowcount = await _db.remove_ban(user.id)
             if rowcount == 0:
                 return await emb.error(ctx, "This user is not banned.")
             await ctx.respond(f"The user **{user}** was unbanned successfully.", ephemeral=True)
@@ -106,7 +121,7 @@ class Blacklist(Cog, hidden=True):
     @blacklist.command(name="show", description="Show the bot blacklist")
     async def show_blacklist(self, ctx):
         await ctx.defer(ephemeral=True)
-        bans = await self.db.get_full_bans()
+        bans = await _db.get_full_bans()
         desc = ""
 
         for user_id, reason, _ in bans:

@@ -23,6 +23,7 @@ from .internal import (
     set_lang,
     t,
 )
+from .internal.config import Blacklist
 from .internal.dc import CogMeta, bridge, commands, discord
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .sql import DBHandler
@@ -603,13 +604,13 @@ class Bot(_main_bot):  # type: ignore
             :class:`discord.CheckFailure` is ignored by the Ezcord error handler.
         """
 
-        EzConfig.admin_guilds = admin_server_ids
-
-        self.blacklist = _Blacklist(
+        EzConfig.blacklist = Blacklist(
             db_path,
             db_name,
             raise_error,
         )
+        EzConfig.admin_guilds = admin_server_ids
+
         self.load_extension(f".cogs.blacklist", package="ezcord")
 
     def run(
@@ -722,10 +723,3 @@ class _StatusChanger:
     status: discord.Status
     shuffle: bool
     kwargs: dict[str, Callable | str]
-
-
-@dataclass
-class _Blacklist:
-    db_path: str
-    db_name: str
-    raise_error: bool

@@ -72,16 +72,18 @@ def event(coro):
     """
     _check_coro(coro)
 
-    if coro.__name__ == "view_check":
+    name = coro.__name__.lstrip("_")
+
+    if name == "view_check":
         _check_params(coro, 1)
         _view_checks.append(coro)
-    elif coro.__name__ == "on_view_check_failure":
+    elif name == "on_view_check_failure":
         _check_params(coro, 1)
         _view_check_failures.append(coro)
-    elif coro.__name__ == "on_view_error":
+    elif name == "on_view_error":
         _check_params(coro, 3)
         _view_error_handlers.append(coro)
-    elif coro.__name__ == "on_modal_error":
+    elif name == "on_modal_error":
         _check_params(coro, 2)
         _modal_error_handlers.append(coro)
     else:

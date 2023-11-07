@@ -245,6 +245,7 @@ def set_log(
     name: str = DEFAULT_LOG,
     log_level: int = logging.INFO,
     *,
+    console: bool = True,
     file: bool | str = False,
     file_mode: str = "w",
     log_format: str | LogFormat = LogFormat.default,
@@ -266,6 +267,8 @@ def set_log(
         The name of the logger.
     log_level:
         The log level for default log messages ``logging.INFO``.
+    console:
+        Whether to log to the console. Defaults to ``True``.
     file:
         Whether to log to a file. Defaults to ``False``.
         You can also pass a path to a log file.
@@ -316,17 +319,19 @@ def set_log(
         return logger
     logger.setLevel(log_level)
 
-    handler: logging.FileHandler | logging.StreamHandler
+    handlers: list[logging.FileHandler | logging.StreamHandler] = []
     if isinstance(file, bool) and file:
         if not os.path.exists("logs"):
             os.mkdir("logs")
         filename = name.split(".")[-1]
-        handler = logging.FileHandler(f"logs/{filename}.log", mode=file_mode, encoding="utf-8")
+        handlers.append(
+            logging.FileHandler(f"logs/{filename}.log", mode=file_mode, encoding="utf-8")
+        )
     elif isinstance(file, str):
-        handler = logging.FileHandler(file, mode=file_mode, encoding="utf-8")
-        file = True
-    else:
-        handler = logging.StreamHandler(sys.stdout)
+        handlers.append(logging.FileHandler(file, mode=file_mode, encoding="utf-8"))
+
+    if console:
+        handlers.append(logging.StreamHandler(sys.stdout))
 
     space_after_level = True
     if "%(levelname)s " not in log_format and "%(levelname)s{end} " not in log_format:
@@ -337,20 +342,32 @@ def set_log(
     if space_mode == "never":
         level_spacing = 0
 
+    file_color_formatter = _ColorFormatter(
+        True, log_format, time_format, dc_codeblocks, level_spacing, space_after_level, colors
+    )
     color_formatter = _ColorFormatter(
-        file, log_format, time_format, dc_codeblocks, level_spacing, space_after_level, colors
+        False, log_format, time_format, dc_codeblocks, level_spacing, space_after_level, colors
     )
 
-    handler.setFormatter(color_formatter)
-    handler.setLevel(log_level)
-    logger.addHandler(handler)
+    for handler in handlers:
+        if isinstance(handler, logging.FileHandler):
+            handler.setFormatter(file_color_formatter)
+        else:
+            handler.setFormatter(color_formatter)
 
+        handler.setLevel(log_level)
+        logger.addHandler(handler)
+
+    # Discord logs
     dc_format = "**%(levelname)s:** %(message)s"
     discord_handler = _DiscordHandler(webhook_url, dc_codeblocks, dc_format)
     if dc_codeblocks:
         discord_handler.setFormatter(color_formatter)
     else:
-        discord_handler.setFormatter(logging.Formatter(dc_format))
+        dc_formatter = _ColorFormatter(
+            True, dc_format, time_format, dc_codeblocks, level_spacing, space_after_level, colors
+        )
+        discord_handler.setFormatter(dc_formatter)
     discord_handler.addFilter(_discord_filter)
     discord_handler.setLevel(discord_log_level)
     logger.addHandler(discord_handler)

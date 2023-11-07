@@ -1,19 +1,32 @@
+"""
+Commands to manage the bot blacklist.
+
+This file should only be called through `bot.add_blacklist()`,
+after the "blacklist" value has been set in the config.
+"""
+
+from typing import Union
+
 import aiosqlite
 
 from .. import emb
+from ..blacklist import _BanDB
 from ..bot import Bot, Cog
 from ..components import event
 from ..errors import Blacklisted
 from ..internal import EzConfig, t
-from ..internal.dc import discord
-from ..sql import DBHandler
+from ..internal.dc import commands, discord
 from ..utils import create_text_file
 
+_db = _BanDB()
 
-@event
-async def view_check(interaction: discord.Interaction):
+
+async def _check_blacklist(
+    # Pycord does not support __future__ in cogs for whatever reason
+    interaction: Union[discord.Interaction, discord.ApplicationContext]
+) -> bool:
     bans = await _db.get_bans()
-    if interaction.user.id in bans:
+    if interaction.user.id in bans and EzConfig.blacklist:
         if EzConfig.blacklist.raise_error:
             raise Blacklisted()
         else:
@@ -22,57 +35,24 @@ async def view_check(interaction: discord.Interaction):
     return True
 
 
-class BanDB(DBHandler):
-    def __init__(self, db_path: str, db_name: str):
-        self.db_name = db_name
-        super().__init__(db_path)
-
-    async def setup(self):
-        await self.exec(
-            f"""CREATE TABLE IF NOT EXISTS {self.db_name} (
-            user_id INTEGER PRIMARY KEY,
-            reason TEXT,
-            dt DATETIME DEFAULT CURRENT_TIMESTAMP
-            )"""
-        )
-
-    async def add_ban(self, user_id: int, reason: str):
-        await self.exec(
-            f"INSERT INTO {self.db_name} (user_id, reason) VALUES (?, ?)", (user_id, reason)
-        )
-
-    async def remove_ban(self, user_id: int):
-        result = await self.exec(f"DELETE FROM {self.db_name} WHERE user_id = ?", (user_id,))
-        return result.rowcount
-
-    async def get_bans(self):
-        return await self.all(f"SELECT user_id FROM {self.db_name}")
-
-    async def get_full_bans(self):
-        return await self.all(f"SELECT user_id, reason, dt FROM {self.db_name}")
-
-
-_db = BanDB(EzConfig.blacklist.db_path, EzConfig.blacklist.db_name)
+@event
+async def view_check(interaction: discord.Interaction):
+    return await _check_blacklist(interaction)
 
 
 class Blacklist(Cog, hidden=True):
     def __init__(self, bot: Bot):
         super().__init__(bot)
 
-    async def bot_check(self, ctx):
-        bans = await _db.get_bans()
-        if ctx.author.id in bans:
-            if EzConfig.blacklist.raise_error:
-                raise Blacklisted()
-            else:
-                await ctx.respond(t("no_perms"), ephemeral=True)
-            return False
-        return True
+    @staticmethod
+    async def bot_check(ctx: discord.ApplicationContext):
+        return await _check_blacklist(ctx)
 
     admin = discord.SlashCommandGroup(
         t("admin_group"),
         guild_ids=EzConfig.admin_guilds,
         default_member_permissions=discord.Permissions(administrator=True),
+        checks=[commands.is_owner().predicate],
     )
 
     @Cog.listener()

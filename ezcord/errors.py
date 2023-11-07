@@ -14,4 +14,7 @@ class ConvertTimeError(EzcordException):
 
 
 class Blacklisted(EzcordException):
-    """Raised when a user is blacklisted."""
+    """Can be raised when a blacklisted user tries to use a command.
+
+    This error can be caught in a command error handler to send a custom response.
+    """

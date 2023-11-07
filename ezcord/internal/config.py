@@ -8,6 +8,7 @@ class Blacklist:
     db_path: str
     db_name: str
     raise_error: bool
+    owner_only: bool
 
 
 class EzConfig:
@@ -21,4 +22,4 @@ class EzConfig:
 
     # Blacklist
     admin_guilds: list[int] | None = None
-    blacklist: Blacklist
+    blacklist: Blacklist | None = None

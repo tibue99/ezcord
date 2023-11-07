@@ -11,7 +11,8 @@
     "cooldown_title": "Cooldown",
     "cooldown": "Try again {}.",
     "no_perms_title": "Missing permissions",
-    "no_perms": "I'm missing the following permissions to execute this command."
+    "no_perms": "I'm missing the following permissions to execute this command.",
+    "no_user_perms": "You do not have permission to run this command."
   },
   "help": {
     "cmd_name": "help",

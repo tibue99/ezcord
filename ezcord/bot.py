@@ -362,6 +362,10 @@ class Bot(_main_bot):  # type: ignore
                 perm_txt = f"{t('no_perms')} ```\n{perms}```"
                 await error_emb(ctx, perm_txt, title=t("no_perms_title"))
 
+        elif isinstance(error, commands.NotOwner):
+            if self.error_handler:
+                await error_emb(ctx, t("no_user_perms"))
+
         else:
             if "original" in error.__dict__ and not self.full_error_traceback:
                 original_error = error.__dict__["original"]
@@ -587,13 +591,15 @@ class Bot(_main_bot):  # type: ignore
         db_path: str = "blacklist.db",
         db_name: str = "blacklist",
         raise_error: bool = False,
+        owner_only: bool = True,
     ):
-        """Add a blacklist that bans users from using the bot.
+        """Add a blacklist that bans users from using the bot. This should be called
+        before the ``on_ready`` event.
 
         Parameters
         ----------
         admin_server_ids:
-            A list of server IDs that are allowed to use the blacklist.
+            A list of server IDs. Admins on these servers will be able to see the admin commands.
         db_path:
             The path to the database file.
         db_name:
@@ -602,12 +608,20 @@ class Bot(_main_bot):  # type: ignore
             Whether to raise :class:`.errors.Blacklisted` error in case a blacklisted user uses the bot.
             If this is ``False``, :class:`discord.CheckFailure` will be raised instead.
             :class:`discord.CheckFailure` is ignored by the Ezcord error handler.
+
+            .. note::
+
+                This can be used to handle the error in your own error handler.
+
+        owner_only:
+            Whether the blacklist can only be managed by the bot owner. Defaults to ``True``.
         """
 
         EzConfig.blacklist = Blacklist(
             db_path,
             db_name,
             raise_error,
+            owner_only,
         )
         EzConfig.admin_guilds = admin_server_ids
 

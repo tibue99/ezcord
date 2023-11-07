@@ -3,7 +3,7 @@ __author__ = "tibue99"
 __license__ = "MIT"
 __version__ = "0.4.0"
 
-from . import components, emb, logs, sql, times, utils
+from . import blacklist, components, emb, logs, sql, times, utils
 from .bot import *
 from .components import *
 from .emb import *

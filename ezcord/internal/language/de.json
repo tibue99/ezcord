@@ -11,7 +11,8 @@
     "cooldown_title": "Cooldown",
     "cooldown": "Versuche es {} erneut.",
     "no_perms_title": "Fehlende Rechte",
-    "no_perms": "Mir fehlen die folgenden Berechtigungen, um diesen Befehl auszuführen."
+    "no_perms": "Mir fehlen die folgenden Berechtigungen, um diesen Befehl auszuführen.",
+    "no_user_perms": "Du hast keine Rechte, um diesen Befehl auszuführen."
   },
   "help": {
     "cmd_name": "help",

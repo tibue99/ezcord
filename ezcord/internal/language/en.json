@@ -11,7 +11,8 @@
     "cooldown_title": "Cooldown",
     "cooldown": "Try again {}.",
     "no_perms_title": "Missing permissions",
-    "no_perms": "I'm missing the following permissions to execute this command."
+    "no_perms": "I'm missing the following permissions to execute this command.",
+    "no_user_perms": "You do not have permission to run this command."
   },
   "help": {
     "cmd_name": "help",
@@ -21,5 +22,10 @@
     "embed_title": "My commands",
     "default_description": "All commands of category **{}**.",
     "no_commands": "Oops, I couldn't find any commands that you have access to."
+  },
+  "blacklist": {
+    "admin_group": "admin",
+    "no_perms": "You have been banned from using this bot. If you think this is a mistake, please contact my owner.",
+    "guild_error": "I left your server **{}** because you don't have permissions to use me. If you think this is a mistake, please contact my owner."
   }
 }

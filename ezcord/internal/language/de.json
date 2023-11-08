@@ -11,7 +11,8 @@
     "cooldown_title": "Cooldown",
     "cooldown": "Versuche es {} erneut.",
     "no_perms_title": "Fehlende Rechte",
-    "no_perms": "Mir fehlen die folgenden Berechtigungen, um diesen Befehl auszuführen."
+    "no_perms": "Mir fehlen die folgenden Berechtigungen, um diesen Befehl auszuführen.",
+    "no_user_perms": "Du hast keine Rechte, um diesen Befehl auszuführen."
   },
   "help": {
     "cmd_name": "help",
@@ -21,5 +22,10 @@
     "embed_title": "Meine Befehle",
     "default_description": "Alle Befehle der Kategorie **{}**.",
     "no_commands": "Ups, ich konnte keine Befehle finden, auf die du Zugriff hast."
+  },
+  "blacklist": {
+    "admin_group": "admin",
+    "no_perms": "Du wurdest von der Nutzung dieses Bots ausgeschlossen. Wenn du denkst, dass dies ein Fehler ist, kontaktiere meinen Owner.",
+    "guild_error": "Ich habe deinen Server **{}** verlassen, da du keine Rechte hast, um mich zu nutzen. Wenn du denkst, dass dies ein Fehler ist, kontaktiere meinen Owner."
   }
 }

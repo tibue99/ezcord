@@ -15,6 +15,7 @@ from .emb import error as error_emb
 from .enums import CogLog, HelpStyle, ReadyEvent
 from .internal import (
     READY_TITLE,
+    EzConfig,
     get_error_text,
     load_lang,
     print_custom_ready,
@@ -22,6 +23,7 @@ from .internal import (
     set_lang,
     t,
 )
+from .internal.config import Blacklist
 from .internal.dc import CogMeta, bridge, commands, discord
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .sql import DBHandler
@@ -345,7 +347,7 @@ class Bot(_main_bot):  # type: ignore
 
     async def _error_event(self, ctx: discord.ApplicationContext, error: discord.DiscordException):
         """The event that handles application command errors."""
-        if type(error) in self.ignored_errors:
+        if type(error) in self.ignored_errors + [discord.CheckFailure]:
             return
 
         if isinstance(error, commands.CommandOnCooldown):
@@ -359,6 +361,10 @@ class Bot(_main_bot):  # type: ignore
                 perms = "\n".join(error.missing_permissions)
                 perm_txt = f"{t('no_perms')} ```\n{perms}```"
                 await error_emb(ctx, perm_txt, title=t("no_perms_title"))
+
+        elif isinstance(error, commands.NotOwner):
+            if self.error_handler:
+                await error_emb(ctx, t("no_user_perms"))
 
         else:
             if "original" in error.__dict__ and not self.full_error_traceback:
@@ -577,6 +583,49 @@ class Bot(_main_bot):  # type: ignore
             kwargs,
         )
         self.load_extension(f".cogs.status_changer", package="ezcord")
+
+    def add_blacklist(
+        self,
+        admin_server_ids: list[int],
+        *,
+        db_path: str = "blacklist.db",
+        db_name: str = "blacklist",
+        raise_error: bool = False,
+        owner_only: bool = True,
+    ):
+        """Add a blacklist that bans users from using the bot. This should be called
+        before the ``on_ready`` event.
+
+        Parameters
+        ----------
+        admin_server_ids:
+            A list of server IDs. Admins on these servers will be able to see the admin commands.
+        db_path:
+            The path to the database file.
+        db_name:
+            The name of the database.
+        raise_error:
+            Whether to raise :class:`.errors.Blacklisted` error in case a blacklisted user uses the bot.
+            If this is ``False``, :class:`discord.CheckFailure` will be raised instead.
+            :class:`discord.CheckFailure` is ignored by the Ezcord error handler.
+
+            .. note::
+
+                This can be used to handle the error in your own error handler.
+
+        owner_only:
+            Whether the blacklist can only be managed by the bot owner. Defaults to ``True``.
+        """
+
+        EzConfig.blacklist = Blacklist(
+            db_path,
+            db_name,
+            raise_error,
+            owner_only,
+        )
+        EzConfig.admin_guilds = admin_server_ids
+
+        self.load_extension(f".cogs.blacklist", package="ezcord")
 
     def run(
         self,

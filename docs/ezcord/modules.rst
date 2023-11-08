@@ -14,3 +14,4 @@ Here is an overview of all features.
    components
    sql
    errors
+   blacklist

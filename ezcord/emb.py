@@ -115,6 +115,9 @@ async def _send_embed(
         content = embed
         embed = None
 
+    if "content" in kwargs:
+        content = kwargs.pop("content")
+
     if isinstance(target, discord.ApplicationContext) or isinstance(target, discord.Interaction):
         if edit:
             try:

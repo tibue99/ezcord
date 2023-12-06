@@ -19,7 +19,7 @@ from __future__ import annotations
 import copy
 
 from .internal import copy_kwargs, load_embed, replace_dict, save_embeds
-from .internal.dc import INTERACTION, discord
+from .internal.dc import INTERACTION, PYCORD, discord
 from .logs import log
 
 
@@ -141,7 +141,7 @@ def _insert_info(
         return embed
 
     interaction = target
-    if discord.lib == "pycord":
+    if PYCORD:
         if isinstance(target, discord.ApplicationContext):
             interaction = target.interaction
 

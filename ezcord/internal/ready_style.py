@@ -9,7 +9,7 @@ from colorama import Fore
 
 from .. import __version__
 from ..enums import ReadyEvent
-from ..internal.dc import discord
+from ..internal.dc import PYCORD, discord
 from ..logs import log
 from .colors import get_escape_code
 
@@ -38,7 +38,7 @@ DEFAULT_COLORS: list[str] = [Fore.CYAN, Fore.MAGENTA, Fore.YELLOW, Fore.GREEN, F
 
 def get_default_info(bot: discord.ext.commands.Bot) -> list[tuple[str, str]]:
     lib_name = discord.lib.capitalize()
-    if discord.lib == "pycord":
+    if PYCORD:
         cmds = [
             cmd
             for cmd in bot.walk_application_commands()

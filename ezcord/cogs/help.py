@@ -9,7 +9,7 @@ from ..bot import Bot, Cog
 from ..components import View
 from ..enums import HelpStyle
 from ..internal import replace_embed_values, t
-from ..internal.dc import commands, discord, slash_command
+from ..internal.dc import PYCORD, commands, discord, slash_command
 from ..logs import log
 
 
@@ -36,7 +36,7 @@ def replace_placeholders(s: str, **kwargs: str):
 
 def get_perm_parent(cmd: discord.SlashCommand) -> discord.SlashCommandGroup | None:
     """Iterates through parent groups until it finds a group with default_member_permissions set."""
-    if discord.lib == "pycord":
+    if PYCORD:
         while cmd.default_member_permissions is None:
             cmd = cmd.parent
             if cmd is None:
@@ -85,7 +85,7 @@ class Help(Cog, hidden=True):
         if embed is None:
             embed = discord.Embed(title=t("embed_title"), color=discord.Color.blue())
         else:
-            interaction = ctx.interaction if discord.lib == "pycord" else ctx
+            interaction = ctx.interaction if PYCORD else ctx
             embed = replace_embed_values(embed, interaction)
 
         options = []
@@ -102,7 +102,7 @@ class Help(Cog, hidden=True):
             if "cmds" not in commands[name]:
                 commands[name]["cmds"] = []
 
-            if len(cog.get_commands()) == 0 and discord.lib == "pycord":
+            if len(cog.get_commands()) == 0 and PYCORD:
                 continue
 
             emoji = get_emoji(cog)
@@ -119,7 +119,7 @@ class Help(Cog, hidden=True):
                 self.bot.help.description, description=desc, name=name, emoji=emoji
             )
 
-            if discord.lib == "pycord":
+            if PYCORD:
                 cog_cmds = [
                     cmd
                     for cmd in cog.walk_commands()
@@ -130,7 +130,7 @@ class Help(Cog, hidden=True):
                 cog_cmds = cog.walk_app_commands()
 
             for command in cog_cmds:
-                if discord.lib == "pycord":
+                if PYCORD:
                     default_perms = command.default_member_permissions
                     guild_ids = command.guild_ids
                 else:
@@ -287,7 +287,7 @@ class CategoryView(View):
         member: discord.Member | discord.User,
         commands: dict[str, dict],
     ):
-        if discord.lib == "pycord":
+        if PYCORD:
             super().__init__(timeout=bot.help.timeout, disable_on_timeout=True)
         else:
             super().__init__(timeout=None)

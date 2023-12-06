@@ -16,7 +16,7 @@ from ..bot import Bot, Cog
 from ..components import event
 from ..errors import Blacklisted
 from ..internal import EzConfig, t
-from ..internal.dc import discord
+from ..internal.dc import PYCORD, discord
 from ..utils import create_text_file
 
 _db = _BanDB()
@@ -54,7 +54,7 @@ class Blacklist(Cog, hidden=True):
     async def bot_check(self, ctx):
         return await _check_blacklist(ctx)
 
-    if discord.lib == "pycord":
+    if PYCORD:
         admin = discord.SlashCommandGroup(
             t("admin_group"),
             description="EzCord admin commands",
@@ -203,7 +203,7 @@ class LeaveGuilds(discord.ui.View):
 
     @discord.ui.button(label="Leave all", style=discord.ButtonStyle.red)
     async def leave(self, _: discord.ui.Button, interaction: discord.Interaction):
-        if discord.lib != "pycord":
+        if not PYCORD:
             interaction = _
 
         for child in self.children:
@@ -230,7 +230,7 @@ class LeaveGuilds(discord.ui.View):
 
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.grey)
     async def cancel(self, _: discord.ui.Button, interaction: discord.Interaction):
-        if discord.lib != "pycord":
+        if not PYCORD:
             interaction = _
 
         for child in self.children:

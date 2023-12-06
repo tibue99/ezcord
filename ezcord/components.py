@@ -25,7 +25,7 @@ from typing import Callable
 import aiohttp
 
 from .internal import get_error_text
-from .internal.dc import discord
+from .internal.dc import PYCORD, discord
 from .logs import log
 
 _view_error_handlers: list[Callable] = []
@@ -136,7 +136,7 @@ class EzView(discord.ui.View):
 
         Executes all registered error handlers with the ``@ezcord.event`` decorator.
         """
-        if discord.lib != "pycord":
+        if not PYCORD:
             error, item, interaction = item, interaction, error
 
         description = get_error_text(interaction, error, item)
@@ -167,7 +167,7 @@ class EzView(discord.ui.View):
         """If ``disable_on_timeout`` is set to ``True``, this will disable all components,
         unless the viw has been explicitly stopped.
         """
-        if discord.lib != "pycord":
+        if not PYCORD:
             return await super().on_timeout()
 
         if self.disable_on_timeout:
@@ -201,7 +201,7 @@ class EzModal(discord.ui.Modal):
 
         Executes all registered error handlers with the ``@ezcord.event`` decorator.
         """
-        if discord.lib != "pycord":
+        if not PYCORD:
             error, interaction = interaction, error
 
         description = get_error_text(interaction, error, self)

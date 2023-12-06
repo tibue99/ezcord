@@ -30,3 +30,5 @@ except ImportError:
     checks = discord.app_commands.checks
 
     INTERACTION = discord.Interaction
+
+PYCORD = discord.lib == "pycord"

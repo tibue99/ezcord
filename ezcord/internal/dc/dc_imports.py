@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 libs = ["discord", "nextcord", "disnake"]
 for lib in libs:
     try:

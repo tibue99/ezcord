@@ -22,8 +22,17 @@ except ImportError:
     CogMeta = commands.CogMeta
     bridge = commands
 
-    slash_command = discord.app_commands.command
-    checks = discord.app_commands.checks
+    try:
+        slash_command = discord.app_commands.command
+        checks = discord.app_commands.checks
+
+    except AttributeError:
+        slash_command = discord.slash_command
+        checks = commands
+
+        # for cases where "discord" import does not fail despite using nextcord
+        discord.lib = "nextcord"  # type: ignore
 
 
 PYCORD = discord.lib == "pycord"
+DPY = discord.lib == "discord"

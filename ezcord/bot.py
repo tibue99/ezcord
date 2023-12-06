@@ -24,7 +24,7 @@ from .internal import (
     t,
 )
 from .internal.config import Blacklist
-from .internal.dc import PYCORD, CogMeta, bridge, checks, commands, discord
+from .internal.dc import DPY, PYCORD, CogMeta, bridge, checks, commands, discord
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .sql import DBHandler
 from .times import dc_timestamp
@@ -112,10 +112,10 @@ class Bot(_main_bot):  # type: ignore
         self.error_event_added = False
         if error_handler or error_webhook_url:
             self.error_event_added = True
-            if PYCORD:
-                self.add_listener(self._error_event, "on_application_command_error")
-            else:
+            if DPY:
                 self.tree.on_error = self._error_event
+            else:
+                self.add_listener(self._error_event, "on_application_command_error")
 
         self.ready_event = ready_event
         if ready_event:
@@ -274,7 +274,7 @@ class Bot(_main_bot):  # type: ignore
         )
         self.initial_cogs = cogs
 
-        if PYCORD:
+        if not DPY:
             for cog in cogs:
                 self.load_extension(cog)
 
@@ -353,7 +353,7 @@ class Bot(_main_bot):  # type: ignore
         modifications = self.ready_event_adds, self.ready_event_removes
         print_ready(self, self.ready_event, modifications=modifications)
 
-        if not PYCORD:
+        if DPY:
             self.all_dpy_commands = await self.tree.fetch_commands()
 
     @staticmethod
@@ -393,7 +393,7 @@ class Bot(_main_bot):  # type: ignore
         if type(error) in self.ignored_errors + [commands.CheckFailure]:
             return
 
-        if isinstance(error, checks.CommandOnCooldown) and PYCORD:
+        if isinstance(error, commands.CommandOnCooldown):
             if self.error_handler:
                 seconds = round(ctx.command.get_cooldown_retry_after(ctx))
                 cooldown_txt = t("cooldown", dc_timestamp(seconds))
@@ -477,7 +477,7 @@ class Bot(_main_bot):  # type: ignore
         """
         default = f"**/{name}**" if bold else f"/{name}"
 
-        if PYCORD:
+        if not DPY:
             cmd = self.get_application_command(name)
             if cmd is None:
                 return default
@@ -576,7 +576,7 @@ class Bot(_main_bot):  # type: ignore
             permission_check,
         )
         self.enabled_extensions.append("help")
-        if PYCORD:
+        if not DPY:
             self.load_extension("ezcord.cogs.pyc.help_setup", package="ezcord")
 
     def add_status_changer(
@@ -641,7 +641,7 @@ class Bot(_main_bot):  # type: ignore
             kwargs,
         )
         self.enabled_extensions.append("status_changer")
-        if PYCORD:
+        if not DPY:
             self.load_extension("ezcord.cogs.pyc.status_changer_setup", package="ezcord")
 
     def add_blacklist(
@@ -686,7 +686,7 @@ class Bot(_main_bot):  # type: ignore
         EzConfig.admin_guilds = admin_server_ids
 
         self.enabled_extensions.append("blacklist")
-        if PYCORD:
+        if not DPY:
             self.load_extension("ezcord.cogs.pyc.blacklist_setup", package="ezcord")
 
     async def setup_hook(self):
@@ -717,10 +717,10 @@ class Bot(_main_bot):  # type: ignore
             if error_webhook_url is not None:
                 self.error_webhook_url = error_webhook_url
                 if not self.error_event_added:
-                    if PYCORD:
-                        self.add_listener(self._error_event, "on_application_command_error")
-                    else:
+                    if DPY:
                         self.tree.on_error = self._error_event
+                    else:
+                        self.add_listener(self._error_event, "on_application_command_error")
 
         return token
 

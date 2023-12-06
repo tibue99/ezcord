@@ -9,7 +9,7 @@ from ..bot import Bot, Cog
 from ..components import View
 from ..enums import HelpStyle
 from ..internal import replace_embed_values, t
-from ..internal.dc import PYCORD, commands, discord, slash_command
+from ..internal.dc import PYCORD, discord, slash_command
 from ..logs import log
 
 
@@ -72,12 +72,6 @@ class Help(Cog, hidden=True):
     def __init__(self, bot: Bot):
         super().__init__(bot)
         self.help.guild_only = bot.help.guild_only
-        self.all_commands = None
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        if discord.lib == "discord":
-            self.all_commands = await self.bot.tree.fetch_commands()
 
     @slash_command(name=t("cmd_name"), description=t("cmd_description"))
     async def help(self, ctx):
@@ -154,12 +148,6 @@ class Help(Cog, hidden=True):
                 if ctx.guild and guild_ids and ctx.guild.id not in guild_ids:
                     continue
 
-                if self.all_commands:
-                    for c in self.all_commands:
-                        if c.name == command.name:
-                            command = c
-                            break
-
                 commands[name]["cmds"].append(command)
 
             cmd_count = len(commands[name]["cmds"])
@@ -203,6 +191,19 @@ class CategorySelect(discord.ui.Select):
         self.member = member
         self.commands = commands
 
+    def get_mention(self, cmd) -> str:
+        """This is only needed for Discord.py."""
+        if self.bot.all_dpy_commands:
+            for c in self.bot.all_dpy_commands:
+                if c.name == cmd.name:
+                    cmd = c
+                    break
+
+        try:
+            return cmd.mention
+        except AttributeError:
+            return f"**/{cmd.name}**"
+
     async def callback(self, interaction: discord.Interaction):
         if self.bot.help.author_only and interaction.user != self.member:
             return await emb.error(interaction, t("wrong_user"))
@@ -239,7 +240,7 @@ class CategorySelect(discord.ui.Select):
         if style == HelpStyle.embed_fields:
             for command in commands:
                 embed.add_field(
-                    name=f"**{command.mention}**",
+                    name=f"**{self.get_mention(command)}**",
                     value=f"`{command.description}`",
                     inline=False,
                 )
@@ -247,7 +248,7 @@ class CategorySelect(discord.ui.Select):
         elif style == HelpStyle.codeblocks or style == HelpStyle.codeblocks_inline:
             for command in commands:
                 embed.add_field(
-                    name=f"**{command.mention}**",
+                    name=f"**{self.get_mention(command)}**",
                     value=f"```{command.description}```",
                     inline=style == HelpStyle.codeblocks_inline,
                 )
@@ -256,7 +257,9 @@ class CategorySelect(discord.ui.Select):
             embed.description = desc + "\n"
             for command in commands:
                 if len(embed.description) <= 3500:
-                    embed.description += f"**{command.mention}**\n{command.description}\n\n"
+                    embed.description += (
+                        f"**{self.get_mention(command)}**\n{command.description}\n\n"
+                    )
                 else:
                     log.error("Help embed length limit reached. Some commands are not shown.")
                     break
@@ -265,7 +268,7 @@ class CategorySelect(discord.ui.Select):
             embed.description = desc
             for command in commands:
                 if len(embed.description) <= 3500:
-                    embed.description += f"### {command.mention}\n{command.description}\n"
+                    embed.description += f"### {self.get_mention(command)}\n{command.description}\n"
                 else:
                     log.error("Help embed length limit reached. Some commands are not shown.")
                     break

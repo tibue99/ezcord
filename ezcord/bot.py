@@ -692,8 +692,6 @@ class Bot(_main_bot):  # type: ignore
     async def setup_hook(self):
         """This is used for Discord.py startup and should not be called manually."""
 
-        print("SETUP_HOOK", self.initial_cogs, self.enabled_extensions)
-
         for cog in self.initial_cogs:
             await self.load_extension(cog)
 

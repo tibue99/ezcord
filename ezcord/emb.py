@@ -22,9 +22,9 @@ from .internal import copy_kwargs, load_embed, replace_dict, save_embeds
 from .internal.dc import PYCORD, discord
 
 if PYCORD:
-    INTERACTION = discord.Interaction | discord.ApplicationContext
+    INTERACTION = (discord.Interaction, discord.ApplicationContext)
 else:
-    INTERACTION = discord.Interaction
+    INTERACTION = (discord.Interaction,)  # type: ignore
 
 
 def set_embed_templates(

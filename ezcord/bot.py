@@ -130,7 +130,7 @@ class Bot(_main_bot):  # type: ignore
         self.initial_cogs: list[str] = []
 
         # Needed for Discord.py command mentions
-        self.all_commands = None
+        self.all_dpy_commands = None
 
     def _send_cog_log(
         self,
@@ -354,7 +354,7 @@ class Bot(_main_bot):  # type: ignore
         print_ready(self, self.ready_event, modifications=modifications)
 
         if not PYCORD:
-            self.all_commands = await self.tree.fetch_commands()
+            self.all_dpy_commands = await self.tree.fetch_commands()
 
     @staticmethod
     async def _db_setup():
@@ -484,10 +484,10 @@ class Bot(_main_bot):  # type: ignore
             return cmd.mention
 
         else:
-            if not self.all_commands:
+            if not self.all_dpy_commands:
                 return default
 
-            for c in self.all_commands:
+            for c in self.all_dpy_commands:
                 if c.name == name:
                     return c.mention
 

@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from __future__ import annotations
 
 from ...errors import MissingDiscordLibrary
 
@@ -12,15 +12,21 @@ tasks = __import__(f"{discord.lib}.ext.tasks", fromlist=[""])
 
 
 try:
-    # py-cord
     from discord import CogMeta
     from discord.ext import bridge
-    from discord.utils import AutocompleteFunc, V, Values
+
+    slash_command = discord.commands.slash_command
+    checks = commands
+
+    INTERACTION = discord.Interaction | discord.ApplicationContext
+
+    discord.lib = "pycord"  # type: ignore
 
 except ImportError:
     CogMeta = commands.CogMeta
     bridge = commands
 
-    AutocompleteFunc = None
-    V = Iterable[str]
-    Values = Iterable[str]
+    slash_command = discord.app_commands.command
+    checks = discord.app_commands.checks
+
+    INTERACTION = discord.Interaction

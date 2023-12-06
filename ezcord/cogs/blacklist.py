@@ -5,9 +5,10 @@ This file should only be called through `bot.add_blacklist()`,
 after the "blacklist" value has been set in the config.
 """
 
-from typing import Union
+from typing import Literal
 
 import aiosqlite
+import discord
 
 from .. import emb
 from ..blacklist import _BanDB
@@ -15,22 +16,28 @@ from ..bot import Bot, Cog
 from ..components import event
 from ..errors import Blacklisted
 from ..internal import EzConfig, t
-from ..internal.dc import commands, discord
+from ..internal.dc import discord
 from ..utils import create_text_file
 
 _db = _BanDB()
 
 
-async def _check_blacklist(
-    # Pycord does not support __future__ in cogs for whatever reason
-    interaction: Union[discord.Interaction, discord.ApplicationContext]
-) -> bool:
+async def get_or_fetch_user(bot, user_id: int):
+    if user := bot.get_user(user_id):
+        return user
+    try:
+        return await bot.fetch_user(user_id)
+    except discord.NotFound:
+        return None
+
+
+async def _check_blacklist(interaction: discord.Interaction) -> bool:
     bans = await _db.get_bans()
     if interaction.user.id in bans and EzConfig.blacklist:
         if EzConfig.blacklist.raise_error:
             raise Blacklisted()
         else:
-            await interaction.respond(t("no_perms"), ephemeral=True)
+            await interaction.response.send_message(t("no_perms"), ephemeral=True)
         return False
     return True
 
@@ -44,16 +51,40 @@ class Blacklist(Cog, hidden=True):
     def __init__(self, bot: Bot):
         super().__init__(bot)
 
-    @staticmethod
-    async def bot_check(ctx: discord.ApplicationContext):
+    async def bot_check(self, ctx):
         return await _check_blacklist(ctx)
 
-    admin = discord.SlashCommandGroup(
-        t("admin_group"),
-        guild_ids=EzConfig.admin_guilds,
-        default_member_permissions=discord.Permissions(administrator=True),
-        checks=[commands.is_owner().predicate],
-    )
+    if discord.lib == "pycord":
+        admin = discord.SlashCommandGroup(
+            t("admin_group"),
+            description="EzCord admin commands",
+            guild_ids=EzConfig.admin_guilds,
+            default_member_permissions=discord.Permissions(administrator=True),
+        )
+        leave = admin.create_subgroup("leave")
+        blacklist = admin.create_subgroup("blacklist")
+    else:
+        admin = discord.app_commands.Group(
+            name=t("admin_group"),
+            description="EzCord admin commands",
+            guild_ids=EzConfig.admin_guilds,
+            default_permissions=discord.Permissions(administrator=True),
+        )
+        leave = discord.app_commands.Group(
+            parent=admin,
+            name="leave",
+            description="Make the bot leave a server",
+        )
+        blacklist = discord.app_commands.Group(
+            parent=admin,
+            name="blacklist",
+            description="Manage the blacklist",
+        )
+
+    async def cog_check(self, ctx):
+        if EzConfig.blacklist.owner_only:
+            return await self.bot.is_owner(ctx.author)
+        return True
 
     @Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
@@ -65,21 +96,19 @@ class Blacklist(Cog, hidden=True):
                 pass
             await guild.leave()
 
-    blacklist = admin.create_subgroup("blacklist")
-
     @blacklist.command(name="manage", description="Manage the blacklist")
-    @discord.option("choice", description="Choose an action", choices=["Add ban", "Remove ban"])
-    @discord.option("user", description="The user to ban/unban")
-    @discord.option("reason", description="The reason for the ban", default=None)
+    # @discord.option("choice", description="Choose an action", choices=["Add ban", "Remove ban"])
+    # @discord.option("user", description="The user to ban/unban")
+    # @discord.option("reason", description="The reason for the ban", default=None)
     async def manage_blacklist(
         self,
-        ctx: discord.ApplicationContext,
-        choice: str,
+        ctx,
+        choice: Literal["Add ban", "Remove ban"],
         user: discord.Member,
-        reason: str,
+        reason: str = None,  # type: ignore
     ):
         if choice == "Add ban":
-            if user.id == ctx.author.id:
+            if user.id == ctx.user.id:
                 return await emb.error(ctx, "You can't ban yourself.")
             if user.bot:
                 return await emb.error(ctx, "You can't ban a bot.")
@@ -100,7 +129,7 @@ class Blacklist(Cog, hidden=True):
 
     @blacklist.command(name="show", description="Show the bot blacklist")
     async def show_blacklist(self, ctx):
-        await ctx.defer(ephemeral=True)
+        await ctx.response.defer(ephemeral=True)
         bans = await _db.get_full_bans()
         desc = ""
 
@@ -108,7 +137,7 @@ class Blacklist(Cog, hidden=True):
             if not reason:
                 reason = "No reason provided"
 
-            user = await self.bot.get_or_fetch_user(user_id)
+            user = await get_or_fetch_user(self.bot, user_id)
             name = f"{user.name} ({user.id})" if user else user_id
             desc += f"{name} - {reason}\n"
 
@@ -116,11 +145,11 @@ class Blacklist(Cog, hidden=True):
             desc = "No bans found."
 
         file = create_text_file(desc, "bans.txt")
-        await ctx.respond(file=file, ephemeral=True)
+        await ctx.followup.send(file=file, ephemeral=True)
 
     @admin.command(description="Show all bot servers")
     async def show_servers(self, ctx):
-        await ctx.defer(ephemeral=True)
+        await ctx.response.defer(ephemeral=True)
         longest_name = max([guild.name for guild in self.bot.guilds], key=len)
         sep = f"<{len(longest_name)}"
 
@@ -132,33 +161,25 @@ class Blacklist(Cog, hidden=True):
             desc += "\n"
 
         file = create_text_file(desc, "guilds.txt")
-        await ctx.respond(file=file, ephemeral=True)
-
-    leave = admin.create_subgroup("leave")
+        await ctx.response.send_message(file=file, ephemeral=True)
 
     @leave.command(name="server", description="Make the bot leave a server")
-    @discord.option("guild_id", description="Leave the server with the given ID", default=None)
-    async def leave_guild(
-        self,
-        ctx: discord.ApplicationContext,
-        guild_id: str,
-    ):
-        await ctx.defer(ephemeral=True)
+    # @discord.option("guild_id", description="Leave the server with the given ID", default=None)
+    async def leave_guild(self, ctx, guild_id: str):
+        await ctx.response.defer(ephemeral=True)
         try:
             guild = await self.bot.fetch_guild(guild_id)
         except Exception as e:
-            return await ctx.respond(f"I could not load this server: ```{e}```", ephemeral=True)
+            return await ctx.response.send_message(
+                f"I could not load this server: ```{e}```", ephemeral=True
+            )
 
         await guild.leave()
-        await ctx.respond(f"I left **{guild.name}** ({guild.id})", ephemeral=True)
+        await ctx.response.send_message(f"I left **{guild.name}** ({guild.id})", ephemeral=True)
 
     @leave.command(name="owner", description="Make the bot leave all guilds with a given owner")
-    @discord.option("owner_id", description="Leave all servers with the specified owner")
-    async def leave_owner(
-        self,
-        ctx: discord.ApplicationContext,
-        owner: discord.User,
-    ):
+    # @discord.option("owner_id", description="Leave all servers with the specified owner")
+    async def leave_owner(self, ctx, owner: discord.User):
         await ctx.defer(ephemeral=True)
         guilds = []
         member_count = 0
@@ -167,16 +188,12 @@ class Blacklist(Cog, hidden=True):
                 guilds.append(guild)
                 member_count += guild.member_count
 
-        return await ctx.respond(
+        return await ctx.response.send_message(
             f"I found **{len(guilds)}** servers with **{owner}** as the owner "
             f"(with a total of **{member_count}** members).",
             ephemeral=True,
             view=LeaveGuilds(guilds),
         )
-
-
-def setup(bot: Bot):
-    bot.add_cog(Blacklist(bot))
 
 
 class LeaveGuilds(discord.ui.View):
@@ -186,6 +203,9 @@ class LeaveGuilds(discord.ui.View):
 
     @discord.ui.button(label="Leave all", style=discord.ButtonStyle.red)
     async def leave(self, _: discord.ui.Button, interaction: discord.Interaction):
+        if discord.lib != "pycord":
+            interaction = _
+
         for child in self.children:
             child.disabled = True
         embed = discord.Embed(
@@ -210,6 +230,9 @@ class LeaveGuilds(discord.ui.View):
 
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.grey)
     async def cancel(self, _: discord.ui.Button, interaction: discord.Interaction):
+        if discord.lib != "pycord":
+            interaction = _
+
         for child in self.children:
             child.disabled = True
         await interaction.edit(view=self)

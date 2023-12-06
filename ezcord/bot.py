@@ -24,14 +24,14 @@ from .internal import (
     t,
 )
 from .internal.config import Blacklist
-from .internal.dc import CogMeta, bridge, commands, discord
+from .internal.dc import CogMeta, bridge, checks, commands, discord
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .sql import DBHandler
 from .times import dc_timestamp
 
-try:
-    _main_bot = discord.Bot  # Pycord
-except AttributeError:
+if discord.lib == "pycord":
+    _main_bot = discord.Bot
+else:
     _main_bot = commands.Bot
 
 
@@ -87,7 +87,11 @@ class Bot(_main_bot):  # type: ignore
         ready_event: ReadyEvent | None = ReadyEvent.default,
         **kwargs,
     ):
-        super().__init__(intents=intents, **kwargs)
+        if discord.lib == "pycord":
+            super().__init__(intents=intents, **kwargs)
+        else:
+            prefix = kwargs.pop("command_prefix", None)
+            super().__init__(command_prefix=prefix or "!", intents=intents, **kwargs)
 
         if error_webhook_url:
             os.environ.setdefault("ERROR_WEBHOOK_URL", error_webhook_url)
@@ -108,7 +112,10 @@ class Bot(_main_bot):  # type: ignore
         self.error_event_added = False
         if error_handler or error_webhook_url:
             self.error_event_added = True
-            self.add_listener(self._error_event, "on_application_command_error")
+            if discord.lib == "pycord":
+                self.add_listener(self._error_event, "on_application_command_error")
+            else:
+                self.tree.on_error = self._error_event
 
         self.ready_event = ready_event
         if ready_event:
@@ -118,6 +125,12 @@ class Bot(_main_bot):  # type: ignore
 
         self.ready_event_adds: dict = {}
         self.ready_event_removes: list[int | str] = []
+
+        self.enabled_extensions: list[str] = []
+        self.initial_cogs: list[str] = []
+
+        # Needed for Discord.py command mentions
+        self.all_commands = None
 
     def _send_cog_log(
         self,
@@ -180,6 +193,46 @@ class Bot(_main_bot):  # type: ignore
 
         self._send_cog_log(custom_log_level, log_format, color=color)
 
+    def _manage_cogs(
+        self,
+        *directories: str,
+        subdirectories: bool = False,
+        ignored_cogs: list[str] | None,
+        log: CogLog | str | None = CogLog.default,
+        custom_log_level: str | None,
+        log_color: str | None,
+    ):
+        cogs = []
+
+        ignored_cogs = ignored_cogs or []
+        if not directories:
+            directories = ("cogs",)
+
+        loaded_cogs = 0
+        for directory in directories:
+            for root, dirs, files in os.walk(directory):
+                path = Path(root)
+                loaded_dir_cogs = 0
+                for filename in files:
+                    name = filename[:-3]
+                    if (
+                        filename.endswith(".py")
+                        and not filename.startswith("_")
+                        and name not in ignored_cogs
+                    ):
+                        cogs.append(f"{'.'.join(path.parts)}.{name}")
+                        loaded_dir_cogs += 1
+                        self._cog_log(
+                            f"{name}", custom_log_level, log, ".".join(path.parts[1:]), log_color
+                        )
+                loaded_cogs += loaded_dir_cogs
+
+                self._cog_count_log(custom_log_level, log, loaded_dir_cogs, log_color, path.stem)
+                if not subdirectories:
+                    break
+        self._cog_count_log(custom_log_level, log, loaded_cogs, log_color)
+        return cogs
+
     def load_cogs(
         self,
         *directories: str,
@@ -210,33 +263,20 @@ class Bot(_main_bot):  # type: ignore
             The color to use for cog logs. This will only have an effect if ``custom_log_level`` is enabled.
             If this is ``None``, a default color will be used.
         """
-        ignored_cogs = ignored_cogs or []
-        if not directories:
-            directories = ("cogs",)
 
-        loaded_cogs = 0
-        for directory in directories:
-            for root, dirs, files in os.walk(directory):
-                path = Path(root)
-                loaded_dir_cogs = 0
-                for filename in files:
-                    name = filename[:-3]
-                    if (
-                        filename.endswith(".py")
-                        and not filename.startswith("_")
-                        and name not in ignored_cogs
-                    ):
-                        self.load_extension(f"{'.'.join(path.parts)}.{name}")
-                        loaded_dir_cogs += 1
-                        self._cog_log(
-                            f"{name}", custom_log_level, log, ".".join(path.parts[1:]), log_color
-                        )
-                loaded_cogs += loaded_dir_cogs
+        cogs = self._manage_cogs(
+            *directories,
+            subdirectories=subdirectories,
+            ignored_cogs=ignored_cogs,
+            log=log,
+            custom_log_level=custom_log_level,
+            log_color=log_color,
+        )
+        self.initial_cogs = cogs
 
-                self._cog_count_log(custom_log_level, log, loaded_dir_cogs, log_color, path.stem)
-                if not subdirectories:
-                    break
-        self._cog_count_log(custom_log_level, log, loaded_cogs, log_color)
+        if discord.lib == "pycord":
+            for cog in cogs:
+                self.load_extension(cog)
 
     def add_ready_info(
         self,
@@ -313,6 +353,9 @@ class Bot(_main_bot):  # type: ignore
         modifications = self.ready_event_adds, self.ready_event_removes
         print_ready(self, self.ready_event, modifications=modifications)
 
+        if discord.lib != "pycord":
+            self.all_commands = await self.tree.fetch_commands()
+
     @staticmethod
     async def _db_setup():
         """Calls the setup method of all registered :class:`.DBHandler` instances."""
@@ -345,18 +388,18 @@ class Bot(_main_bot):  # type: ignore
             extra={"webhook_sent": webhook_sent},
         )
 
-    async def _error_event(self, ctx: discord.ApplicationContext, error: discord.DiscordException):
+    async def _error_event(self, ctx: discord.Interaction, error: discord.DiscordException):
         """The event that handles application command errors."""
-        if type(error) in self.ignored_errors + [discord.CheckFailure]:
+        if type(error) in self.ignored_errors + [commands.CheckFailure]:
             return
 
-        if isinstance(error, commands.CommandOnCooldown):
+        if isinstance(error, checks.CommandOnCooldown) and discord.lib == "pycord":
             if self.error_handler:
                 seconds = round(ctx.command.get_cooldown_retry_after(ctx))
                 cooldown_txt = t("cooldown", dc_timestamp(seconds))
                 await error_emb(ctx, cooldown_txt, title=t("cooldown_title"))
 
-        elif isinstance(error, commands.BotMissingPermissions):
+        elif isinstance(error, checks.BotMissingPermissions):
             if self.error_handler:
                 perms = "\n".join(error.missing_permissions)
                 perm_txt = f"{t('no_perms')} ```\n{perms}```"
@@ -432,10 +475,23 @@ class Bot(_main_bot):  # type: ignore
         bold:
             Whether to bold the command name. Defaults to ``True``.
         """
-        cmd = self.get_application_command(name)
-        if cmd is None:
-            return f"**/{name}**" if bold else f"/{name}"
-        return cmd.mention
+        default = f"**/{name}**" if bold else f"/{name}"
+
+        if discord.lib == "pycord":
+            cmd = self.get_application_command(name)
+            if cmd is None:
+                return default
+            return cmd.mention
+
+        else:
+            if not self.all_commands:
+                return default
+
+            for c in self.all_commands:
+                if c.name == name:
+                    return c.mention
+
+            return default
 
     def add_help_command(
         self,
@@ -519,7 +575,9 @@ class Bot(_main_bot):  # type: ignore
             description_format,
             permission_check,
         )
-        self.load_extension(f".cogs.help", package="ezcord")
+        self.enabled_extensions.append("help")
+        if discord.lib == "pycord":
+            self.load_extension("ezcord.cogs.pyc.help_setup", package="ezcord")
 
     def add_status_changer(
         self,
@@ -582,7 +640,9 @@ class Bot(_main_bot):  # type: ignore
             shuffle,
             kwargs,
         )
-        self.load_extension(f".cogs.status_changer", package="ezcord")
+        self.enabled_extensions.append("status_changer")
+        if discord.lib == "pycord":
+            self.load_extension("ezcord.cogs.pyc.status_changer_setup", package="ezcord")
 
     def add_blacklist(
         self,
@@ -625,7 +685,46 @@ class Bot(_main_bot):  # type: ignore
         )
         EzConfig.admin_guilds = admin_server_ids
 
-        self.load_extension(f".cogs.blacklist", package="ezcord")
+        self.enabled_extensions.append("blacklist")
+        if discord.lib == "pycord":
+            self.load_extension("ezcord.cogs.pyc.blacklist_setup", package="ezcord")
+
+    async def setup_hook(self):
+        """This is used for Discord.py startup and should not be called manually."""
+
+        print("SETUP_HOOK", self.initial_cogs, self.enabled_extensions)
+
+        for cog in self.initial_cogs:
+            await self.load_extension(cog)
+
+        for ext in self.enabled_extensions:
+            await self.load_extension(f".cogs.dpy.{ext}_setup", package="ezcord")
+
+    def _run_setup(
+        self,
+        env_path: str | os.PathLike[str] | None,
+        token_var: str,
+        token: str | None,
+    ):
+        if not env_path:
+            return token
+
+        load_dotenv(env_path)
+        env_token = os.getenv(token_var)
+        if token is None and env_token is not None:
+            token = env_token
+
+        if not self.error_webhook_url:
+            error_webhook_url = os.environ.get("ERROR_WEBHOOK_URL")
+            if error_webhook_url is not None:
+                self.error_webhook_url = error_webhook_url
+                if not self.error_event_added:
+                    if discord.lib == "pycord":
+                        self.add_listener(self._error_event, "on_application_command_error")
+                    else:
+                        self.tree.on_error = self._error_event
+
+        return token
 
     def run(
         self,
@@ -633,7 +732,7 @@ class Bot(_main_bot):  # type: ignore
         *,
         env_path: str | os.PathLike[str] | None = ".env",
         token_var: str = "TOKEN",
-        **kwargs: Callable | str,
+        **kwargs,
     ) -> None:
         """This overrides the default :meth:`discord.Bot.run` method and automatically loads the token
         from the environment.
@@ -650,23 +749,34 @@ class Bot(_main_bot):  # type: ignore
         **kwargs:
             Additional keyword arguments for :meth:`discord.Bot.run`.
         """
-        if not env_path:
-            super().run(token, **kwargs)
-            return
-
-        load_dotenv(env_path)
-        env_token = os.getenv(token_var)
-        if token is None and env_token is not None:
-            token = env_token
-
-        if not self.error_webhook_url:
-            error_webhook_url = os.environ.get("ERROR_WEBHOOK_URL")
-            if error_webhook_url is not None:
-                self.error_webhook_url = error_webhook_url
-                if not self.error_event_added:
-                    self.add_listener(self._error_event, "on_application_command_error")
-
+        token = self._run_setup(env_path, token_var, token)
         super().run(token, **kwargs)
+
+    async def start(
+        self,
+        token: str | None = None,
+        *,
+        env_path: str | os.PathLike[str] | None = ".env",
+        token_var: str = "TOKEN",
+        **kwargs,
+    ) -> None:
+        """This overrides the default :meth:`discord.Bot.start` method and automatically loads the token
+        from the environment.
+
+        Parameters
+        ----------
+        token:
+            The bot token. If this is ``None``, the token will be loaded from the environment.
+        env_path:
+            The path to the environment file. Defaults to ``.env``. If this is ``None``, environment
+            variables are not loaded automatically.
+        token_var:
+            The name of the token variable in the environment file. Defaults to ``TOKEN``.
+        **kwargs:
+            Additional keyword arguments for :meth:`discord.Bot.start`.
+        """
+        token = self._run_setup(env_path, token_var, token)
+        await super().start(token, **kwargs)
 
 
 class PrefixBot(Bot, commands.Bot):

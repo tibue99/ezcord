@@ -5,7 +5,8 @@
 [![](https://img.shields.io/pypi/l/ezcord?style=for-the-badge)](https://github.com/tibue99/ezcord/blob/main/LICENSE)
 [![](https://aschey.tech/tokei/github/tibue99/ezcord?style=for-the-badge)](https://github.com/tibue99/ezcord)
 
-An easy-to-use extension for the [Pycord](https://github.com/Pycord-Development/pycord) library with some utility functions.
+An easy-to-use extension for the [Discord.py](https://github.com/Rapptz/discord.py)
+and [Pycord](https://github.com/Pycord-Development/pycord) libraries with some utility functions.
 
 ## ⚠️ Note
 Please use this library with the [Pycord master branch](https://github.com/Pycord-Development/pycord).
@@ -20,8 +21,6 @@ Please use this library with the [Pycord master branch](https://github.com/Pycor
 - Automated help command
 - Datetime and file utilities
 - Wrapper for [aiosqlite](https://github.com/omnilib/aiosqlite)
-
-While this library can be installed with any Discord library, most features will only work with Pycord.
 
 ## Installing
 Python 3.9 or higher is required.

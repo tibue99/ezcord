@@ -54,7 +54,3 @@ class Activity(Cog, hidden=True):
             act = discord.CustomActivity(name=act.name)
 
         await self.bot.change_presence(activity=act, status=self.bot.status_changer.status)
-
-
-def setup(bot: Bot):
-    bot.add_cog(Activity(bot))

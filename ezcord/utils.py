@@ -1,4 +1,4 @@
-"""Some utility functions for Pycord and Python."""
+"""Some utility functions for Discord and Python."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import random
 from typing import Any
 
 from .internal import get_lang
-from .internal.dc import AutocompleteFunc, V, Values, discord
+from .internal.dc import discord
 
 
 def create_json_file(
@@ -123,7 +123,7 @@ def codeblock(content: int | str, *, lang: str = "yaml", unit: str = ""):
     return f"```{lang}\n{content}```"
 
 
-def ez_autocomplete(values: Values) -> AutocompleteFunc:
+def ez_autocomplete(values):
     """A similar function as :func:`~discord.utils.basic_autocomplete`, but instead of returning
     options starting with the user's value, it returns options containing the user's value.
 
@@ -134,7 +134,7 @@ def ez_autocomplete(values: Values) -> AutocompleteFunc:
         of :class:`~discord.AutocompleteContext`, or a coroutine. Must resolve to an iterable of :class:`str`.
     """
 
-    async def autocomplete_callback(ctx: discord.AutocompleteContext) -> V:
+    async def autocomplete_callback(ctx):
         _values = values
 
         if callable(_values):

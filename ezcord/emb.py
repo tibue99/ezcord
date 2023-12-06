@@ -19,7 +19,7 @@ from __future__ import annotations
 import copy
 
 from .internal import copy_kwargs, load_embed, replace_dict, save_embeds
-from .internal.dc import discord
+from .internal.dc import INTERACTION, discord
 from .logs import log
 
 
@@ -90,7 +90,7 @@ def set_embed_templates(
 
 
 async def _send_embed(
-    target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
+    target: INTERACTION | discord.abc.Messageable,
     embed: discord.Embed | str,
     ephemeral: bool = True,
     edit: bool = False,
@@ -115,7 +115,7 @@ async def _send_embed(
         content = embed
         embed = None
 
-    if isinstance(target, discord.ApplicationContext) or isinstance(target, discord.Interaction):
+    if isinstance(target, INTERACTION):
         if edit:
             try:
                 await target.edit(content=content, embed=embed, **kwargs)
@@ -134,17 +134,16 @@ async def _send_embed(
 
 
 def _insert_info(
-    target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
+    target: INTERACTION | discord.abc.Messageable,
     embed: discord.Embed | str,
 ):
-    if not isinstance(target, discord.ApplicationContext) and not isinstance(
-        target, discord.Interaction
-    ):
+    if not isinstance(target, INTERACTION):
         return embed
 
     interaction = target
-    if isinstance(target, discord.ApplicationContext):
-        interaction = target.interaction
+    if discord.lib == "pycord":
+        if isinstance(target, discord.ApplicationContext):
+            interaction = target.interaction
 
     if isinstance(embed, discord.Embed):
         embed = embed.to_dict()
@@ -157,7 +156,7 @@ def _insert_info(
 
 
 async def _process_message(
-    target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
+    target: INTERACTION | discord.abc.Messageable,
     embed: discord.Embed | str,
     txt: str | None,
     title: str | None,
@@ -181,7 +180,7 @@ async def _process_message(
 
 @copy_kwargs(discord.InteractionResponse.send_message)
 async def error(
-    target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
+    target: INTERACTION | discord.abc.Messageable,
     txt: str | None = None,
     *,
     title: str | None = None,
@@ -211,7 +210,7 @@ async def error(
 
 @copy_kwargs(discord.abc.Messageable.send)
 async def success(
-    target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
+    target: INTERACTION | discord.abc.Messageable,
     txt: str | None = None,
     *,
     title: str | None = None,
@@ -241,7 +240,7 @@ async def success(
 
 @copy_kwargs(discord.abc.Messageable.send)
 async def warn(
-    target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
+    target: INTERACTION | discord.abc.Messageable,
     txt: str | None = None,
     *,
     title: str | None = None,
@@ -271,7 +270,7 @@ async def warn(
 
 @copy_kwargs(discord.abc.Messageable.send)
 async def info(
-    target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
+    target: INTERACTION | discord.abc.Messageable,
     txt: str | None = None,
     *,
     title: str | None = None,
@@ -302,7 +301,7 @@ async def info(
 @copy_kwargs(discord.abc.Messageable.send)
 async def send(
     template: str,
-    target: discord.ApplicationContext | discord.Interaction | discord.abc.Messageable,
+    target: INTERACTION | discord.abc.Messageable,
     txt: str | None = None,
     *,
     title: str | None = None,

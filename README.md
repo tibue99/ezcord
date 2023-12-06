@@ -5,11 +5,8 @@
 [![](https://img.shields.io/pypi/l/ezcord?style=for-the-badge)](https://github.com/tibue99/ezcord/blob/main/LICENSE)
 [![](https://aschey.tech/tokei/github/tibue99/ezcord?style=for-the-badge)](https://github.com/tibue99/ezcord)
 
-An easy-to-use extension for the [Discord.py](https://github.com/Rapptz/discord.py)
-and [Pycord](https://github.com/Pycord-Development/pycord) libraries with some utility functions.
-
-## ⚠️ Note
-Please use this library with the [Pycord master branch](https://github.com/Pycord-Development/pycord).
+An easy-to-use extension for [Discord.py](https://github.com/Rapptz/discord.py)
+and [Pycord](https://github.com/Pycord-Development/pycord) with some utility functions.
 
 ## Features
 - Easy cog loading
@@ -43,10 +40,13 @@ ezcord @ git+https://github.com/tibue99/ezcord
 - [PyPi](https://pypi.org/project/ezcord/)
 - [Pycord Docs](https://docs.pycord.dev/)
 
-## Example
+## Examples
 - For more examples, see the [example repository](https://github.com/tibue99/ezcord_template)
 or the [sample code](https://ezcord.readthedocs.io/en/latest/examples/examples.html).
+- **Note:** It's recommended to [load the token](https://guide.pycord.dev/getting-started/creating-your-first-bot#protecting-tokens) from a `.env` file instead of hardcoding it.
+EzCord can automatically load the token if a `TOKEN` variable is present in the `.env` file.
 
+### Pycord
 ```py
 import ezcord
 import discord
@@ -59,8 +59,33 @@ if __name__ == "__main__":
     bot.load_cogs("cogs")  # Load all cogs in the "cogs" folder
     bot.run("TOKEN")
 ```
-**Note:** It's recommended to [load the token](https://guide.pycord.dev/getting-started/creating-your-first-bot#protecting-tokens) from a `.env` file instead of hardcoding it.
-EzCord can automatically load the token if a `TOKEN` variable is present in the `.env` file.
+
+### Discord.py
+```py
+import asyncio
+import discord
+import ezcord
+
+
+class Bot(ezcord.Bot):
+    def __init__(self):
+        super().__init__(intents=discord.Intents.default())
+
+    async def setup_hook(self):
+        await super().setup_hook()
+        await self.tree.sync()
+
+
+async def main():
+    async with Bot() as bot:
+        bot.add_help_command()
+        bot.load_cogs("cogs")  # Load all cogs in the "cogs" folder
+        await bot.start("TOKEN")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
 
 ## Contributing
 I am always happy to receive contributions. Here is how to do it:

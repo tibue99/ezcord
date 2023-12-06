@@ -16,6 +16,10 @@ Feel free to choose an example below. On this page, you can see an example for t
 Main Example
 ------------
 
-.. literalinclude:: ../../examples/main.py
+.. literalinclude:: ../../examples/pycord.py
    :language: python
-   :caption: Main initialization of the bot class
+   :caption: Pycord
+
+.. literalinclude:: ../../examples/dpy.py
+   :language: python
+   :caption: Discord.py

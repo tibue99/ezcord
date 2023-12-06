@@ -1,6 +1,6 @@
 [project]
 name = "ezcord"
-description = "An easy-to-use extension for the Pycord library"
+description = "An easy-to-use extension for Discord.py and Pycord"
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}

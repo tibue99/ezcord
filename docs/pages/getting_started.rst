@@ -17,8 +17,7 @@ You can also install the latest version from GitHub. Note that this version may 
 
 First Steps
 --------------
-You should already have a basic understanding of how to use **Pycord**.
-If you don't, you can find the documentation `here <https://docs.pycord.dev/>`_.
+You should already have a basic understanding of **Discord.py** or **Pycord**.
 
 1. Create a new bot in the `Discord Developer Portal <https://discord.com/developers/applications/>`_
 2. Create a bot object using ``ezcord.Bot``
@@ -28,5 +27,10 @@ Example
 --------------
 A quick example of how EzCord works. You can find more examples :doc:`here </examples/examples>`.
 
-.. literalinclude:: ../../examples/main.py
+.. literalinclude:: ../../examples/pycord.py
    :language: python
+   :caption: Pycord
+
+.. literalinclude:: ../../examples/dpy.py
+   :language: python
+   :caption: Discord.py

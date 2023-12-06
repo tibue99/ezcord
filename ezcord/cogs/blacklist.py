@@ -117,7 +117,7 @@ class Blacklist(Cog, hidden=True):
                 await _db.add_ban(user.id, reason)
             except aiosqlite.IntegrityError:
                 return await emb.error(ctx, "This user is already banned.")
-            await ctx.respond(
+            await ctx.response.send_message(
                 f"The user was banned successfully.\n- **Name:** {user}\n- **ID:** {user.id}",
                 ephemeral=True,
             )
@@ -125,7 +125,9 @@ class Blacklist(Cog, hidden=True):
             rowcount = await _db.remove_ban(user.id)
             if rowcount == 0:
                 return await emb.error(ctx, "This user is not banned.")
-            await ctx.respond(f"The user **{user}** was unbanned successfully.", ephemeral=True)
+            await ctx.response.send_message(
+                f"The user **{user}** was unbanned successfully.", ephemeral=True
+            )
 
     @blacklist.command(name="show", description="Show the bot blacklist")
     async def show_blacklist(self, ctx):
@@ -157,11 +159,12 @@ class Blacklist(Cog, hidden=True):
         for guild in self.bot.guilds:
             desc += f"{guild.name:{sep}} - {guild.member_count:<6,}"
             desc += f" - {guild.id}"
-            desc += f" - {guild.owner} ({guild.owner.id})"
+            if guild.owner:
+                desc += f" - {guild.owner} ({guild.owner.id})"
             desc += "\n"
 
         file = create_text_file(desc, "guilds.txt")
-        await ctx.response.send_message(file=file, ephemeral=True)
+        await ctx.followup.send(file=file, ephemeral=True)
 
     @leave.command(name="server", description="Make the bot leave a server")
     # @discord.option("guild_id", description="Leave the server with the given ID", default=None)
@@ -212,7 +215,7 @@ class LeaveGuilds(discord.ui.View):
             description="I'll now leave all servers. This may take a while."
             "\n\nI'll ping you when I'm done.",
         )
-        await interaction.edit(embed=embed, view=self)
+        await interaction.response.edit_message(embed=embed, view=self)
 
         leave_count = 0
         for guild in self.guilds:
@@ -223,7 +226,7 @@ class LeaveGuilds(discord.ui.View):
                 print(f"Could not leave guild {guild.id}: ```\n{e}```")
                 continue
 
-        await interaction.respond(
+        await interaction.followup.send(
             f"{interaction.user.mention} I successfully left **{leave_count}** servers.",
             ephemeral=True,
         )

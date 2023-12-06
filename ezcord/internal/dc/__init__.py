@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from ...errors import MissingDiscordLibrary
 
 try:
@@ -18,8 +16,6 @@ try:
     slash_command = discord.commands.slash_command
     checks = commands
 
-    INTERACTION = discord.Interaction | discord.ApplicationContext
-
     discord.lib = "pycord"  # type: ignore
 
 except ImportError:
@@ -29,6 +25,5 @@ except ImportError:
     slash_command = discord.app_commands.command
     checks = discord.app_commands.checks
 
-    INTERACTION = discord.Interaction
 
 PYCORD = discord.lib == "pycord"

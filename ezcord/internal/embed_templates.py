@@ -4,7 +4,7 @@ import traceback
 from copy import deepcopy
 from functools import cache
 
-from ..internal.dc import INTERACTION, discord
+from ..internal.dc import discord
 from .config import EzConfig
 
 _TEMPLATES: dict[str, discord.Embed] = {
@@ -62,7 +62,7 @@ def format_error(error: Exception) -> str:
 
 
 def get_error_text(
-    ctx: INTERACTION,
+    ctx,
     error: Exception,
     item: discord.ui.Item | discord.ui.Modal | None = None,
 ):

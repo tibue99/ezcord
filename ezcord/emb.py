@@ -19,8 +19,13 @@ from __future__ import annotations
 import copy
 
 from .internal import copy_kwargs, load_embed, replace_dict, save_embeds
-from .internal.dc import INTERACTION, PYCORD, discord
+from .internal.dc import PYCORD, discord
 from .logs import log
+
+if PYCORD:
+    INTERACTION = discord.Interaction | discord.ApplicationContext
+else:
+    INTERACTION = discord.Interaction
 
 
 def set_embed_templates(
@@ -90,7 +95,7 @@ def set_embed_templates(
 
 
 async def _send_embed(
-    target: INTERACTION | discord.abc.Messageable,
+    target: discord.Interaction | discord.abc.Messageable,
     embed: discord.Embed | str,
     ephemeral: bool = True,
     edit: bool = False,
@@ -134,7 +139,7 @@ async def _send_embed(
 
 
 def _insert_info(
-    target: INTERACTION | discord.abc.Messageable,
+    target: discord.Interaction | discord.abc.Messageable,
     embed: discord.Embed | str,
 ):
     if not isinstance(target, INTERACTION):
@@ -156,7 +161,7 @@ def _insert_info(
 
 
 async def _process_message(
-    target: INTERACTION | discord.abc.Messageable,
+    target: discord.Interaction | discord.abc.Messageable,
     embed: discord.Embed | str,
     txt: str | None,
     title: str | None,
@@ -180,7 +185,7 @@ async def _process_message(
 
 @copy_kwargs(discord.InteractionResponse.send_message)
 async def error(
-    target: INTERACTION | discord.abc.Messageable,
+    target: discord.Interaction | discord.abc.Messageable,
     txt: str | None = None,
     *,
     title: str | None = None,
@@ -210,7 +215,7 @@ async def error(
 
 @copy_kwargs(discord.abc.Messageable.send)
 async def success(
-    target: INTERACTION | discord.abc.Messageable,
+    target: discord.Interaction | discord.abc.Messageable,
     txt: str | None = None,
     *,
     title: str | None = None,
@@ -240,7 +245,7 @@ async def success(
 
 @copy_kwargs(discord.abc.Messageable.send)
 async def warn(
-    target: INTERACTION | discord.abc.Messageable,
+    target: discord.Interaction | discord.abc.Messageable,
     txt: str | None = None,
     *,
     title: str | None = None,
@@ -270,7 +275,7 @@ async def warn(
 
 @copy_kwargs(discord.abc.Messageable.send)
 async def info(
-    target: INTERACTION | discord.abc.Messageable,
+    target: discord.Interaction | discord.abc.Messageable,
     txt: str | None = None,
     *,
     title: str | None = None,
@@ -301,7 +306,7 @@ async def info(
 @copy_kwargs(discord.abc.Messageable.send)
 async def send(
     template: str,
-    target: INTERACTION | discord.abc.Messageable,
+    target: discord.Interaction | discord.abc.Messageable,
     txt: str | None = None,
     *,
     title: str | None = None,

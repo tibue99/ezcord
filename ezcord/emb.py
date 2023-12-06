@@ -20,7 +20,6 @@ import copy
 
 from .internal import copy_kwargs, load_embed, replace_dict, save_embeds
 from .internal.dc import PYCORD, discord
-from .logs import log
 
 if PYCORD:
     INTERACTION = discord.Interaction | discord.ApplicationContext
@@ -120,22 +119,21 @@ async def _send_embed(
         content = embed
         embed = None
 
-    if isinstance(target, INTERACTION):
-        if edit:
-            try:
-                await target.edit(content=content, embed=embed, **kwargs)
-                return
-            except AttributeError:
-                log.error("'edit=True' can only be used with Pycord master branch.")
-
-        if not target.response.is_done():
-            await target.response.send_message(
-                content=content, embed=embed, ephemeral=ephemeral, **kwargs
-            )
-        else:
-            await target.followup.send(content=content, embed=embed, ephemeral=ephemeral, **kwargs)
-    else:
+    if not isinstance(target, INTERACTION):
         await target.send(content=content, embed=embed, **kwargs)
+
+    if edit:
+        if not target.response.is_done():
+            return await target.response.edit_message(content=content, embed=embed, **kwargs)
+        else:
+            return await target.edit_original_response(content=content, embed=embed, **kwargs)
+
+    if not target.response.is_done():
+        await target.response.send_message(
+            content=content, embed=embed, ephemeral=ephemeral, **kwargs
+        )
+    else:
+        await target.followup.send(content=content, embed=embed, ephemeral=ephemeral, **kwargs)
 
 
 def _insert_info(

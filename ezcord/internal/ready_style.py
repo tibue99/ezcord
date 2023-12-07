@@ -9,7 +9,7 @@ from colorama import Fore
 
 from .. import __version__
 from ..enums import ReadyEvent
-from ..internal.dc import discord
+from ..internal.dc import PYCORD, discord
 from ..logs import log
 from .colors import get_escape_code
 
@@ -37,14 +37,18 @@ DEFAULT_COLORS: list[str] = [Fore.CYAN, Fore.MAGENTA, Fore.YELLOW, Fore.GREEN, F
 
 
 def get_default_info(bot: discord.ext.commands.Bot) -> list[tuple[str, str]]:
-    try:
-        lib_name = "Pycord"
+    lib_name = discord.lib.capitalize()
+    if PYCORD:
         cmds = [
-            cmd for cmd in bot.walk_application_commands() if type(cmd) != discord.SlashCommandGroup
+            cmd
+            for cmd in bot.walk_application_commands()
+            if type(cmd) is not discord.SlashCommandGroup
         ]
-    except AttributeError:
-        lib_name = "Version"
-        cmds = bot.commands  # prevents errors with other libs
+    else:
+        cmds = []
+        for cog in bot.cogs.values():
+            for cmd in cog.walk_app_commands():
+                cmds.append(cmd)
 
     return [
         ("Bot", f"{bot.user}"),

@@ -46,6 +46,7 @@ intersphinx_mapping = {
     "aio": ("https://docs.aiohttp.org/en/stable/", None),
     "req": ("https://requests.readthedocs.io/en/latest/", None),
     "dc": ("https://docs.pycord.dev/en/stable/", None),
+    "dpy": ("https://discordpy.readthedocs.io/en/stable/", None),
     "sql": ("https://aiosqlite.omnilib.dev/en/stable/", None),
 }
 

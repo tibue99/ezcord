@@ -8,7 +8,7 @@ body:
     value: |
       - Check if the bug was already reported [here](https://github.com/tibue99/ezcord/issues).
       - Include only one bug per issue.
-      - Make sure that you are not using any Discord packages other than Pycord.
+      - Make sure that only one Discord package is installed.
 
 - type: input
   attributes:
@@ -20,9 +20,9 @@ body:
 
 - type: input
   attributes:
-    label: Pycord Version
-    description: Which version of Pycord are you using?
-    placeholder: X.Y.Z
+    label: Version
+    description: Which version of Discord.py or Pycord are you using?
+    placeholder: Pycord X.Y.Z
   validations:
     required: true
 

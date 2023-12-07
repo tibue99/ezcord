@@ -9,7 +9,7 @@ from ..bot import Bot, Cog
 from ..components import View
 from ..enums import HelpStyle
 from ..internal import replace_embed_values, t
-from ..internal.dc import discord
+from ..internal.dc import PYCORD, discord, slash_command
 from ..logs import log
 
 
@@ -36,15 +36,21 @@ def replace_placeholders(s: str, **kwargs: str):
 
 def get_perm_parent(cmd: discord.SlashCommand) -> discord.SlashCommandGroup | None:
     """Iterates through parent groups until it finds a group with default_member_permissions set."""
-    while cmd.default_member_permissions is None:
-        cmd = cmd.parent
-        if cmd is None:
-            return None
+    if PYCORD:
+        while cmd.default_member_permissions is None:
+            cmd = cmd.parent
+            if cmd is None:
+                return None
+    else:
+        while cmd.default_permissions is None:
+            cmd = cmd.parent
+            if cmd is None:
+                return None
 
     return cmd
 
 
-async def pass_checks(command: discord.SlashCommand, ctx: discord.ApplicationContext) -> bool:
+async def pass_checks(command: discord.SlashCommand, ctx) -> bool:
     """Returns True if the current user passes all checks."""
     passed = True
     for check in deepcopy(command.checks):
@@ -67,13 +73,14 @@ class Help(Cog, hidden=True):
         super().__init__(bot)
         self.help.guild_only = bot.help.guild_only
 
-    @discord.slash_command(name=t("cmd_name"), description=t("cmd_description"))
-    async def help(self, ctx: discord.ApplicationContext):
+    @slash_command(name=t("cmd_name"), description=t("cmd_description"))
+    async def help(self, ctx):
         embed = self.bot.help.embed
         if embed is None:
             embed = discord.Embed(title=t("embed_title"), color=discord.Color.blue())
         else:
-            embed = replace_embed_values(embed, ctx.interaction)
+            interaction = ctx.interaction if PYCORD else ctx
+            embed = replace_embed_values(embed, interaction)
 
         options = []
         commands: dict[str, dict] = {}
@@ -89,7 +96,7 @@ class Help(Cog, hidden=True):
             if "cmds" not in commands[name]:
                 commands[name]["cmds"] = []
 
-            if len(cog.get_commands()) == 0:
+            if len(cog.get_commands()) == 0 and PYCORD:
                 continue
 
             emoji = get_emoji(cog)
@@ -106,31 +113,39 @@ class Help(Cog, hidden=True):
                 self.bot.help.description, description=desc, name=name, emoji=emoji
             )
 
-            for command in cog.walk_commands():
-                if type(command) in [
-                    discord.MessageCommand,
-                    discord.UserCommand,
-                    discord.SlashCommandGroup,
-                ]:
-                    continue
+            if PYCORD:
+                cog_cmds = [
+                    cmd
+                    for cmd in cog.walk_commands()
+                    if type(cmd)
+                    not in [discord.MessageCommand, discord.UserCommand, discord.SlashCommandGroup]
+                ]
+            else:
+                cog_cmds = cog.walk_app_commands()
+
+            for command in cog_cmds:
+                if PYCORD:
+                    default_perms = command.default_member_permissions
+                    guild_ids = command.guild_ids
+                else:
+                    default_perms = command.default_permissions
+                    guild_ids = command._guild_ids
 
                 if self.bot.help.permission_check:
                     if not await pass_checks(command, ctx):
                         continue
 
-                    if command.default_member_permissions and not command.parent:
-                        if not command.default_member_permissions.is_subset(
-                            ctx.author.guild_permissions
-                        ):
+                    if default_perms and not command.parent:
+                        if not default_perms.is_subset(ctx.user.guild_permissions):
                             continue
 
                     parent = get_perm_parent(command)
                     if parent and not parent.default_member_permissions.is_subset(
-                        ctx.author.guild_permissions
+                        ctx.user.guild_permissions
                     ):
                         continue
 
-                if ctx.guild and command.guild_ids and ctx.guild.id not in command.guild_ids:
+                if ctx.guild and guild_ids and ctx.guild.id not in guild_ids:
                     continue
 
                 commands[name]["cmds"].append(command)
@@ -150,7 +165,7 @@ class Help(Cog, hidden=True):
                     embed.add_field(name=field_name, value=desc, inline=False)
 
         if len(options) == 0:
-            return await ctx.respond(t("no_commands"), ephemeral=True)
+            return await ctx.response.send_message(t("no_commands"), ephemeral=True)
         if len(options) > 25 or len(embed.fields) > 25:
             log.error(
                 f"Help command category limit reached. Only 25 out of {len(options)} are shown."
@@ -160,11 +175,7 @@ class Help(Cog, hidden=True):
         view = CategoryView(options, self.bot, ctx.user, commands)
         for button in self.bot.help.buttons:
             view.add_item(deepcopy(button))
-        await ctx.respond(view=view, embed=embed, ephemeral=self.bot.help.ephemeral)
-
-
-def setup(bot: Bot):
-    bot.add_cog(Help(bot))
+        await ctx.response.send_message(view=view, embed=embed, ephemeral=self.bot.help.ephemeral)
 
 
 class CategorySelect(discord.ui.Select):
@@ -179,6 +190,19 @@ class CategorySelect(discord.ui.Select):
         self.bot = bot
         self.member = member
         self.commands = commands
+
+    def get_mention(self, cmd) -> str:
+        """This is only needed for Discord.py."""
+        if self.bot.all_dpy_commands:
+            for c in self.bot.all_dpy_commands:
+                if c.name == cmd.name:
+                    cmd = c
+                    break
+
+        try:
+            return cmd.mention
+        except AttributeError:
+            return f"**/{cmd.name}**"
 
     async def callback(self, interaction: discord.Interaction):
         if self.bot.help.author_only and interaction.user != self.member:
@@ -216,7 +240,7 @@ class CategorySelect(discord.ui.Select):
         if style == HelpStyle.embed_fields:
             for command in commands:
                 embed.add_field(
-                    name=f"**{command.mention}**",
+                    name=f"**{self.get_mention(command)}**",
                     value=f"`{command.description}`",
                     inline=False,
                 )
@@ -224,7 +248,7 @@ class CategorySelect(discord.ui.Select):
         elif style == HelpStyle.codeblocks or style == HelpStyle.codeblocks_inline:
             for command in commands:
                 embed.add_field(
-                    name=f"**{command.mention}**",
+                    name=f"**{self.get_mention(command)}**",
                     value=f"```{command.description}```",
                     inline=style == HelpStyle.codeblocks_inline,
                 )
@@ -233,7 +257,9 @@ class CategorySelect(discord.ui.Select):
             embed.description = desc + "\n"
             for command in commands:
                 if len(embed.description) <= 3500:
-                    embed.description += f"**{command.mention}**\n{command.description}\n\n"
+                    embed.description += (
+                        f"**{self.get_mention(command)}**\n{command.description}\n\n"
+                    )
                 else:
                     log.error("Help embed length limit reached. Some commands are not shown.")
                     break
@@ -242,7 +268,7 @@ class CategorySelect(discord.ui.Select):
             embed.description = desc
             for command in commands:
                 if len(embed.description) <= 3500:
-                    embed.description += f"### {command.mention}\n{command.description}\n"
+                    embed.description += f"### {self.get_mention(command)}\n{command.description}\n"
                 else:
                     log.error("Help embed length limit reached. Some commands are not shown.")
                     break
@@ -264,5 +290,9 @@ class CategoryView(View):
         member: discord.Member | discord.User,
         commands: dict[str, dict],
     ):
-        super().__init__(timeout=bot.help.timeout, disable_on_timeout=True)
+        if PYCORD:
+            super().__init__(timeout=bot.help.timeout, disable_on_timeout=True)
+        else:
+            super().__init__(timeout=None)
+
         self.add_item(CategorySelect(options, bot, member, commands))

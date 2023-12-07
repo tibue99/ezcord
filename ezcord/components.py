@@ -1,4 +1,4 @@
-"""Classes that are adding some functionality to the default Pycord components.
+"""Classes that are adding some functionality for default components.
 
 .. note::
 
@@ -25,7 +25,7 @@ from typing import Callable
 import aiohttp
 
 from .internal import get_error_text
-from .internal.dc import discord
+from .internal.dc import PYCORD, discord
 from .logs import log
 
 _view_error_handlers: list[Callable] = []
@@ -136,6 +136,8 @@ class EzView(discord.ui.View):
 
         Executes all registered error handlers with the ``@ezcord.event`` decorator.
         """
+        if not PYCORD:
+            error, item, interaction = item, interaction, error
 
         description = get_error_text(interaction, error, item)
         webhook_sent = await _send_error_webhook(interaction, description)
@@ -165,6 +167,9 @@ class EzView(discord.ui.View):
         """If ``disable_on_timeout`` is set to ``True``, this will disable all components,
         unless the viw has been explicitly stopped.
         """
+        if not PYCORD:
+            return await super().on_timeout()
+
         if self.disable_on_timeout:
             self.disable_all_items()
 
@@ -196,6 +201,8 @@ class EzModal(discord.ui.Modal):
 
         Executes all registered error handlers with the ``@ezcord.event`` decorator.
         """
+        if not PYCORD:
+            error, interaction = interaction, error
 
         description = get_error_text(interaction, error, self)
         webhook_sent = await _send_error_webhook(interaction, description)

@@ -7,7 +7,7 @@ bot = ezcord.Bot(
 
 @bot.event
 async def on_ready():
-    bot.remove_ready_info("Pycord")  # Remove the "Pycord" information
+    bot.remove_ready_info("Guilds")  # Remove an information
     bot.remove_ready_info(0)  # Remove the first information
 
     # Add an information at the end

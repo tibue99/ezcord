@@ -35,6 +35,8 @@ except ImportError:
             slash_command = commands.slash_command
             checks = commands
 
+        discord.lib = discord.__title__  # type: ignore
+
 
 PYCORD = discord.lib == "pycord"
 DPY = discord.lib == "discord"

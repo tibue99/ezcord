@@ -4,7 +4,7 @@ description = "An easy-to-use extension for Discord.py and Pycord"
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
-keywords = ["discord", "pycord", "py-cord"]
+keywords = ["discord", "pycord", "py-cord", "discord.py"]
 authors = [
     { name = "tibue99" }
 ]

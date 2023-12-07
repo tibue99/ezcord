@@ -24,7 +24,16 @@ from .internal import (
     t,
 )
 from .internal.config import Blacklist
-from .internal.dc import DPY, PYCORD, CogMeta, bridge, checks, commands, discord
+from .internal.dc import (
+    DPY,
+    PYCORD,
+    CogMeta,
+    ErrorMessageSent,
+    bridge,
+    checks,
+    commands,
+    discord,
+)
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .sql import DBHandler
 from .times import dc_timestamp
@@ -392,7 +401,16 @@ class Bot(_main_bot):  # type: ignore
 
     async def _error_event(self, ctx: discord.Interaction, error: discord.DiscordException):
         """The event that handles application command errors."""
-        if type(error) in self.ignored_errors + [commands.CheckFailure]:
+        if type(error) in self.ignored_errors + [ErrorMessageSent]:
+            return
+
+        if (
+            (PYCORD and isinstance(error, discord.CheckFailure))
+            or (DPY and isinstance(error, discord.app_commands.CheckFailure))
+            or isinstance(error, commands.CheckFailure)
+        ):
+            if self.error_handler:
+                await error_emb(ctx, t("no_user_perms"))
             return
 
         if isinstance(error, commands.CommandOnCooldown):
@@ -406,10 +424,6 @@ class Bot(_main_bot):  # type: ignore
                 perms = "\n".join(error.missing_permissions)
                 perm_txt = f"{t('no_perms')} ```\n{perms}```"
                 await error_emb(ctx, perm_txt, title=t("no_perms_title"))
-
-        elif isinstance(error, commands.NotOwner):
-            if self.error_handler:
-                await error_emb(ctx, t("no_user_perms"))
 
         else:
             if "original" in error.__dict__ and not self.full_error_traceback:
@@ -667,9 +681,8 @@ class Bot(_main_bot):  # type: ignore
         db_name:
             The name of the database.
         raise_error:
-            Whether to raise :class:`.errors.Blacklisted` error in case a blacklisted user uses the bot.
-            If this is ``False``, :class:`discord.CheckFailure` will be raised instead.
-            :class:`discord.CheckFailure` is ignored by the Ezcord error handler.
+            Whether to raise :class:`.errors.Blacklisted` error in case a blacklisted user uses
+            the bot. If this is ``False``, a default message will be sent to the user.
 
             .. note::
 

@@ -5,8 +5,6 @@ This file should only be called through `bot.add_blacklist()`,
 after the "blacklist" value has been set in the config.
 """
 
-from typing import Literal
-
 import aiosqlite
 import discord
 
@@ -16,7 +14,7 @@ from ..bot import Bot, Cog
 from ..components import event
 from ..errors import Blacklisted
 from ..internal import EzConfig, t
-from ..internal.dc import PYCORD, discord
+from ..internal.dc import DPY, PYCORD, ErrorMessageSent, commands, discord
 from ..utils import create_text_file
 
 _db = _BanDB()
@@ -38,7 +36,7 @@ async def _check_blacklist(interaction: discord.Interaction) -> bool:
             raise Blacklisted()
         else:
             await interaction.response.send_message(t("no_perms"), ephemeral=True)
-        return False
+        raise ErrorMessageSent()
     return True
 
 
@@ -51,8 +49,39 @@ class Blacklist(Cog, hidden=True):
     def __init__(self, bot: Bot):
         super().__init__(bot)
 
+        if DPY:
+            bot.tree.interaction_check = self.global_interaction_check
+
     async def bot_check(self, ctx):
+        """Checks if a blacklisted user is trying to use a command."""
         return await _check_blacklist(ctx)
+
+    async def cog_check(self, ctx):
+        if EzConfig.blacklist.owner_only:
+            if not await self.bot.is_owner(ctx.user):
+                if DPY:
+                    return False
+                else:
+                    raise commands.NotOwner()
+        return True
+
+    async def global_interaction_check(self, interaction: discord.Interaction):
+        """Bot check for application commands in Discord.py."""
+        return await _check_blacklist(interaction)
+
+    async def interaction_check(self, interaction: discord.Interaction):
+        """Cog check for application commands in Discord.py."""
+        await self.cog_check(interaction)
+
+    @Cog.listener()
+    async def on_guild_join(self, guild: discord.Guild):
+        bans = await _db.get_bans()
+        if guild.owner.id in bans:
+            try:
+                await guild.owner.send(t("guild_error", guild.name))
+            except discord.Forbidden:
+                pass
+            await guild.leave()
 
     if PYCORD:
         admin = discord.SlashCommandGroup(
@@ -81,53 +110,38 @@ class Blacklist(Cog, hidden=True):
             description="Manage the blacklist",
         )
 
-    async def cog_check(self, ctx):
-        if EzConfig.blacklist.owner_only:
-            return await self.bot.is_owner(ctx.author)
-        return True
-
-    @Cog.listener()
-    async def on_guild_join(self, guild: discord.Guild):
-        bans = await _db.get_bans()
-        if guild.owner.id in bans:
-            try:
-                await guild.owner.send(t("guild_error", guild.name))
-            except discord.Forbidden:
-                pass
-            await guild.leave()
-
-    @blacklist.command(name="manage", description="Manage the blacklist")
-    # @discord.option("choice", description="Choose an action", choices=["Add ban", "Remove ban"])
+    @blacklist.command(name="add", description="Add a member  blacklist")
     # @discord.option("user", description="The user to ban/unban")
     # @discord.option("reason", description="The reason for the ban", default=None)
-    async def manage_blacklist(
+    async def blacklist_add(
         self,
         ctx,
-        choice: Literal["Add ban", "Remove ban"],
         user: discord.Member,
         reason: str = None,  # type: ignore
     ):
-        if choice == "Add ban":
-            if user.id == ctx.user.id:
-                return await emb.error(ctx, "You can't ban yourself.")
-            if user.bot:
-                return await emb.error(ctx, "You can't ban a bot.")
+        if user.id == ctx.user.id:
+            return await emb.error(ctx, "You can't ban yourself.")
+        if user.bot:
+            return await emb.error(ctx, "You can't ban a bot.")
 
-            try:
-                await _db.add_ban(user.id, reason)
-            except aiosqlite.IntegrityError:
-                return await emb.error(ctx, "This user is already banned.")
-            await ctx.response.send_message(
-                f"The user was banned successfully.\n- **Name:** {user}\n- **ID:** {user.id}",
-                ephemeral=True,
-            )
-        else:
-            rowcount = await _db.remove_ban(user.id)
-            if rowcount == 0:
-                return await emb.error(ctx, "This user is not banned.")
-            await ctx.response.send_message(
-                f"The user **{user}** was unbanned successfully.", ephemeral=True
-            )
+        try:
+            await _db.add_ban(user.id, reason)
+        except aiosqlite.IntegrityError:
+            return await emb.error(ctx, "This user is already banned.")
+        await ctx.response.send_message(
+            f"The user was banned successfully.\n- **Name:** {user}\n- **ID:** {user.id}",
+            ephemeral=True,
+        )
+
+    @blacklist.command(name="remove", description="Remove a member from the blacklist")
+    # @discord.option("user", description="The user to ban/unban")
+    async def blacklist_remove(self, ctx, user: discord.Member):
+        rowcount = await _db.remove_ban(user.id)
+        if rowcount == 0:
+            return await emb.error(ctx, "This user is not banned.")
+        await ctx.response.send_message(
+            f"The user **{user}** was unbanned successfully.", ephemeral=True
+        )
 
     @blacklist.command(name="show", description="Show the bot blacklist")
     async def show_blacklist(self, ctx):

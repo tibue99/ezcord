@@ -23,6 +23,7 @@ except ImportError:
     bridge = commands
 
     try:
+        # Discord.py
         slash_command = discord.app_commands.command
         checks = discord.app_commands.checks
 
@@ -40,3 +41,18 @@ except ImportError:
 
 PYCORD = discord.lib == "pycord"
 DPY = discord.lib == "discord"
+
+
+if DPY:
+    exc = discord.app_commands.AppCommandError
+else:
+    exc = discord.DiscordException
+
+
+class ErrorMessageSent(exc):  # type: ignore
+    """Exception that can be raised to indicate that an error message has already been sent to the user.
+
+    This could be useful if an error message has already been sent to the user within a check
+    function. This prevents further messages to the user, as this error will be ignored by
+    the default error handler.
+    """

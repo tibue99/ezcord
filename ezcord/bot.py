@@ -41,7 +41,9 @@ class Bot(_main_bot):  # type: ignore
     .. hint::
 
         As this class extends from :class:`discord.Bot`, only slash commands are supported.
-        If you want to use prefix commands, use :class:`PrefixBot` instead.
+        If you want to use prefix commands with ``Pycord``, use :class:`PrefixBot` instead.
+
+        If you use ``Discord.py``, you can use this class for both slash and prefix commands.
 
     Parameters
     ----------
@@ -781,6 +783,7 @@ class PrefixBot(Bot, commands.Bot):
     """A subclass of :class:`discord.ext.commands.Bot` that implements the :class:`Bot` class.
 
     This class can be used if you want to use EzCord with prefix commands.
+    This is only needed for Pycord.
     """
 
     def __init__(self, *args, **kwargs):
@@ -791,6 +794,7 @@ class BridgeBot(Bot, bridge.Bot):
     """A subclass of :class:`discord.ext.bridge.Bot` that implements the :class:`Bot` class.
 
     This class can be used if you want to use EzCord with bridge commands.
+    This is only needed for Pycord.
     """
 
     def __init__(self, *args, **kwargs):

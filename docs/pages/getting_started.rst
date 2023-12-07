@@ -20,7 +20,10 @@ First Steps
 You should already have a basic understanding of **Discord.py** or **Pycord**.
 
 1. Create a new bot in the `Discord Developer Portal <https://discord.com/developers/applications/>`_
-2. Create a bot object using ``ezcord.Bot``
+2. Create a bot object using :doc:`ezcord.Bot </ezcord/bot>`
+
+.. hint::
+    If you are using Pycord with Prefix commands, use ``ezcord.PrefixBot`` instead.
 
 
 Example

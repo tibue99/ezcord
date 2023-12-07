@@ -119,6 +119,9 @@ async def _send_embed(
         content = embed
         embed = None
 
+    if "content" in kwargs:
+        content = kwargs.pop("content")
+
     if not isinstance(target, INTERACTION):
         await target.send(content=content, embed=embed, **kwargs)
 

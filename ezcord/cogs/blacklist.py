@@ -15,6 +15,7 @@ from ..components import event
 from ..errors import Blacklisted
 from ..internal import EzConfig, t
 from ..internal.dc import DPY, PYCORD, ErrorMessageSent, commands, discord
+from ..logs import log
 from ..utils import create_text_file
 
 _db = _BanDB()
@@ -237,7 +238,7 @@ class LeaveGuilds(discord.ui.View):
                 await guild.leave()
                 leave_count += 1
             except Exception as e:
-                print(f"Could not leave guild {guild.id}: ```\n{e}```")
+                log.warning(f"Could not leave guild **{guild.id}**: {e}")
                 continue
 
         await interaction.followup.send(

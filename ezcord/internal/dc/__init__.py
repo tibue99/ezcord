@@ -13,7 +13,7 @@ try:
     from discord import CogMeta
     from discord.ext import bridge
 
-    slash_command = discord.commands.slash_command
+    slash_command = discord.slash_command
     checks = commands
 
     discord.lib = "pycord"  # type: ignore
@@ -27,11 +27,13 @@ except ImportError:
         checks = discord.app_commands.checks
 
     except AttributeError:
-        slash_command = discord.slash_command
-        checks = commands
+        if discord.__title__ == "nextcord":
+            slash_command = discord.slash_command
+            checks = commands
 
-        # for cases where "discord" import does not fail despite using nextcord
-        discord.lib = "nextcord"  # type: ignore
+        elif discord.__title__ == "disnake":
+            slash_command = commands.slash_command
+            checks = commands
 
 
 PYCORD = discord.lib == "pycord"

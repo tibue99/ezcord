@@ -3,15 +3,26 @@ These functions will generate embeds and send them to the desired target.
 
 Example
 -------
+Here is an example for sending a success message within a Pycord application command.
+
 .. code-block:: python
 
-    from ezcord import Bot, emb
+    import ezcord
 
-    bot = Bot()
+    bot = ezcord.Bot()
 
     @bot.slash_command()
-    async def hey(ctx):
-        await emb.success(ctx, "Success!")
+    async def hey(ctx: ezcord.EzContext):
+        await ctx.success("Success!")
+
+In any other case, the interaction must be passes to the template method.
+
+.. code-block:: python
+
+    class ExampleView(discord.ui.View):
+        @discord.ui.button(label="Click here")
+        async def button_callback(self, button, interaction):
+            await emb.success(interaction, "Success!")
 """
 
 from __future__ import annotations
@@ -22,9 +33,11 @@ from .internal import copy_kwargs, load_embed, replace_dict, save_embeds
 from .internal.dc import PYCORD, discord
 
 if PYCORD:
-    INTERACTION = (discord.Interaction, discord.ApplicationContext)
+    _INTERACTION = (discord.Interaction, discord.ApplicationContext)
+    _ctx_type = discord.ApplicationContext
 else:
-    INTERACTION = (discord.Interaction,)  # type: ignore
+    _INTERACTION = (discord.Interaction,)  # type: ignore
+    _ctx_type = discord.Interaction
 
 
 def set_embed_templates(
@@ -122,8 +135,11 @@ async def _send_embed(
     if "content" in kwargs:
         content = kwargs.pop("content")
 
-    if not isinstance(target, INTERACTION):
-        await target.send(content=content, embed=embed, **kwargs)
+    if not isinstance(target, _INTERACTION):
+        return await target.send(content=content, embed=embed, **kwargs)
+
+    if PYCORD and isinstance(target, discord.ApplicationContext):
+        target = target.interaction
 
     if edit:
         if not target.response.is_done():
@@ -132,18 +148,20 @@ async def _send_embed(
             return await target.edit_original_response(content=content, embed=embed, **kwargs)
 
     if not target.response.is_done():
-        await target.response.send_message(
+        return await target.response.send_message(
             content=content, embed=embed, ephemeral=ephemeral, **kwargs
         )
     else:
-        await target.followup.send(content=content, embed=embed, ephemeral=ephemeral, **kwargs)
+        return await target.followup.send(
+            content=content, embed=embed, ephemeral=ephemeral, **kwargs
+        )
 
 
 def _insert_info(
     target: discord.Interaction | discord.abc.Messageable,
     embed: discord.Embed | str,
 ):
-    if not isinstance(target, INTERACTION):
+    if not isinstance(target, _INTERACTION):
         return embed
 
     interaction = target
@@ -181,7 +199,7 @@ async def _process_message(
 
     embed = _insert_info(target, embed)
 
-    await _send_embed(target, embed, ephemeral, edit, **kwargs)
+    return await _send_embed(target, embed, ephemeral, edit, **kwargs)
 
 
 @copy_kwargs(discord.InteractionResponse.send_message)
@@ -211,7 +229,7 @@ async def error(
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("error_embed")
-    await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
+    return await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
 
 
 @copy_kwargs(discord.abc.Messageable.send)
@@ -241,7 +259,7 @@ async def success(
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("success_embed")
-    await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
+    return await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
 
 
 @copy_kwargs(discord.abc.Messageable.send)
@@ -271,7 +289,7 @@ async def warn(
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("warn_embed")
-    await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
+    return await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
 
 
 @copy_kwargs(discord.abc.Messageable.send)
@@ -301,7 +319,7 @@ async def info(
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed("info_embed")
-    await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
+    return await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
 
 
 @copy_kwargs(discord.abc.Messageable.send)
@@ -334,4 +352,20 @@ async def send(
         Whether the message should be ephemeral. Defaults to ``True``.
     """
     embed = load_embed(template)
-    await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
+    return await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
+
+
+class EzContext(_ctx_type):  # type: ignore
+    """A custom context to access embed templates. Only works within Pycord application commands."""
+
+    async def error(self, msg: str, **kwargs):
+        return await error(self, msg, **kwargs)
+
+    async def success(self, msg: str, **kwargs):
+        return await success(self, msg, **kwargs)
+
+    async def warn(self, msg: str, **kwargs):
+        return await warn(self, msg, **kwargs)
+
+    async def info(self, msg: str, **kwargs):
+        return await info(self, msg, **kwargs)

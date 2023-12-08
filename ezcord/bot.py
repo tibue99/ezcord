@@ -11,6 +11,7 @@ from typing import Any, Callable
 import aiohttp
 from dotenv import load_dotenv
 
+from .emb import EzContext
 from .emb import error as error_emb
 from .enums import CogLog, HelpStyle, ReadyEvent
 from .errors import ErrorMessageSent
@@ -134,6 +135,10 @@ class Bot(_main_bot):  # type: ignore
 
         # Needed for Discord.py command mentions
         self.all_dpy_commands = None
+
+    async def get_application_context(self, interaction: discord.Interaction, cls=EzContext):
+        """A custom application command context for Pycord."""
+        return await super().get_application_context(interaction, cls=cls)
 
     def _send_cog_log(
         self,

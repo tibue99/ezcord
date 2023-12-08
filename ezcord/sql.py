@@ -43,7 +43,7 @@ class DBHandler:
                 await db.exec("INSERT INTO vip (name) VALUES (?)", "Timo")
     """
 
-    _auto_setup: dict[type[DBHandler], DBHandler] = {}
+    _auto_setup: list[DBHandler] = []
 
     def __init__(
         self,
@@ -63,8 +63,8 @@ class DBHandler:
         self.foreign_keys = foreign_keys
         self.kwargs = kwargs
 
-        if auto_setup:
-            DBHandler._auto_setup[self.__class__] = self
+        if auto_setup and self not in self._auto_setup:
+            DBHandler._auto_setup.append(self)
 
     async def __aenter__(self):
         self.auto_connect = True

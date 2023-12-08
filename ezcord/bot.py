@@ -372,7 +372,7 @@ class Bot(_main_bot):  # type: ignore
         """Calls the setup method of all registered :class:`.DBHandler` instances."""
 
         setup_copy = DBHandler._auto_setup.copy()
-        for instance in setup_copy.values():
+        for instance in setup_copy:
             if hasattr(instance, "setup") and callable(instance.setup):
                 await instance.setup()
 

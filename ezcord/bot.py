@@ -517,7 +517,7 @@ class Bot(_main_bot):  # type: ignore
         show_categories: bool = True,
         show_description: bool = True,
         show_cmd_count: bool = False,
-        timeout: int = 500,
+        timeout: int | None = None,
         ephemeral: bool = True,
         author_only: bool = True,
         guild_only: bool = True,
@@ -552,7 +552,7 @@ class Bot(_main_bot):  # type: ignore
             Whether to display the command count of each category in the select menu.
             Defaults to ``False``.
         timeout:
-            The timeout for the select menu. Defaults to ``500``.
+            The timeout for the select menu. Defaults to ``None``.
         ephemeral:
             Whether the help command should be ephemeral. Defaults to ``True``.
         author_only:

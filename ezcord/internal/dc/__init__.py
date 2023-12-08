@@ -1,9 +1,7 @@
-from ...errors import MissingDiscordLibrary
-
 try:
     from .dc_imports import discord
 except ImportError:
-    raise MissingDiscordLibrary()
+    raise ModuleNotFoundError("No discord library found. Please install a supported library.")
 
 commands = __import__(f"{discord.lib}.ext.commands", fromlist=[""])
 tasks = __import__(f"{discord.lib}.ext.tasks", fromlist=[""])
@@ -41,18 +39,3 @@ except ImportError:
 
 PYCORD = discord.lib == "pycord"
 DPY = discord.lib == "discord"
-
-
-if DPY:
-    exc = discord.app_commands.AppCommandError
-else:
-    exc = discord.DiscordException
-
-
-class ErrorMessageSent(exc):  # type: ignore
-    """Exception that can be raised to indicate that an error message has already been sent to the user.
-
-    This could be useful if an error message has already been sent to the user within a check
-    function. This prevents further messages to the user, as this error will be ignored by
-    the default error handler.
-    """

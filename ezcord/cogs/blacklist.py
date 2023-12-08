@@ -12,9 +12,9 @@ from .. import emb
 from ..blacklist import _BanDB
 from ..bot import Bot, Cog
 from ..components import event
-from ..errors import Blacklisted
+from ..errors import Blacklisted, ErrorMessageSent
 from ..internal import EzConfig, t
-from ..internal.dc import DPY, PYCORD, ErrorMessageSent, commands, discord
+from ..internal.dc import DPY, PYCORD, commands, discord
 from ..logs import log
 from ..utils import create_text_file
 

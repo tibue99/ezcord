@@ -30,6 +30,8 @@ def get_group(cog: Cog) -> str | None:
 
 def replace_placeholders(s: str, **kwargs: str):
     for key, value in kwargs.items():
+        if not value:
+            continue
         s = s.replace(f"{{{key}}}", value)
     return s
 
@@ -91,6 +93,17 @@ class Help(Cog, hidden=True):
             group = get_group(cog)
             name = group if group else name
             name = name.title()
+
+            if len(name) == 0:
+                log.warning(
+                    "A cog has a name with length 0. "
+                    "This cog will not be displayed in the help command."
+                )
+                continue
+
+            if len(name) > 100:
+                name = name[:90] + "..."
+
             if name not in commands:
                 commands[name] = {}
             if "cmds" not in commands[name]:
@@ -105,6 +118,11 @@ class Help(Cog, hidden=True):
             desc = cog.description
             if not cog.description:
                 desc = t("default_description", name)
+                if not desc:
+                    log.warning(
+                        f"The default description for cog '{name}' is invalid. "
+                        f"This can be changed in the language file."
+                    )
 
             commands[name]["description"] = desc
 

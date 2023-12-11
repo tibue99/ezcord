@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import copy
 
-from .internal import copy_kwargs, load_embed, replace_dict, save_embeds
+from .internal import load_embed, replace_dict, save_embeds
 from .internal.dc import PYCORD, discord
 
 if PYCORD:
@@ -117,15 +117,6 @@ async def _send_embed(
 
     If the interaction has already been responded to,
     the message will be sent as a followup.
-
-    Parameters
-    ----------
-    target:
-        The application context or the interaction to send the message to.
-    embed:
-        The embed to send.
-    ephemeral:
-        Whether the message should be ephemeral. Defaults to ``True``.
     """
     content = None
     if isinstance(embed, str):
@@ -202,7 +193,45 @@ async def _process_message(
     return await _send_embed(target, embed, ephemeral, edit, **kwargs)
 
 
-@copy_kwargs(discord.InteractionResponse.send_message)
+def _template_docstring(params=False):
+    def decorator(func, *args, **kwargs):
+        func.__doc__ += """
+
+        Parameters
+        ----------
+        """
+
+        if params:
+            func.__doc__ += """
+        template:
+            The name of the template that was used in :func:`set_embed_templates`.
+        """
+
+        func.__doc__ += """
+        target:
+            The target to send the message to.
+        txt:
+            The text for the embed description. If this is ``None``,
+            you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
+        title:
+            The title of the embed. Defaults to ``None``.
+        edit:
+            Whether to edit the last message instead of sending a new one. Defaults to ``False``.
+        ephemeral:
+            Whether the message should be ephemeral. Defaults to ``True``.
+        **kwargs:
+            Additional keyword arguments for :meth:`discord.abc.Messageable.send`.
+
+        Returns
+        -------
+        :class:`discord.Interaction` | :class:`discord.Message` | ``None``
+        """
+        return func
+
+    return decorator
+
+
+@_template_docstring()
 async def error(
     target: discord.Interaction | discord.abc.Messageable,
     txt: str | None = None,
@@ -212,27 +241,12 @@ async def error(
     ephemeral: bool = True,
     **kwargs,
 ):
-    """Send an error message. By default, this is a red embed.
-
-    Parameters
-    ----------
-    target:
-        The target to send the message to.
-    txt:
-        The text for the embed description. If this is ``None``,
-        you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
-    title:
-        The title of the embed. Defaults to ``None``.
-    edit:
-        Whether to edit the last message instead of sending a new one. Defaults to ``False``.
-    ephemeral:
-        Whether the message should be ephemeral. Defaults to ``True``.
-    """
+    """Send an error message. By default, this is a red embed."""
     embed = load_embed("error_embed")
     return await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
 
 
-@copy_kwargs(discord.abc.Messageable.send)
+@_template_docstring()
 async def success(
     target: discord.Interaction | discord.abc.Messageable,
     txt: str | None = None,
@@ -242,27 +256,12 @@ async def success(
     ephemeral: bool = True,
     **kwargs,
 ):
-    """Send a success message. By default, this is a green embed.
-
-    Parameters
-    ----------
-    target:
-        The target to send the message to.
-    txt:
-        The text for the embed description. If this is ``None``,
-        you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
-    title:
-        The title of the embed. Defaults to ``None``.
-    edit:
-        Whether to edit the last message instead of sending a new one. Defaults to ``False``.
-    ephemeral:
-        Whether the message should be ephemeral. Defaults to ``True``.
-    """
+    """Send a success message. By default, this is a green embed."""
     embed = load_embed("success_embed")
     return await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
 
 
-@copy_kwargs(discord.abc.Messageable.send)
+@_template_docstring()
 async def warn(
     target: discord.Interaction | discord.abc.Messageable,
     txt: str | None = None,
@@ -272,27 +271,12 @@ async def warn(
     ephemeral: bool = True,
     **kwargs,
 ):
-    """Send a warning message. By default, this is a golden embed.
-
-    Parameters
-    ----------
-    target:
-        The target to send the message to.
-    txt:
-        The text for the embed description. If this is ``None``,
-        you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
-    title:
-        The title of the embed. Defaults to ``None``.
-    edit:
-        Whether to edit the last message instead of sending a new one. Defaults to ``False``.
-    ephemeral:
-        Whether the message should be ephemeral. Defaults to ``True``.
-    """
+    """Send a warning message. By default, this is a golden embed."""
     embed = load_embed("warn_embed")
     return await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
 
 
-@copy_kwargs(discord.abc.Messageable.send)
+@_template_docstring()
 async def info(
     target: discord.Interaction | discord.abc.Messageable,
     txt: str | None = None,
@@ -302,27 +286,12 @@ async def info(
     ephemeral: bool = True,
     **kwargs,
 ):
-    """Send an info message. By default, this is a blue embed.
-
-    Parameters
-    ----------
-    target:
-        The target to send the message to.
-    txt:
-        The text for the embed description. If this is ``None``,
-        you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
-    title:
-        The title of the embed. Defaults to ``None``.
-    edit:
-        Whether to edit the last message instead of sending a new one. Defaults to ``False``.
-    ephemeral:
-        Whether the message should be ephemeral. Defaults to ``True``.
-    """
+    """Send an info message. By default, this is a blue embed."""
     embed = load_embed("info_embed")
     return await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
 
 
-@copy_kwargs(discord.abc.Messageable.send)
+@_template_docstring(params=True)
 async def send(
     template: str,
     target: discord.Interaction | discord.abc.Messageable,
@@ -333,24 +302,7 @@ async def send(
     ephemeral: bool = True,
     **kwargs,
 ):
-    """Send a custom embed template. This needs to be set up with :func:`set_embed_templates`.
-
-    Parameters
-    ----------
-    template:
-        The name of the template that was used in :func:`set_embed_templates`.
-    target:
-        The target to send the message to.
-    txt:
-        The text for the embed description. If this is ``None``,
-        you need to provide a non-empty ``Embed`` when using :func:`set_embed_templates`.
-    title:
-        The title of the embed. Defaults to ``None``.
-    edit:
-        Whether to edit the last message instead of sending a new one. Defaults to ``False``.
-    ephemeral:
-        Whether the message should be ephemeral. Defaults to ``True``.
-    """
+    """Send a custom embed template. This needs to be set up with :func:`set_embed_templates`."""
     embed = load_embed(template)
     return await _process_message(target, embed, txt, title, edit, ephemeral, **kwargs)
 

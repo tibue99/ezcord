@@ -221,6 +221,10 @@ def _template_docstring(params=False):
             Whether the message should be ephemeral. Defaults to ``True``.
         **kwargs:
             Additional keyword arguments for :meth:`discord.abc.Messageable.send`.
+
+        Returns
+        -------
+        :class:`discord.Interaction` | :class:`discord.Message` | ``None``
         """
         return func
 

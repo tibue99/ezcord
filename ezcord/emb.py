@@ -117,15 +117,6 @@ async def _send_embed(
 
     If the interaction has already been responded to,
     the message will be sent as a followup.
-
-    Parameters
-    ----------
-    target:
-        The application context or the interaction to send the message to.
-    embed:
-        The embed to send.
-    ephemeral:
-        Whether the message should be ephemeral. Defaults to ``True``.
     """
     content = None
     if isinstance(embed, str):
@@ -228,6 +219,8 @@ def _template_docstring(params=False):
             Whether to edit the last message instead of sending a new one. Defaults to ``False``.
         ephemeral:
             Whether the message should be ephemeral. Defaults to ``True``.
+        **kwargs:
+            Additional keyword arguments for :meth:`discord.abc.Messageable.send`.
         """
         return func
 

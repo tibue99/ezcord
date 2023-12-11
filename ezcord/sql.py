@@ -211,7 +211,7 @@ class DBHandler:
             return [self._convert_tuple_json(row) for row in result]
         return result
 
-    async def one(self, sql: str, *args, **kwargs):
+    async def one(self, sql: str, *args, fill: bool = False, **kwargs):
         """Returns one result row. If no row is found, ``None`` is returned.
 
         If the query returns only one column, the value of that column is returned.
@@ -222,6 +222,9 @@ class DBHandler:
             The SQL query to execute.
         *args:
             Arguments for the query.
+        fill:
+            Whether to return ``None`` for all selected values if no row is found.
+            Defaults to ``False``.
         **kwargs:
             Keyword arguments for the connection.
 
@@ -241,6 +244,8 @@ class DBHandler:
         await self._close(db)
 
         if result is None:
+            if fill:
+                return (None,) * len(cursor.description)
             return None
 
         result = self._convert_json_one(result)

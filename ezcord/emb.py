@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import copy
 
-from .internal import copy_kwargs, load_embed, replace_dict, save_embeds
+from .internal import load_embed, replace_dict, save_embeds
 from .internal.dc import PYCORD, discord
 
 if PYCORD:
@@ -232,7 +232,6 @@ def _template_docstring(params=False):
 
 
 @_template_docstring()
-@copy_kwargs(discord.InteractionResponse.send_message)
 async def error(
     target: discord.Interaction | discord.abc.Messageable,
     txt: str | None = None,
@@ -248,7 +247,6 @@ async def error(
 
 
 @_template_docstring()
-@copy_kwargs(discord.abc.Messageable.send)
 async def success(
     target: discord.Interaction | discord.abc.Messageable,
     txt: str | None = None,
@@ -264,7 +262,6 @@ async def success(
 
 
 @_template_docstring()
-@copy_kwargs(discord.abc.Messageable.send)
 async def warn(
     target: discord.Interaction | discord.abc.Messageable,
     txt: str | None = None,
@@ -280,7 +277,6 @@ async def warn(
 
 
 @_template_docstring()
-@copy_kwargs(discord.abc.Messageable.send)
 async def info(
     target: discord.Interaction | discord.abc.Messageable,
     txt: str | None = None,
@@ -296,7 +292,6 @@ async def info(
 
 
 @_template_docstring(params=True)
-@copy_kwargs(discord.abc.Messageable.send)
 async def send(
     template: str,
     target: discord.Interaction | discord.abc.Messageable,

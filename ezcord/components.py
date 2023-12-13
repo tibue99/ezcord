@@ -184,7 +184,7 @@ class EzView(discord.ui.View):
             if message:
                 try:
                     m = await message.edit(view=self)
-                except discord.NotFound:
+                except (discord.NotFound, discord.HTTPException):
                     return
                 if m:
                     self._message = m

@@ -594,10 +594,12 @@ class Bot(_main_bot):  # type: ignore
 
     def add_status_changer(
         self,
-        activities: list[
-            str | discord.Activity | discord.CustomActivity | discord.Game | discord.Streaming
-        ],
-        *,
+        *activities: str
+        | discord.Activity
+        | discord.Game
+        | discord.Streaming
+        | discord.CustomActivity
+        | list[str | discord.Activity | discord.CustomActivity | discord.Game | discord.Streaming],
         interval: int = 60,
         status: discord.Status = discord.Status.online,
         shuffle: bool = False,
@@ -618,7 +620,7 @@ class Bot(_main_bot):  # type: ignore
         Parameters
         ----------
         activities:
-            A list of activities to use for the status. Strings will be converted
+            Activities to use for the status. Strings will be converted
             to :class:`discord.CustomActivity`.
         interval:
             The interval in seconds to change the status. Defaults to ``60``.
@@ -646,8 +648,16 @@ class Bot(_main_bot):  # type: ignore
             )
         """
 
+        final_acts = []
+        for act in activities:
+            if isinstance(act, (list, tuple)):
+                for list_activity in act:
+                    final_acts.append(list_activity)
+            else:
+                final_acts.append(act)
+
         self.status_changer = _StatusChanger(
-            activities,
+            final_acts,
             interval,
             status,
             shuffle,

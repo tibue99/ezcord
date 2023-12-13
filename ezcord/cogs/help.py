@@ -43,17 +43,20 @@ def get_perm_parent(cmd: discord.SlashCommand) -> discord.SlashCommandGroup | No
             cmd = cmd.parent
             if cmd is None:
                 return None
+
+        return cmd.default_member_permissions
+
     else:
         while cmd.default_permissions is None:
             cmd = cmd.parent
             if cmd is None:
                 return None
 
-    return cmd
+        return cmd.default_permissions
 
 
 async def pass_checks(command: discord.SlashCommand, ctx) -> bool:
-    """Returns True if the current user passes all checks."""
+    """Returns True if the current user passes all checks (Pycord only)."""
     passed = True
     for check in deepcopy(command.checks):
         try:
@@ -150,17 +153,15 @@ class Help(Cog, hidden=True):
                     guild_ids = command._guild_ids
 
                 if self.bot.help.permission_check:
-                    if not await pass_checks(command, ctx):
+                    if PYCORD and not await pass_checks(command, ctx):
                         continue
 
                     if default_perms and not command.parent:
                         if not default_perms.is_subset(ctx.user.guild_permissions):
                             continue
 
-                    parent = get_perm_parent(command)
-                    if parent and not parent.default_member_permissions.is_subset(
-                        ctx.user.guild_permissions
-                    ):
+                    parent_perms = get_perm_parent(command)
+                    if parent_perms and not parent_perms.is_subset(ctx.user.guild_permissions):
                         continue
 
                 if ctx.guild and guild_ids and ctx.guild.id not in guild_ids:

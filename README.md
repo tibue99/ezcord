@@ -1,4 +1,4 @@
-[![EzCord](https://ezcord.readthedocs.io/en/latest/_static/ezcord.png)](https://github.com/tibue99/ezcord)
+[![EzCord](/docs/_static/ezcord.png)](https://github.com/tibue99/ezcord)
 
 [![](https://img.shields.io/discord/1010915072694046794?label=discord&style=for-the-badge&logo=discord&color=5865F2&logoColor=white)](https://discord.gg/zfvbjTEzv6)
 [![](https://img.shields.io/pypi/v/ezcord.svg?style=for-the-badge&logo=pypi&color=yellow&logoColor=white)](https://pypi.org/project/ezcord/)
@@ -8,16 +8,21 @@
 An easy-to-use extension for [Discord.py](https://github.com/Rapptz/discord.py)
 and [Pycord](https://github.com/Pycord-Development/pycord) with some utility functions.
 
-## Features
-- Easy cog loading
-- Automatic error handling
-- Error report webhooks
+### ✏️ Reduce boilerplate code
+- Easy cog management
 - Embed templates
-- Beautiful ready event
-- Custom logging
-- Automated help command
 - Datetime and file utilities
 - Wrapper for [aiosqlite](https://github.com/omnilib/aiosqlite)
+
+### ✨ Error handling
+- Automatic error handling for slash commands
+- Error webhook reports
+- Custom logging
+
+### ⚙️ Extensions
+- **Help command** - Automatically generate a help command for your bot
+- **Status changer** - Change the bot's status in an interval
+- **Blacklist** - Block users from using your bot
 
 ## Installing
 Python 3.9 or higher is required.
@@ -35,10 +40,9 @@ ezcord @ git+https://github.com/tibue99/ezcord
 ```
 
 ## Useful Links
-- [Documentation](https://ezcord.readthedocs.io/)
-- [Getting started](https://ezcord.readthedocs.io/en/latest/pages/getting_started.html)
+- [Documentation](https://ezcord.readthedocs.io/) | [Getting started](https://ezcord.readthedocs.io/en/latest/pages/getting_started.html)
+- [Pycord](https://docs.pycord.dev/) | [Discord.py](https://discordpy.readthedocs.io/en/stable/)
 - [PyPi](https://pypi.org/project/ezcord/)
-- [Pycord Docs](https://docs.pycord.dev/)
 
 ## Examples
 - For more examples, see the [example repository](https://github.com/tibue99/ezcord_template)

@@ -8,6 +8,7 @@
 An easy-to-use extension for [Discord.py](https://github.com/Rapptz/discord.py)
 and [Pycord](https://github.com/Pycord-Development/pycord) with some utility functions.
 
+## Features
 ### ✏️ Reduce boilerplate code
 - Easy cog management
 - Embed templates

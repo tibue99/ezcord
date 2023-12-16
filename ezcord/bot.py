@@ -402,9 +402,9 @@ class Bot(_main_bot):  # type: ignore
             return
 
         if (
-            (PYCORD and isinstance(error, discord.CheckFailure))
-            or (DPY and isinstance(error, discord.app_commands.CheckFailure))
-            or isinstance(error, commands.CheckFailure)
+            (PYCORD and type(error) is discord.CheckFailure)
+            or (DPY and type(error) is discord.app_commands.CheckFailure)
+            or type(error) is commands.CheckFailure
         ):
             if self.error_handler:
                 await error_emb(ctx, t("no_user_perms"))

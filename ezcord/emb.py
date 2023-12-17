@@ -28,6 +28,7 @@ In any other case, the interaction must be passes to the template method.
 from __future__ import annotations
 
 import copy
+from typing import TYPE_CHECKING
 
 from .internal import load_embed, replace_dict, save_embeds
 from .internal.dc import PYCORD, discord
@@ -38,6 +39,11 @@ if PYCORD:
 else:
     _INTERACTION = (discord.Interaction,)  # type: ignore
     _ctx_type = discord.Interaction
+
+if TYPE_CHECKING:
+    import discord  # type: ignore
+
+    _ctx_type: discord.ApplicationContext  # type: ignore
 
 
 def set_embed_templates(

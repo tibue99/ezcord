@@ -6,7 +6,7 @@ import os
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 import aiohttp
 from dotenv import load_dotenv
@@ -35,6 +35,11 @@ if PYCORD:
     _main_bot = discord.Bot
 else:
     _main_bot = commands.Bot
+
+if TYPE_CHECKING:
+    import discord  # type: ignore
+
+    _main_bot: discord.Bot  # type: ignore
 
 
 class Bot(_main_bot):  # type: ignore

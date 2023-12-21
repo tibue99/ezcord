@@ -81,6 +81,9 @@ def convert_dt(dt: datetime | timedelta, relative: bool = True) -> str:
         return convert_time(abs(dt.total_seconds()), relative)
 
     if isinstance(dt, datetime):
+        if dt.tzinfo is None:
+            dt = dt.astimezone()
+
         return convert_time(abs((dt - discord.utils.utcnow()).total_seconds()), relative)
 
 

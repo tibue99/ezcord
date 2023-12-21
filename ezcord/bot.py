@@ -39,7 +39,7 @@ else:
 if TYPE_CHECKING:
     import discord  # type: ignore
 
-    _main_bot: discord.Bot  # type: ignore
+    _main_bot = discord.Bot
 
 
 class Bot(_main_bot):  # type: ignore
@@ -401,7 +401,7 @@ class Bot(_main_bot):  # type: ignore
             extra={"webhook_sent": webhook_sent},
         )
 
-    async def _error_event(self, ctx: discord.Interaction, error: discord.DiscordException):
+    async def _error_event(self, ctx, error: discord.DiscordException):
         """The event that handles application command errors."""
         if type(error) in self.ignored_errors + [ErrorMessageSent]:
             return

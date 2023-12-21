@@ -43,7 +43,7 @@ else:
 if TYPE_CHECKING:
     import discord  # type: ignore
 
-    _ctx_type: discord.ApplicationContext  # type: ignore
+    _ctx_type = discord.ApplicationContext
 
 
 def set_embed_templates(

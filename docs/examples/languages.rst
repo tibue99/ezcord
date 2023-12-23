@@ -20,7 +20,10 @@ Modify language files
 
    For example, if you want to create a French language file, the file name could be ``ez_fr.json``.
 
-2. Copy the contents of a :ref:`language file <language>` into your new file and modify it.
+2. Search the :ref:`language files <language>` and find keys you want to override.
+
+   - Include any keys that you want to override in your JSON file.
+
 3. Pass the language string into :meth:`~ezcord.bot.Bot` to set your language.
 
 .. code-block:: python

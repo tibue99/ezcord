@@ -7,7 +7,7 @@ from ...logs import log
 
 
 @cache
-def load_lang(language: str) -> dict:
+def load_lang(language: str) -> dict[str, dict[str, str]]:
     """Loads the default language file and checks if the user provided a custom language file."""
 
     lang = {}
@@ -31,8 +31,9 @@ def load_lang(language: str) -> dict:
             path = os.path.join(root, filename)
             with open(path, encoding="utf-8") as user_file:
                 user_dic = json.load(user_file)
-                for key, value in user_dic.items():
-                    lang[key] = value
+                for category, values in user_dic.items():
+                    for value in values:
+                        lang[category][value] = values[value]
 
     if lang == {}:
         log.warn(f"Language file for language '{language}' not found. Falling back to 'en'.")

@@ -123,7 +123,7 @@ async def _send_error_webhook(interaction, description) -> bool:
     return webhook_sent
 
 
-class EzView(discord.ui.View):
+class View(discord.ui.View):
     """This class extends from :class:`discord.ui.View` and adds some functionality."""
 
     def __init__(self, *args, **kwargs):
@@ -173,7 +173,7 @@ class EzView(discord.ui.View):
             return
 
 
-class EzModal(discord.ui.Modal):
+class Modal(discord.ui.Modal):
     """This class extends from :class:`discord.ui.Modal` and adds an error handler."""
 
     def __init__(self, *args, **kwargs):
@@ -200,5 +200,5 @@ class EzModal(discord.ui.Modal):
             await error_coro(error, interaction)
 
 
-Modal = EzModal
-View = EzView
+EzModal = Modal
+EzView = View

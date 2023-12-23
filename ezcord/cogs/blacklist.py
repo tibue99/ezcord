@@ -63,7 +63,7 @@ class Blacklist(Cog, hidden=True):
                 if DPY:
                     return False
                 else:
-                    raise commands.NotOwner()
+                    raise commands.CheckFailure()
         return True
 
     async def global_interaction_check(self, interaction: discord.Interaction):

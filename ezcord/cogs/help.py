@@ -191,7 +191,10 @@ class Help(Cog, hidden=True):
             )
             options = options[:25]
             embed.fields = embed.fields[:25]
-        view = CategoryView(options, self.bot, ctx.user, commands)
+
+        sorted_options = sorted(options, key=lambda x: [char for char in x.label if char.isalpha()])
+        embed.fields = sorted(embed.fields, key=lambda x: x.name.lower())
+        view = CategoryView(sorted_options, self.bot, ctx.user, commands)
         for button in self.bot.help.buttons:
             view.add_item(deepcopy(button))
         await ctx.response.send_message(view=view, embed=embed, ephemeral=self.bot.help.ephemeral)

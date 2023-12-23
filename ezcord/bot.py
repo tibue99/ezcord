@@ -38,8 +38,12 @@ else:
 
 if TYPE_CHECKING:
     import discord  # type: ignore
+    from discord.ext import commands  # type: ignore
 
-    _main_bot = discord.Bot
+    if hasattr(discord, "Bot"):
+        _main_bot = discord.Bot
+    else:
+        _main_bot = commands.Bot
 
 
 class Bot(_main_bot):  # type: ignore

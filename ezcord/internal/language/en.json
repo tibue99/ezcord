@@ -6,11 +6,11 @@
     "day": "day"
   },
   "bot": {
-    "error_title": "Error",
-    "error": "The following error occurred: {}",
-    "cooldown_title": "Cooldown",
+    "error_title": "⛔ ⨯ Error",
+    "error": "An **unexpected error** has occurred. {}\nI have informed my developer about this issue.",
+    "cooldown_title": "⌛ ⨯ Cooldown",
     "cooldown": "Try again {}.",
-    "no_perms_title": "Missing permissions",
+    "no_perms_title": "\uD83D\uDEA8 ⨯ Missing permissions",
     "no_perms": "I'm missing the following permissions to execute this command.",
     "no_user_perms": "You do not have permission to run this command."
   },

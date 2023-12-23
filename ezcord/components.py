@@ -167,27 +167,10 @@ class EzView(discord.ui.View):
         """If ``disable_on_timeout`` is set to ``True``, this will disable all components,
         unless the viw has been explicitly stopped.
         """
-        if not PYCORD:
+        try:
             return await super().on_timeout()
-
-        if self.disable_on_timeout:
-            self.disable_all_items()
-
-            # Fixes Pycord's NotFound error if message is ephemeral
-            # and interaction has already been responded to
-            try:
-                message = self.parent or self._message  # type: ignore
-            except AttributeError:
-                # Older Pycord versions are missing parent attribute
-                return await super().on_timeout()
-
-            if message:
-                try:
-                    m = await message.edit(view=self)
-                except (discord.NotFound, discord.HTTPException):
-                    return
-                if m:
-                    self._message = m
+        except discord.NotFound:
+            return
 
 
 class EzModal(discord.ui.Modal):

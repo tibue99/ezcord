@@ -33,6 +33,8 @@ def load_lang(language: str) -> dict[str, dict[str, str]]:
                 user_dic = json.load(user_file)
                 for category, values in user_dic.items():
                     for value in values:
+                        if category not in lang:
+                            lang[category] = {}
                         lang[category][value] = values[value]
 
     if lang == {}:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import Callable, Literal
 
 
 @dataclass
@@ -11,6 +11,7 @@ class Blacklist:
     raise_error: bool
     owner_only: bool
     disabled_commands: list[EzConfig.BLACKLIST_COMMANDS]
+    overwrites: dict[str, Callable]
 
 
 class EzConfig:

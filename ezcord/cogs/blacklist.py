@@ -134,6 +134,9 @@ class Blacklist(Cog, hidden=True):
         user: discord.Member,
         reason: str = None,  # type: ignore
     ):
+        if "add" in EzConfig.blacklist.overwrites:
+            return await EzConfig.blacklist.overwrites["add"](ctx, user, reason)
+
         if user.id == ctx.user.id:
             return await emb.error(ctx, "You can't ban yourself.")
         if user.bot:
@@ -153,6 +156,9 @@ class Blacklist(Cog, hidden=True):
     )
     # @discord.option("user", description="The user to ban/unban")
     async def blacklist_remove(self, ctx, user: discord.Member):
+        if "remove" in EzConfig.blacklist.overwrites:
+            return await EzConfig.blacklist.overwrites["remove"](ctx, user)
+
         rowcount = await _db.remove_ban(user.id)
         if rowcount == 0:
             return await emb.error(ctx, "This user is not banned.")
@@ -162,6 +168,9 @@ class Blacklist(Cog, hidden=True):
 
     @check_command(blacklist.command(name="show", description="Show the bot blacklist"))
     async def blacklist_show(self, ctx):
+        if "show" in EzConfig.blacklist.overwrites:
+            return await EzConfig.blacklist.overwrites["show"](ctx)
+
         await ctx.response.defer(ephemeral=True)
         bans = await _db.get_full_bans()
         desc = ""
@@ -182,6 +191,9 @@ class Blacklist(Cog, hidden=True):
 
     @check_command(admin.command(description="Show all bot servers"))
     async def show_servers(self, ctx):
+        if "show_servers" in EzConfig.blacklist.overwrites:
+            return await EzConfig.blacklist.overwrites["show_servers"](ctx)
+
         await ctx.response.defer(ephemeral=True)
         longest_name = max([guild.name for guild in self.bot.guilds], key=len)
         sep = f"<{len(longest_name)}"
@@ -200,6 +212,9 @@ class Blacklist(Cog, hidden=True):
     @check_command(leave.command(name="server", description="Make the bot leave a server"))
     # @discord.option("guild_id", description="Leave the server with the given ID", default=None)
     async def leave_server(self, ctx, guild_id: str):
+        if "server" in EzConfig.blacklist.overwrites:
+            return await EzConfig.blacklist.overwrites["server"](ctx, guild_id)
+
         await ctx.response.defer(ephemeral=True)
         try:
             guild = await self.bot.fetch_guild(guild_id)
@@ -216,6 +231,9 @@ class Blacklist(Cog, hidden=True):
     )
     # @discord.option("owner_id", description="Leave all servers with the specified owner")
     async def leave_owner(self, ctx, owner: discord.User):
+        if "owner" in EzConfig.blacklist.overwrites:
+            return await EzConfig.blacklist.overwrites["owner"](ctx, owner)
+
         await ctx.defer(ephemeral=True)
         guilds = []
         member_count = 0

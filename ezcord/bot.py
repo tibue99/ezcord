@@ -6,7 +6,7 @@ import os
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable
 
 import aiohttp
 from dotenv import load_dotenv
@@ -685,6 +685,7 @@ class Bot(_main_bot):  # type: ignore
         raise_error: bool = False,
         owner_only: bool = True,
         disabled_commands: list[EzConfig.BLACKLIST_COMMANDS] | None = None,
+        **kwargs: Callable,
     ):
         """Add a blacklist that bans users from using the bot. This should be called
         before the ``on_ready`` event.
@@ -709,6 +710,9 @@ class Bot(_main_bot):  # type: ignore
             Whether the blacklist can only be managed by the bot owner. Defaults to ``True``.
         disabled_commands:
             A list of command names to disable. Defaults to ``None``.
+        **kwargs:
+            Overwrites for the default blacklist commands. This can be used to change the
+            default commands behavior.
         """
 
         if disabled_commands is None:
@@ -720,6 +724,7 @@ class Bot(_main_bot):  # type: ignore
             raise_error,
             owner_only,
             disabled_commands,
+            overwrites=kwargs,
         )
         EzConfig.admin_guilds = admin_server_ids
 

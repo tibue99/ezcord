@@ -47,6 +47,8 @@ async def view_check(interaction: discord.Interaction):
 
 
 def check_command(decorator):
+    """A decorator that only applies the slash command decorator if the command is enabled."""
+
     def decorator_wrapper(func):
         name = func.__name__
         groups = ["blacklist", "leave"]

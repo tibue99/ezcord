@@ -97,7 +97,7 @@ def random_avatar() -> str:
     return f"https://cdn.discordapp.com/embed/avatars/{random.randint(0, 5)}.png"
 
 
-def codeblock(content: int | str, *, lang: str = "yaml", unit: str = ""):
+def codeblock(content: int | str, *, lang: str = "yaml", unit: str = "") -> str:
     """Returns a codeblock with the given content.
 
     Parameters
@@ -153,7 +153,7 @@ def ez_autocomplete(values):
     return autocomplete_callback
 
 
-def count_lines(directory: str | None = None):
+def count_lines(directory: str | None = None) -> int:
     """Counts the total amount of lines in all Python files in the current directory.
 
     Parameters

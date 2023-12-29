@@ -60,6 +60,18 @@ def check_command(decorator):
     return decorator_wrapper
 
 
+async def check_overwrite(name, *args) -> bool:
+    """Returns True if the command has been overwritten, False otherwise."""
+    if not EzConfig.blacklist:
+        return False
+
+    if name in EzConfig.blacklist.overwrites:
+        await EzConfig.blacklist.overwrites[name](*args)
+        return True
+
+    return False
+
+
 class Blacklist(Cog, hidden=True):
     def __init__(self, bot: Bot):
         super().__init__(bot)
@@ -134,8 +146,8 @@ class Blacklist(Cog, hidden=True):
         user: discord.Member,
         reason: str = None,  # type: ignore
     ):
-        if "add" in EzConfig.blacklist.overwrites:
-            return await EzConfig.blacklist.overwrites["add"](ctx, user, reason)
+        if await check_overwrite("add", ctx, user, reason):
+            return
 
         if user.id == ctx.user.id:
             return await emb.error(ctx, "You can't ban yourself.")
@@ -156,8 +168,8 @@ class Blacklist(Cog, hidden=True):
     )
     # @discord.option("user", description="The user to ban/unban")
     async def blacklist_remove(self, ctx, user: discord.Member):
-        if "remove" in EzConfig.blacklist.overwrites:
-            return await EzConfig.blacklist.overwrites["remove"](ctx, user)
+        if await check_overwrite("remove", ctx, user):
+            return
 
         rowcount = await _db.remove_ban(user.id)
         if rowcount == 0:
@@ -168,8 +180,8 @@ class Blacklist(Cog, hidden=True):
 
     @check_command(blacklist.command(name="show", description="Show the bot blacklist"))
     async def blacklist_show(self, ctx):
-        if "show" in EzConfig.blacklist.overwrites:
-            return await EzConfig.blacklist.overwrites["show"](ctx)
+        if await check_overwrite("show", ctx):
+            return
 
         await ctx.response.defer(ephemeral=True)
         bans = await _db.get_full_bans()
@@ -191,8 +203,8 @@ class Blacklist(Cog, hidden=True):
 
     @check_command(admin.command(description="Show all bot servers"))
     async def show_servers(self, ctx):
-        if "show_servers" in EzConfig.blacklist.overwrites:
-            return await EzConfig.blacklist.overwrites["show_servers"](ctx)
+        if await check_overwrite("show_servers", ctx):
+            return
 
         await ctx.response.defer(ephemeral=True)
         longest_name = max([guild.name for guild in self.bot.guilds], key=len)
@@ -212,8 +224,8 @@ class Blacklist(Cog, hidden=True):
     @check_command(leave.command(name="server", description="Make the bot leave a server"))
     # @discord.option("guild_id", description="Leave the server with the given ID", default=None)
     async def leave_server(self, ctx, guild_id: str):
-        if "server" in EzConfig.blacklist.overwrites:
-            return await EzConfig.blacklist.overwrites["server"](ctx, guild_id)
+        if await check_overwrite("server", ctx, guild_id):
+            return
 
         await ctx.response.defer(ephemeral=True)
         try:
@@ -231,8 +243,8 @@ class Blacklist(Cog, hidden=True):
     )
     # @discord.option("owner_id", description="Leave all servers with the specified owner")
     async def leave_owner(self, ctx, owner: discord.User):
-        if "owner" in EzConfig.blacklist.overwrites:
-            return await EzConfig.blacklist.overwrites["owner"](ctx, owner)
+        if await check_overwrite("owner", ctx, owner):
+            return
 
         await ctx.defer(ephemeral=True)
         guilds = []

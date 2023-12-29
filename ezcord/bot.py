@@ -718,6 +718,10 @@ class Bot(_main_bot):  # type: ignore
         if disabled_commands is None:
             disabled_commands = []
 
+        for name, func in kwargs.items():
+            if not asyncio.iscoroutinefunction(func):
+                raise TypeError(f"Blacklist command overwrites `{name}` must be async.")
+
         EzConfig.blacklist = Blacklist(
             db_path,
             db_name,

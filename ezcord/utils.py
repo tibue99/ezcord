@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import fnmatch
-import glob
 import io
 import itertools
 import json
@@ -179,7 +178,6 @@ def count_lines(
     """
     if directory is None:
         directory = os.getcwd()
-
     if ignored_dirs is None:
         ignored_dirs = []
     if ignored_files is None:
@@ -189,13 +187,6 @@ def count_lines(
     for root, _, files in os.walk(directory):
         if "pyvenv.cfg" in files:  # ignore venv folders
             ignored_dirs.append(root)
-
-        for pat in ignored_dirs:
-            test = glob.glob(pat, root_dir=root, recursive=True)
-
-            for exclude in test:
-                if exclude not in ignored_dirs:
-                    ignored_dirs.append(exclude)
 
         if any([True for pattern in ignored_dirs if pattern in str(Path(root))]):
             continue

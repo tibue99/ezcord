@@ -6,6 +6,7 @@ import asyncio
 import io
 import itertools
 import json
+import os
 import random
 from typing import Any
 
@@ -150,3 +151,25 @@ def ez_autocomplete(values):
         return iter(itertools.islice(gen, 25))
 
     return autocomplete_callback
+
+
+def count_lines(directory: str | None = None):
+    """Counts the total amount of lines in all Python files in the current directory.
+
+    Parameters
+    ----------
+    directory:
+        The directory to count the lines in. Defaults to the current working directory.
+    """
+    if directory is None:
+        directory = os.getcwd()
+
+    total_lines = 0
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.endswith(".py"):
+                file_path = os.path.join(root, file)
+                with open(file_path, encoding="utf-8") as f:
+                    total_lines += len(f.readlines())
+
+    return total_lines

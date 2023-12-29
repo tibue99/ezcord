@@ -8,6 +8,7 @@ import itertools
 import json
 import os
 import random
+from pathlib import Path
 from typing import Any
 
 from .internal import get_lang
@@ -153,23 +154,49 @@ def ez_autocomplete(values):
     return autocomplete_callback
 
 
-def count_lines(directory: str | None = None) -> int:
-    """Counts the total amount of lines in all Python files in the current directory.
+def count_lines(
+    directory: str | None = None,
+    *,
+    count_empty_lines: bool = True,
+    ignored_dirs: list[str] | None = None,
+) -> int:
+    """Counts the total amount of lines in all Python files in the given directory.
 
     Parameters
     ----------
     directory:
         The directory to count the lines in. Defaults to the current working directory.
+    count_empty_lines:
+        Whether to count empty lines. Defaults to ``True``.
+    ignored_dirs:
+        A list of directories to ignore. By default, venv folders and folders starting with a dot
+        are ignored.
     """
     if directory is None:
         directory = os.getcwd()
 
+    if ignored_dirs is None:
+        ignored_dirs = []
+
     total_lines = 0
     for root, dirs, files in os.walk(directory):
+        if Path(root).name.startswith("."):
+            continue
+
+        if "pyvenv.cfg" in files:
+            # ignore venv folders
+            ignored_dirs.append(root)
+
+        if any([True for ignored_dir in ignored_dirs if root.startswith(ignored_dir)]):
+            continue
+
         for file in files:
             if file.endswith(".py"):
                 file_path = os.path.join(root, file)
-                with open(file_path, encoding="utf-8") as f:
-                    total_lines += len(f.readlines())
+                with open(file_path, errors="ignore") as f:
+                    for line in f:
+                        if not count_empty_lines and line.strip() == "":
+                            continue
+                        total_lines += 1
 
     return total_lines

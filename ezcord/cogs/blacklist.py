@@ -46,6 +46,20 @@ async def view_check(interaction: discord.Interaction):
     return await _check_blacklist(interaction)
 
 
+def check_command(decorator):
+    def decorator_wrapper(func):
+        name = func.__name__
+        groups = ["blacklist", "leave"]
+        for group in groups:
+            name = name.replace(f"{group}_", "")
+
+        if name not in EzConfig.blacklist.disabled_commands:
+            return decorator(func)
+        return func
+
+    return decorator_wrapper
+
+
 class Blacklist(Cog, hidden=True):
     def __init__(self, bot: Bot):
         super().__init__(bot)
@@ -111,7 +125,7 @@ class Blacklist(Cog, hidden=True):
             description="Manage the blacklist",
         )
 
-    @blacklist.command(name="add", description="Add a member  blacklist")
+    @check_command(blacklist.command(name="add", description="Add a member  blacklist"))
     # @discord.option("user", description="The user to ban/unban")
     # @discord.option("reason", description="The reason for the ban", default=None)
     async def blacklist_add(
@@ -134,7 +148,9 @@ class Blacklist(Cog, hidden=True):
             ephemeral=True,
         )
 
-    @blacklist.command(name="remove", description="Remove a member from the blacklist")
+    @check_command(
+        blacklist.command(name="remove", description="Remove a member from the blacklist")
+    )
     # @discord.option("user", description="The user to ban/unban")
     async def blacklist_remove(self, ctx, user: discord.Member):
         rowcount = await _db.remove_ban(user.id)
@@ -144,8 +160,8 @@ class Blacklist(Cog, hidden=True):
             f"The user **{user}** was unbanned successfully.", ephemeral=True
         )
 
-    @blacklist.command(name="show", description="Show the bot blacklist")
-    async def show_blacklist(self, ctx):
+    @check_command(blacklist.command(name="show", description="Show the bot blacklist"))
+    async def blacklist_show(self, ctx):
         await ctx.response.defer(ephemeral=True)
         bans = await _db.get_full_bans()
         desc = ""
@@ -164,7 +180,7 @@ class Blacklist(Cog, hidden=True):
         file = create_text_file(desc, "bans.txt")
         await ctx.followup.send(file=file, ephemeral=True)
 
-    @admin.command(description="Show all bot servers")
+    @check_command(admin.command(description="Show all bot servers"))
     async def show_servers(self, ctx):
         await ctx.response.defer(ephemeral=True)
         longest_name = max([guild.name for guild in self.bot.guilds], key=len)
@@ -181,9 +197,9 @@ class Blacklist(Cog, hidden=True):
         file = create_text_file(desc, "guilds.txt")
         await ctx.followup.send(file=file, ephemeral=True)
 
-    @leave.command(name="server", description="Make the bot leave a server")
+    @check_command(leave.command(name="server", description="Make the bot leave a server"))
     # @discord.option("guild_id", description="Leave the server with the given ID", default=None)
-    async def leave_guild(self, ctx, guild_id: str):
+    async def leave_server(self, ctx, guild_id: str):
         await ctx.response.defer(ephemeral=True)
         try:
             guild = await self.bot.fetch_guild(guild_id)
@@ -195,7 +211,9 @@ class Blacklist(Cog, hidden=True):
         await guild.leave()
         await ctx.response.send_message(f"I left **{guild.name}** ({guild.id})", ephemeral=True)
 
-    @leave.command(name="owner", description="Make the bot leave all guilds with a given owner")
+    @check_command(
+        leave.command(name="owner", description="Make the bot leave all guilds with a given owner")
+    )
     # @discord.option("owner_id", description="Leave all servers with the specified owner")
     async def leave_owner(self, ctx, owner: discord.User):
         await ctx.defer(ephemeral=True)

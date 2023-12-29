@@ -145,6 +145,23 @@ class Bot(_main_bot):  # type: ignore
         # Needed for Discord.py command mentions
         self.all_dpy_commands = None
 
+    @property
+    def cmd_count(self) -> int:
+        """The number of loaded application commands, including subcommands."""
+        if PYCORD:
+            cmds = [
+                cmd
+                for cmd in self.walk_application_commands()
+                if type(cmd) is not discord.SlashCommandGroup
+            ]
+        else:
+            cmds = []
+            for cog in self.cogs.values():
+                for cmd in cog.walk_app_commands():
+                    cmds.append(cmd)
+
+        return len(cmds)
+
     async def get_application_context(self, interaction: discord.Interaction, cls=EzContext):
         """A custom application command context for Pycord."""
         return await super().get_application_context(interaction, cls=cls)

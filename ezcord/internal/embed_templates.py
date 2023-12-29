@@ -86,21 +86,29 @@ def get_error_text(
 
 def replace_values(s: str, interaction: discord.Interaction) -> str:
     user = interaction.user
-    s = s.replace("{user}", f"{user}")
-    s = s.replace("{username}", user.name)
-    s = s.replace("{user_mention}", user.mention)
-    s = s.replace("{user_id}", f"{user.id}")
-    s = s.replace("{user_avatar}", user.display_avatar.url)
+
+    replace = {
+        "user": f"{user}",
+        "username": user.name,
+        "user_mention": user.mention,
+        "user_id": f"{user.id}",
+        "user_avatar": user.display_avatar.url,
+        "guild_count": str(len(interaction.client.guilds)),
+        "user_count": str(len(interaction.client.users)),
+    }
 
     if interaction.guild:
-        s = s.replace("{servername}", interaction.guild.name)
+        replace["servername"] = interaction.guild.name
     else:
-        s = s.replace("{servername}", interaction.client.user.name)
+        replace["servername"] = interaction.client.user.name
 
     if interaction.guild and interaction.guild.icon:
-        s = s.replace("{server_icon}", interaction.guild.icon.url)
+        replace["server_icon"] = interaction.guild.icon.url
     else:
-        s = s.replace("{server_icon}", interaction.client.user.display_avatar.url)
+        replace["server_icon"] = interaction.client.user.display_avatar.url
+
+    for key, value in replace.items():
+        s = s.replace("{" + key + "}", value)
 
     return s
 

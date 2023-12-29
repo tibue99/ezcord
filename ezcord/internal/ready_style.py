@@ -4,14 +4,18 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from itertools import cycle, islice
+from typing import TYPE_CHECKING
 
 from colorama import Fore
 
 from .. import __version__
 from ..enums import ReadyEvent
-from ..internal.dc import PYCORD, discord
+from ..internal.dc import discord
 from ..logs import log
 from .colors import get_escape_code
+
+if TYPE_CHECKING:
+    from ..bot import Bot
 
 
 class Style:
@@ -36,32 +40,20 @@ READY_TITLE: str = f"Bot is online with EzCord {__version__}"
 DEFAULT_COLORS: list[str] = [Fore.CYAN, Fore.MAGENTA, Fore.YELLOW, Fore.GREEN, Fore.BLUE, Fore.RED]
 
 
-def get_default_info(bot: discord.ext.commands.Bot) -> list[tuple[str, str]]:
+def get_default_info(bot: Bot) -> list[tuple[str, str]]:
     lib_name = discord.lib.capitalize()
-    if PYCORD:
-        cmds = [
-            cmd
-            for cmd in bot.walk_application_commands()
-            if type(cmd) is not discord.SlashCommandGroup
-        ]
-    else:
-        cmds = []
-        for cog in bot.cogs.values():
-            for cmd in cog.walk_app_commands():
-                cmds.append(cmd)
-
     return [
         ("Bot", f"{bot.user}"),
         ("ID", f"{bot.user.id}"),
         (lib_name, discord.__version__),
-        ("Commands", f"{len(cmds):,}"),
+        ("Commands", f"{bot.cmd_count:,}"),
         ("Guilds", f"{len(bot.guilds):,}"),
         ("Latency", f"{round(bot.latency * 1000):,}ms"),
     ]
 
 
 def modify_info(
-    bot: discord.Bot, modifications: tuple, custom_color_list: list[str] | None = None
+    bot: Bot, modifications: tuple, custom_color_list: list[str] | None = None
 ) -> tuple[list[tuple[str, str]], list[str]]:
     """Add or remove information from the default ready event."""
 

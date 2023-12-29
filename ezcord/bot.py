@@ -684,6 +684,8 @@ class Bot(_main_bot):  # type: ignore
         db_name: str = "blacklist",
         raise_error: bool = False,
         owner_only: bool = True,
+        disabled_commands: list[EzConfig.BLACKLIST_COMMANDS] | None = None,
+        **kwargs: Callable,
     ):
         """Add a blacklist that bans users from using the bot. This should be called
         before the ``on_ready`` event.
@@ -706,13 +708,33 @@ class Bot(_main_bot):  # type: ignore
 
         owner_only:
             Whether the blacklist can only be managed by the bot owner. Defaults to ``True``.
+        disabled_commands:
+            A list of command names to disable. Defaults to ``None``.
+        **kwargs:
+            Overwrites for the default blacklist commands. This can be used to change the
+            default commands behavior.
         """
+
+        if disabled_commands is None:
+            disabled_commands = []
+
+        for name, func in kwargs.items():
+            if name not in EzConfig.BLACKLIST_COMMANDS.__args__:  # type: ignore
+                raise ValueError(
+                    f"Invalid blacklist command name '{name}'. "
+                    f"Possible values are: {EzConfig.BLACKLIST_COMMANDS.__args__}."  # type: ignore
+                )
+
+            if not asyncio.iscoroutinefunction(func):
+                raise TypeError(f"Blacklist command overwrite `{name}` must be async.")
 
         EzConfig.blacklist = Blacklist(
             db_path,
             db_name,
             raise_error,
             owner_only,
+            disabled_commands,
+            overwrites=kwargs,
         )
         EzConfig.admin_guilds = admin_server_ids
 

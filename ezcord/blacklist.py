@@ -23,7 +23,7 @@ class _BanDB(DBHandler):
             f"""CREATE TABLE IF NOT EXISTS {self.db_name} (
             user_id INTEGER PRIMARY KEY,
             reason TEXT,
-            dt DATETIME DEFAULT CURRENT_TIMESTAMP
+            dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )"""
         )
 
@@ -40,7 +40,10 @@ class _BanDB(DBHandler):
         return await self.all(f"SELECT user_id FROM {self.db_name}")
 
     async def get_full_bans(self):
-        return await self.all(f"SELECT user_id, reason, dt FROM {self.db_name}")
+        return await self.all(
+            f"SELECT user_id, reason, dt FROM {self.db_name} ORDER BY dt DESC",
+            detect_types=1,
+        )
 
 
 def _blacklist_ready() -> bool:

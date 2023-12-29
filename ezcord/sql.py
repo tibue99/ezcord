@@ -156,6 +156,11 @@ class DBHandler:
         if self.connection is not None:
             return self.connection
 
+        if "conv_json" in kwargs:
+            self.conv_json = kwargs.pop("conv_json")
+        if "foreign_keys" in kwargs:
+            self.foreign_keys = kwargs.pop("foreign_keys")
+
         con_args = {**kwargs, **self.kwargs}
         con = await aiosqlite.connect(self.DB, **con_args)
 

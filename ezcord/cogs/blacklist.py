@@ -150,13 +150,13 @@ class Blacklist(Cog, hidden=True):
         bans = await _db.get_full_bans()
         desc = ""
 
-        for user_id, reason, _ in bans:
+        for user_id, reason, dt in bans:
             if not reason:
                 reason = "No reason provided"
 
             user = await get_or_fetch_user(self.bot, user_id)
-            name = f"{user.name} ({user.id})" if user else user_id
-            desc += f"{name} - {reason}\n"
+            name = f"{user} - {user.id}" if user else user_id
+            desc += f"[{dt.date()}] {name} - {reason}\n"
 
         if not desc:
             desc = "No bans found."

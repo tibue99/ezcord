@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+import fnmatch
 import io
 import itertools
 import json
 import os
 import random
+from pathlib import Path
 from typing import Any
 
 from .internal import get_lang
@@ -153,23 +155,54 @@ def ez_autocomplete(values):
     return autocomplete_callback
 
 
-def count_lines(directory: str | None = None) -> int:
-    """Counts the total amount of lines in all Python files in the current directory.
+def count_lines(
+    directory: str | None = None,
+    *,
+    count_empty_lines: bool = True,
+    ignored_dirs: list[str] | None = None,
+    ignored_files: list[str] | None = None,
+) -> int:
+    """Counts the total amount of lines in all Python files in the given directory.
 
     Parameters
     ----------
     directory:
         The directory to count the lines in. Defaults to the current working directory.
+    count_empty_lines:
+        Whether to count empty lines. Defaults to ``True``.
+    ignored_dirs:
+        A list of directories to ignore. By default, venv folders and folders starting with a dot
+        are ignored.
+    ignored_files:
+        A list of file patterns to ignore.
     """
     if directory is None:
         directory = os.getcwd()
+    if ignored_dirs is None:
+        ignored_dirs = []
+    if ignored_files is None:
+        ignored_files = []
 
     total_lines = 0
-    for root, dirs, files in os.walk(directory):
+    for root, _, files in os.walk(directory):
+        if "pyvenv.cfg" in files:  # ignore venv folders
+            ignored_dirs.append(root)
+
+        if any([True for pattern in ignored_dirs if pattern in str(Path(root))]):
+            continue
+
         for file in files:
-            if file.endswith(".py"):
-                file_path = os.path.join(root, file)
-                with open(file_path, encoding="utf-8") as f:
-                    total_lines += len(f.readlines())
+            if not file.endswith(".py"):
+                continue
+
+            if any([True for pat in ignored_files if fnmatch.fnmatch(file, pat)]):
+                continue
+
+            file_path = os.path.join(root, file)
+            with open(file_path, errors="ignore") as f:
+                for line in f:
+                    if not count_empty_lines and line.strip() == "":
+                        continue
+                    total_lines += 1
 
     return total_lines

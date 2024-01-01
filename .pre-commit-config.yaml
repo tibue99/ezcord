@@ -19,19 +19,19 @@ repos:
         - --remove-unused-variables
 
   - repo: https://github.com/psf/black
-    rev: 23.9.1
+    rev: 23.12.1
     hooks:
       - id: black
         args: [--safe, --line-length=100]
 
   - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
+    rev: 5.13.2
     hooks:
       - id: isort
         args: ["--profile", "black"]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.6.0
+    rev: v1.8.0
     hooks:
       - id: mypy
         args: [--disable-error-code=name-defined, --disable-error-code=import]

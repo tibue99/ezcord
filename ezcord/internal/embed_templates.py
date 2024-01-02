@@ -160,6 +160,9 @@ def replace_embed_values(
 
 
 async def fill_custom_variables(custom_vars: dict[str, Callable | str]) -> dict[str, str]:
+    """Loop through custom variables that were given as kwargs and replace them with
+    their current value.
+    """
     new_custom_vars = {}
 
     for key, value in custom_vars.items():

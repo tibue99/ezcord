@@ -12,7 +12,7 @@ import random
 from pathlib import Path
 from typing import Any
 
-from .internal import EzConfig
+from .internal import get_locale
 from .internal.dc import discord
 
 
@@ -125,9 +125,7 @@ def codeblock(
 
     if isinstance(content, int):
         number = f"{content:,}"
-        if EzConfig.lang == "de" or (
-            interaction and EzConfig.lang == "auto" and interaction.locale == "de"
-        ):
+        if get_locale(interaction) == "de":
             number = number.replace(",", ".")
         block = f"```{lang}\n{number}"
         if unit:

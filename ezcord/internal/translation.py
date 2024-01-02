@@ -143,6 +143,19 @@ def tp(
         return plural_en(amount, word)
 
 
+def get_locale(interaction: discord.Interaction | None) -> str:
+    if not interaction and EzConfig.lang == "auto":
+        return EzConfig.default_lang
+
+    if interaction and EzConfig.lang == "auto":
+        locale = interaction.guild_locale if interaction.guild_locale else interaction.locale
+        locale = locale.split("-")[0]
+    else:
+        locale = EzConfig.lang
+
+    return locale
+
+
 def t(key: str, *args: str, i: discord.Interaction | None = None) -> str:
     """Load a string in the selected language.
 
@@ -163,11 +176,7 @@ def t(key: str, *args: str, i: discord.Interaction | None = None) -> str:
         origin_file = Path(inspect.stack()[n].filename).stem
 
     lang = EzConfig.lang
-    if i and lang == "auto":
-        locale = i.guild_locale if i.guild_locale else i.locale
-        locale = locale.split("-")[0]
-    else:
-        locale = lang
+    locale = get_locale(i)
 
     try:
         lang_dict = load_lang(locale)

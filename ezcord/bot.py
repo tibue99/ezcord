@@ -74,8 +74,8 @@ class Bot(_main_bot):  # type: ignore
         Whether to send the full error traceback. If this is ``False``,
         only the most recent traceback will be sent. Defaults to ``False``.
     language:
-        The language to use for user output. If this is set to ``"auto"``,
-        the bot will try to use the language of the interaction locale.
+        The language to use for user output. If this is set to ``auto``,
+        the bot will use the language of the interaction locale whenever possible.
     default_language:
         The default language to use if the interaction locale is not available.
         Defaults to ``"en"``. ``en`` and ``de`` are available by default, but you can add your own

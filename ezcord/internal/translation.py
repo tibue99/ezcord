@@ -165,8 +165,8 @@ def t(key: str, *args: str, i: discord.Interaction | None = None) -> str:
 
     lang = EzConfig.lang
     if i and lang == "auto":
-        locale = i.locale.split("-")[0]
-        print("LOCALE", locale)
+        locale = i.guild_locale if i.guild_locale else i.locale
+        locale = locale.split("-")[0]
     else:
         locale = lang
 

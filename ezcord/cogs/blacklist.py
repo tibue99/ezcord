@@ -35,7 +35,7 @@ async def _check_blacklist(interaction: discord.Interaction) -> bool:
         if EzConfig.blacklist.raise_error:
             raise Blacklisted()
         else:
-            await interaction.response.send_message(t("no_perms", i=interaction), ephemeral=True)
+            await emb.error(interaction, t("no_perms", i=interaction))
         raise ErrorMessageSent()
     return True
 
@@ -104,7 +104,7 @@ class Blacklist(Cog, hidden=True):
     @Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
         bans = await _db.get_bans()
-        if guild.owner.id in bans:
+        if guild.owner and guild.owner.id in bans:
             try:
                 await guild.owner.send(t("guild_error", guild.name))
             except discord.Forbidden:
@@ -232,12 +232,10 @@ class Blacklist(Cog, hidden=True):
         try:
             guild = await self.bot.fetch_guild(guild_id)
         except Exception as e:
-            return await ctx.response.send_message(
-                f"I could not load this server: ```{e}```", ephemeral=True
-            )
+            return await emb.error(ctx, f"I could not load this server: ```{e}```")
 
         await guild.leave()
-        await ctx.response.send_message(f"I left **{guild.name}** ({guild.id})", ephemeral=True)
+        await ctx.followup.send(f"I left **{guild.name}** ({guild.id})", ephemeral=True)
 
     @check_command(
         leave.command(name="owner", description="Make the bot leave all guilds with a given owner")
@@ -251,11 +249,11 @@ class Blacklist(Cog, hidden=True):
         guilds = []
         member_count = 0
         for guild in self.bot.guilds:
-            if guild.owner.id == owner.id:
+            if guild.owner and guild.owner.id == owner.id:
                 guilds.append(guild)
                 member_count += guild.member_count
 
-        return await ctx.response.send_message(
+        return await ctx.followup.send(
             f"I found **{len(guilds)}** servers with **{owner}** as the owner "
             f"(with a total of **{member_count}** members).",
             ephemeral=True,
@@ -276,7 +274,7 @@ class LeaveGuilds(discord.ui.View):
         for child in self.children:
             child.disabled = True
         embed = discord.Embed(
-            description="I'll now leave all servers. This may take a while."
+            description="I'll now leave all servers, this may take a while."
             "\n\nI'll ping you when I'm done.",
         )
         await interaction.response.edit_message(embed=embed, view=self)

@@ -4,6 +4,7 @@ from functools import cache
 from pathlib import Path
 
 from ...logs import log
+from ..config import EzConfig
 
 
 @cache
@@ -37,7 +38,7 @@ def load_lang(language: str) -> dict[str, dict[str, str]]:
                             lang[category] = {}
                         lang[category][value] = values[value]
 
-    if lang == {}:
+    if EzConfig.lang != "auto" and lang == {}:
         log.warn(f"Language file for language '{language}' not found. Falling back to 'en'.")
 
     return lang

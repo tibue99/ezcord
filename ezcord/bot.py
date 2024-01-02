@@ -19,10 +19,8 @@ from .internal import (
     READY_TITLE,
     EzConfig,
     get_error_text,
-    load_lang,
     print_custom_ready,
     print_ready,
-    set_lang,
     t,
 )
 from .internal.config import Blacklist
@@ -76,10 +74,12 @@ class Bot(_main_bot):  # type: ignore
         Whether to send the full error traceback. If this is ``False``,
         only the most recent traceback will be sent. Defaults to ``False``.
     language:
-        The language to use for user output.
-
-        The default languages are  If you add your own language file as
-        described in :doc:`the language example </examples/languages>`, you can use that language as well.
+        The language to use for user output. If this is set to ``"auto"``,
+        the bot will try to use the language of the interaction locale.
+    default_language:
+        The default language to use if the interaction locale is not available.
+        Defaults to ``"en"``. ``en`` and ``de`` are available by default, but you can add your own
+        language as described in :doc:`the language example </examples/languages>`.
     ready_event:
         The style for :meth:`on_ready_event`. Defaults to :attr:`.ReadyEvent.default`.
         If this is ``None``, the event will be disabled.
@@ -96,7 +96,8 @@ class Bot(_main_bot):  # type: ignore
         error_webhook_url: str | None = None,
         ignored_errors: list[Any] | None = None,
         full_error_traceback: bool = False,
-        language: str = "en",
+        language: str = "auto",
+        default_language: str = "en",
         ready_event: ReadyEvent | None = ReadyEvent.default,
         **kwargs,
     ):
@@ -119,8 +120,9 @@ class Bot(_main_bot):  # type: ignore
         self.error_webhook_url = error_webhook_url
         self.ignored_errors = ignored_errors or []
         self.full_error_traceback = full_error_traceback
-        load_lang(language)
-        set_lang(language) if language != {} else set_lang("en")
+
+        EzConfig.lang = language
+        EzConfig.default_lang = default_language
 
         self.error_event_added = False
         if error_handler or error_webhook_url:
@@ -433,20 +435,20 @@ class Bot(_main_bot):  # type: ignore
             or type(error) is commands.CheckFailure
         ):
             if self.error_handler:
-                await error_emb(ctx, t("no_user_perms"))
+                await error_emb(ctx, t("no_user_perms", i=ctx))
             return
 
         if isinstance(error, commands.CommandOnCooldown):
             if self.error_handler:
                 seconds = round(ctx.command.get_cooldown_retry_after(ctx))
-                cooldown_txt = t("cooldown", dc_timestamp(seconds))
-                await error_emb(ctx, cooldown_txt, title=t("cooldown_title"))
+                cooldown_txt = t("cooldown", dc_timestamp(seconds), i=ctx)
+                await error_emb(ctx, cooldown_txt, title=t("cooldown_title", i=ctx))
 
         elif isinstance(error, checks.BotMissingPermissions):
             if self.error_handler:
                 perms = "\n".join(error.missing_permissions)
-                perm_txt = f"{t('no_perms')} ```\n{perms}```"
-                await error_emb(ctx, perm_txt, title=t("no_perms_title"))
+                perm_txt = f"{t('no_perms', i=ctx)} ```\n{perms}```"
+                await error_emb(ctx, perm_txt, title=t("no_perms_title", i=ctx))
 
         else:
             if "original" in error.__dict__ and not self.full_error_traceback:
@@ -457,9 +459,9 @@ class Bot(_main_bot):  # type: ignore
                 error_msg = f"{error}"
 
             if self.error_handler:
-                error_txt = f"{t('error', f'```{error_msg}```')}"
+                error_txt = f"{t('error', f'```{error_msg}```', i=ctx)}"
                 try:
-                    await error_emb(ctx, error_txt, title=t("error_title"))
+                    await error_emb(ctx, error_txt, title=t("error_title", i=ctx))
                 except discord.HTTPException as e:
                     # ignore invalid interaction error, probably took too long to respond
                     if e.code != 10062:

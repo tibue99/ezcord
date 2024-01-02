@@ -36,7 +36,7 @@ async def _check_blacklist(interaction: discord.Interaction) -> bool:
         if EzConfig.blacklist.raise_error:
             raise Blacklisted()
         else:
-            await interaction.response.send_message(t("no_perms"), ephemeral=True)
+            await interaction.response.send_message(t("no_perms", i=interaction), ephemeral=True)
         raise ErrorMessageSent()
     return True
 

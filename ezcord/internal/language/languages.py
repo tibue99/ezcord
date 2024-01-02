@@ -9,7 +9,7 @@ from ..config import EzConfig
 
 @cache
 def load_lang(language: str) -> dict[str, dict[str, str]]:
-    """Loads the default language file and checks if the user provided a custom language file."""
+    """Loads the given language file and checks if the user provided a custom language file."""
 
     if language == "auto":
         language = EzConfig.default_lang

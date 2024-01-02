@@ -4,11 +4,15 @@ from functools import cache
 from pathlib import Path
 
 from ...logs import log
+from ..config import EzConfig
 
 
 @cache
 def load_lang(language: str) -> dict[str, dict[str, str]]:
-    """Loads the default language file and checks if the user provided a custom language file."""
+    """Loads the given language file and checks if the user provided a custom language file."""
+
+    if language == "auto":
+        language = EzConfig.default_lang
 
     lang = {}
     parent = Path(__file__).parent.absolute()
@@ -37,7 +41,7 @@ def load_lang(language: str) -> dict[str, dict[str, str]]:
                             lang[category] = {}
                         lang[category][value] = values[value]
 
-    if lang == {}:
+    if EzConfig.lang != "auto" and lang == {}:
         log.warn(f"Language file for language '{language}' not found. Falling back to 'en'.")
 
     return lang

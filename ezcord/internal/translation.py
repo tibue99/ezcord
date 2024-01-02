@@ -1,9 +1,11 @@
 """Internal language utilities for the library."""
 
+from __future__ import annotations
+
 import inspect
-from functools import cache
 from pathlib import Path
 
+from ..internal.dc import discord
 from ..logs import log
 from .config import EzConfig
 from .language.languages import load_lang
@@ -110,7 +112,9 @@ def plural_fr(amount: int, word: str) -> str:
     return word
 
 
-def tp(key: str, amount: int, *args: str, relative: bool = True) -> str:
+def tp(
+    key: str, amount: int, *args: str, relative: bool = True, i: discord.Interaction | None = None
+) -> str:
     """Load a string in the selected language and pluralize it.
 
     Parameters
@@ -123,9 +127,11 @@ def tp(key: str, amount: int, *args: str, relative: bool = True) -> str:
         The arguments to format the string with.
     relative:
         Whether to use relative time. Defaults to ``True``.
+    i:
+        The interaction to get the language from. Defaults to ``None``.
     """
-    word = t(key, *args)
-    lang = get_lang()
+    word = t(key, *args, i=i)
+    lang = EzConfig.lang
 
     if lang == "de":
         return plural_de(amount, word, relative)
@@ -137,7 +143,20 @@ def tp(key: str, amount: int, *args: str, relative: bool = True) -> str:
         return plural_en(amount, word)
 
 
-def t(key: str, *args: str):
+def get_locale(interaction: discord.Interaction | None) -> str:
+    if not interaction and EzConfig.lang == "auto":
+        return EzConfig.default_lang
+
+    if interaction and EzConfig.lang == "auto":
+        locale = interaction.guild_locale if interaction.guild_locale else interaction.locale
+        locale = locale.split("-")[0]
+    else:
+        locale = EzConfig.lang
+
+    return locale
+
+
+def t(key: str, *args: str, i: discord.Interaction | None = None) -> str:
     """Load a string in the selected language.
 
     Parameters
@@ -146,6 +165,8 @@ def t(key: str, *args: str):
         The text to load.
     *args:
         The arguments to format the string with.
+    i:
+        The interaction to get the language from. Defaults to ``None``.
     """
     n = 1
     origin_file = Path(inspect.stack()[n].filename).stem
@@ -154,32 +175,16 @@ def t(key: str, *args: str):
         n += 1
         origin_file = Path(inspect.stack()[n].filename).stem
 
-    lang = get_lang()
+    lang = EzConfig.lang
+    locale = get_locale(i)
 
     try:
-        string = load_lang(lang)[origin_file][key]
-        if not string:
-            return None
+        lang_dict = load_lang(locale)
+        string = lang_dict[origin_file][key]
         return string.format(*args)
     except KeyError:
         # fallback to english if the key is not in the custom language file
         # provided by the user
-        log.warn(f"Key '{key}' not found in language file '{lang}'. Falling back to 'en'.")
+        if lang != "auto":
+            log.warn(f"Key '{key}' not found in language file '{lang}'. Falling back to 'en'.")
         return load_lang("en")[origin_file][key].format(*args)
-
-
-@cache
-def get_lang():
-    """Get the language from the config class."""
-    return EzConfig.lang
-
-
-def set_lang(lang: str):
-    """Set the language for the bot.
-
-    Parameters
-    ----------
-    lang:
-        The language to set.
-    """
-    EzConfig.lang = lang

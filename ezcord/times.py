@@ -24,7 +24,9 @@ def set_utc(dt: datetime) -> datetime:
     return dt.replace(tzinfo=timezone.utc)
 
 
-def convert_time(seconds: int | float, relative: bool = True) -> str:
+def convert_time(
+    seconds: int | float, relative: bool = True, *, interaction: discord.Interaction | None = None
+) -> str:
     """Convert seconds to a human-readable time.
 
     Parameters
@@ -42,6 +44,9 @@ def convert_time(seconds: int | float, relative: bool = True) -> str:
             '5 Tagen'
             >>> convert_time(450000, relative=False)  # Not relative: 5 Tage
             '5 Tage'
+    interaction:
+        The interaction to get the language from. Defaults to ``None``.
+        If not provided, the language will be set to the default language.
 
     Returns
     -------
@@ -49,18 +54,23 @@ def convert_time(seconds: int | float, relative: bool = True) -> str:
         A human-readable time.
     """
     if seconds < 60:
-        return f"{round(seconds)} {tp('sec', round(seconds))}"
+        return f"{round(seconds)} {tp('sec', round(seconds), i=interaction)}"
     minutes = seconds / 60
     if minutes < 60:
-        return f"{round(minutes)} {tp('min', round(minutes))}"
+        return f"{round(minutes)} {tp('min', round(minutes), i=interaction)}"
     hours = minutes / 60
     if hours < 24:
-        return f"{round(hours)} {tp('hour', round(hours))}"
+        return f"{round(hours)} {tp('hour', round(hours), i=interaction)}"
     days = hours / 24
-    return f"{round(days)} {tp('day', round(days), relative=relative)}"
+    return f"{round(days)} {tp('day', round(days), relative=relative, i=interaction)}"
 
 
-def convert_dt(dt: datetime | timedelta, relative: bool = True) -> str:
+def convert_dt(
+    dt: datetime | timedelta,
+    relative: bool = True,
+    *,
+    interaction: discord.Interaction | None = None,
+) -> str:
     """Convert :class:`datetime` or :class:`timedelta` to a human-readable time.
 
     This function calls :func:`convert_time`.
@@ -71,6 +81,9 @@ def convert_dt(dt: datetime | timedelta, relative: bool = True) -> str:
         The datetime or timedelta object to convert.
     relative:
         Whether to use relative time. Defaults to ``True``.
+    interaction:
+        The interaction to get the language from. Defaults to ``None``.
+        If not provided, the language will be set to the default language.
 
     Returns
     -------
@@ -78,13 +91,15 @@ def convert_dt(dt: datetime | timedelta, relative: bool = True) -> str:
         A human-readable time.
     """
     if isinstance(dt, timedelta):
-        return convert_time(abs(dt.total_seconds()), relative)
+        return convert_time(abs(dt.total_seconds()), relative, interaction=interaction)
 
     if isinstance(dt, datetime):
         if dt.tzinfo is None:
             dt = dt.astimezone()
 
-        return convert_time(abs((dt - discord.utils.utcnow()).total_seconds()), relative)
+        return convert_time(
+            abs((dt - discord.utils.utcnow()).total_seconds()), relative, interaction=interaction
+        )
 
 
 def dc_timestamp(

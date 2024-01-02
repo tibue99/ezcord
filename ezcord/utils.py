@@ -12,7 +12,7 @@ import random
 from pathlib import Path
 from typing import Any
 
-from .internal import get_lang
+from .internal import get_locale
 from .internal.dc import discord
 
 
@@ -99,7 +99,13 @@ def random_avatar() -> str:
     return f"https://cdn.discordapp.com/embed/avatars/{random.randint(0, 5)}.png"
 
 
-def codeblock(content: int | str, *, lang: str = "yaml", unit: str = "") -> str:
+def codeblock(
+    content: int | str,
+    *,
+    lang: str = "yaml",
+    unit: str = "",
+    interaction: discord.Interaction | None = None,
+) -> str:
     """Returns a codeblock with the given content.
 
     Parameters
@@ -111,11 +117,15 @@ def codeblock(content: int | str, *, lang: str = "yaml", unit: str = "") -> str:
         The language of the codeblock. Defaults to ``yaml``.
     unit:
         The text to display after the given content. This is only used if the content is an integer.
+    interaction:
+        The interaction to get the language from. Defaults to ``None``.
+        If not provided, the language will be set to the default language.
+        The language will determine how large numbers are formatted.
     """
 
     if isinstance(content, int):
         number = f"{content:,}"
-        if get_lang() == "de":
+        if get_locale(interaction) == "de":
             number = number.replace(",", ".")
         block = f"```{lang}\n{number}"
         if unit:

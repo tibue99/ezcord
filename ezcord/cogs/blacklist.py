@@ -6,7 +6,6 @@ after the "blacklist" value has been set in the config.
 """
 
 import aiosqlite
-import discord
 
 from .. import emb
 from ..blacklist import _BanDB
@@ -36,7 +35,7 @@ async def _check_blacklist(interaction: discord.Interaction) -> bool:
         if EzConfig.blacklist.raise_error:
             raise Blacklisted()
         else:
-            await emb.error(interaction, t("no_perms"))
+            await emb.error(interaction, t("no_perms", i=interaction))
         raise ErrorMessageSent()
     return True
 

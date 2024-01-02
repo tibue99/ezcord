@@ -6,7 +6,6 @@ after the "blacklist" value has been set in the config.
 """
 
 import aiosqlite
-import discord
 
 from .. import emb
 from ..blacklist import _BanDB

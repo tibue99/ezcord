@@ -5,8 +5,7 @@ from __future__ import annotations
 import inspect
 from pathlib import Path
 
-import discord
-
+from ..internal.dc import discord
 from ..logs import log
 from .config import EzConfig
 from .language.languages import load_lang

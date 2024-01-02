@@ -95,6 +95,7 @@ def replace_values(s: str, interaction: discord.Interaction) -> str:
         "user_avatar": user.display_avatar.url,
         "guild_count": str(len(interaction.client.guilds)),
         "user_count": str(len(interaction.client.users)),
+        "cmd_count": str(interaction.client.cmd_count),
     }
 
     if interaction.guild:

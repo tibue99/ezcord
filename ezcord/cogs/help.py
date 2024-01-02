@@ -160,13 +160,14 @@ class Help(Cog, hidden=True):
                     if PYCORD and not await pass_checks(command, ctx):
                         continue
 
-                    if default_perms and not command.parent:
-                        if not default_perms.is_subset(ctx.user.guild_permissions):
-                            continue
+                    if isinstance(ctx.user, discord.Member):
+                        if default_perms and not command.parent:
+                            if not default_perms.is_subset(ctx.user.guild_permissions):
+                                continue
 
-                    parent_perms = get_perm_parent(command)
-                    if parent_perms and not parent_perms.is_subset(ctx.user.guild_permissions):
-                        continue
+                        parent_perms = get_perm_parent(command)
+                        if parent_perms and not parent_perms.is_subset(ctx.user.guild_permissions):
+                            continue
 
                 if ctx.guild and guild_ids and ctx.guild.id not in guild_ids:
                     continue

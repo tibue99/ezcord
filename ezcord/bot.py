@@ -550,6 +550,7 @@ class Bot(_main_bot):  # type: ignore
         title_format: str = "{emoji} - {name}",
         description_format: str = "{description}",
         permission_check: bool = True,
+        **kwargs: Callable | str,
     ):
         """Add a help command that uses a select menu to group commands by cogs.
 
@@ -593,6 +594,9 @@ class Bot(_main_bot):  # type: ignore
             The description format of each category.
         permission_check:
             Whether to check for permissions before showing a command. Defaults to ``True``.
+        **kwargs:
+            Additional variables to use in the help command. This can either be a string value or
+            a callable that returns a string value.
         """
 
         if buttons is None:
@@ -615,6 +619,7 @@ class Bot(_main_bot):  # type: ignore
             title_format,
             description_format,
             permission_check,
+            kwargs,
         )
         self.enabled_extensions.append("help")
         if not DPY:
@@ -910,6 +915,7 @@ class _CustomHelp:
     title: str
     description: str
     permission_check: bool
+    kwargs: dict[str, Callable | str]
 
 
 @dataclass

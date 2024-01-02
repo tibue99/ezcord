@@ -8,7 +8,7 @@ from .. import emb
 from ..bot import Bot, Cog
 from ..components import View
 from ..enums import HelpStyle
-from ..internal import replace_embed_values, t
+from ..internal import fill_custom_variables, replace_embed_values, t
 from ..internal.dc import PYCORD, discord, slash_command
 from ..logs import log
 
@@ -87,7 +87,9 @@ class Help(Cog, hidden=True):
             )
         else:
             interaction = ctx.interaction if PYCORD else ctx
-            embed = replace_embed_values(embed, interaction)
+            embed = replace_embed_values(
+                embed, interaction, await fill_custom_variables(self.bot.help.kwargs)
+            )
 
         options = []
         commands: dict[str, dict] = {}
@@ -245,7 +247,9 @@ class CategorySelect(discord.ui.Select):
                 color=discord.Color.blue(),
             )
         else:
-            embed = replace_embed_values(embed, interaction)
+            embed = replace_embed_values(
+                embed, interaction, await fill_custom_variables(self.bot.help.kwargs)
+            )
         embed.title = replace_placeholders(self.bot.help.title, name=title, emoji=emoji)
         embed.clear_fields()
 

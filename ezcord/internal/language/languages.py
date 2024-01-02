@@ -11,6 +11,9 @@ from ..config import EzConfig
 def load_lang(language: str) -> dict[str, dict[str, str]]:
     """Loads the default language file and checks if the user provided a custom language file."""
 
+    if language == "auto":
+        language = EzConfig.default_lang
+
     lang = {}
     parent = Path(__file__).parent.absolute()
     for element in os.scandir(parent):

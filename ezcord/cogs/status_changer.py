@@ -1,8 +1,8 @@
-import inspect
 import random
 from itertools import cycle
 
 from ..bot import Bot, Cog
+from ..internal import fill_custom_variables, get_bot_values
 from ..internal.dc import discord, tasks
 
 
@@ -29,25 +29,14 @@ class Activity(Cog, hidden=True):
     @tasks.loop()
     async def change_activity(self):
         """Replaces default variables and user variables in the activity name."""
-        replace_values = {
-            "guild_count": f"{len(self.bot.guilds):,}",
-            "user_count": f"{len(self.bot.users):,}",
-        }
-
         act = next(self.activities)
 
-        for var, replace_value in replace_values.items():
+        for var, replace_value in get_bot_values(self.bot).items():
             act.name = act.name.replace("{" + var + "}", str(replace_value))
 
-        for key, value in self.bot.status_changer.kwargs.items():
-            if inspect.iscoroutinefunction(value):
-                replace_value = await value()
-            elif callable(value):
-                replace_value = value()
-            else:
-                replace_value = value
-
-            act.name = act.name.replace("{" + str(key) + "}", str(replace_value))
+        custom_variables = await fill_custom_variables(self.bot.status_changer.kwargs)
+        for key, value in custom_variables.items():
+            act.name = act.name.replace("{" + str(key) + "}", str(value))
 
         # Not sure why this is needed, but it is.
         if act.type == discord.ActivityType.custom:

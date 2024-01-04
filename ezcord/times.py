@@ -161,9 +161,17 @@ def convert_to_seconds(
     >>> convert_to_seconds("1h 5m 10s")
     3910
     """
-    units = {"s": "seconds", "m": "minutes", "h": "hours", "d": "days", "t": "days", "w": "weeks"}
+    units = {
+        "s": "seconds",
+        "m": "minutes",
+        "h": "hours",
+        "d": "days",
+        "t": "days",
+        "w": "weeks",
+        "mo": "months",
+    }
 
-    pattern = re.compile(r"(?P<value>\d+([.,]\d+)?) *(?P<unit>[smhdtw]?)", flags=re.IGNORECASE)
+    pattern = re.compile(r"(?P<value>\d+([.,]\d+)?) *(?P<unit>mo|[smhdtw]?)", flags=re.IGNORECASE)
     matches = pattern.finditer(string)
 
     no_unit = "0"
@@ -185,5 +193,10 @@ def convert_to_seconds(
 
     if error and not found_units:
         raise ConvertTimeError(f"Could not convert '{string}' to seconds.")
+
+    if "months" in found_units:
+        found_units.setdefault("days", 0)
+        found_units["days"] = found_units["months"] * 30
+        del found_units["months"]
 
     return int(timedelta(**found_units).total_seconds())

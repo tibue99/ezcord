@@ -1,7 +1,7 @@
 __title__ = "ezcord"
 __author__ = "tibue99"
 __license__ = "MIT"
-__version__ = "0.5.1"
+__version__ = "0.5.2"
 
 from . import blacklist, components, emb, logs, sql, times, utils
 from .bot import *

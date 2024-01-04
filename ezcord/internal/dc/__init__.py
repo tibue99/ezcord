@@ -7,34 +7,32 @@ commands = __import__(f"{discord.lib}.ext.commands", fromlist=[""])
 tasks = __import__(f"{discord.lib}.ext.tasks", fromlist=[""])
 
 
-try:
+if discord.__title__ == "pycord":
     from discord import CogMeta
     from discord.ext import bridge
 
     slash_command = discord.slash_command
     checks = commands
 
-    discord.lib = "pycord"  # type: ignore
-
-except ImportError:
+else:
     CogMeta = commands.CogMeta
     bridge = commands
 
-    try:
+    if hasattr(discord, "app_commands"):
         # Discord.py
         slash_command = discord.app_commands.command
         checks = discord.app_commands.checks
 
-    except AttributeError:
-        if discord.__title__ == "nextcord":
-            slash_command = discord.slash_command
-            checks = commands
+    elif discord.__title__ == "nextcord":
+        slash_command = discord.slash_command
+        checks = commands
 
-        elif discord.__title__ == "disnake":
-            slash_command = commands.slash_command
-            checks = commands
+    elif discord.__title__ == "disnake":
+        slash_command = commands.slash_command
+        checks = commands
 
-        discord.lib = discord.__title__  # type: ignore
+
+discord.lib = discord.__title__  # type: ignore
 
 
 PYCORD = discord.lib == "pycord"

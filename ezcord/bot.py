@@ -570,6 +570,8 @@ class Bot(_main_bot):  # type: ignore
         embed:
             The embed to use for the help command. If this is ``None``, a default
             embed will be used.
+            All template variables that are listed in :meth:`ezcord.emb.set_embed_templates`
+            can be used here.
         show_categories:
             Whether to display the categories of the help command front page. Defaults to ``True``.
         show_description:
@@ -646,6 +648,7 @@ class Bot(_main_bot):  # type: ignore
 
             - ``{guild_count}`` - The number of guilds the bot is in.
             - ``{user_count}`` - The number of users the bot can see.
+            - ``{cmd_count}`` - The number of application commands.
 
             You can create custom variables by passing in variable names and values
             as ``**kwargs``.

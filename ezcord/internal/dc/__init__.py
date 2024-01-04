@@ -18,8 +18,7 @@ else:
     CogMeta = commands.CogMeta
     bridge = commands
 
-    if hasattr(discord, "app_commands"):
-        # Discord.py
+    if discord.__title__ == "discord":
         slash_command = discord.app_commands.command
         checks = discord.app_commands.checks
 

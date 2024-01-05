@@ -131,13 +131,13 @@ def tp(
         The interaction to get the language from. Defaults to ``None``.
     """
     word = t(key, *args, i=i)
-    lang = EzConfig.lang
+    locale = get_locale(i)
 
-    if lang == "de":
+    if locale == "de":
         return plural_de(amount, word, relative)
-    elif lang == "es":
+    elif locale == "es":
         return plural_es(amount, word)
-    elif lang == "fr":
+    elif locale == "fr":
         return plural_fr(amount, word)
     else:
         return plural_en(amount, word)

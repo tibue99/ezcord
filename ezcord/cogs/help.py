@@ -229,10 +229,11 @@ class CategorySelect(discord.ui.Select):
                     cmd = c
                     break
 
+        default = f"**/{cmd.qualified_name}**"
         try:
-            return cmd.mention
+            return cmd.mention or default
         except AttributeError:
-            return f"**/{cmd.name}**"
+            return default
 
     async def callback(self, interaction: discord.Interaction):
         if self.bot.help.author_only and interaction.user != self.member:

@@ -553,7 +553,7 @@ class Bot(_main_bot):  # type: ignore
         buttons: list[discord.Button] | None = None,
         title_format: str = "{emoji} - {name}",
         description_format: str = "{description}",
-        permission_check: bool = True,
+        permission_check: bool = False,
         **kwargs: Callable | str,
     ):
         """Add a help command that uses a select menu to group commands by cogs.

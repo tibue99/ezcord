@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from copy import deepcopy
+from typing import Any
 
 import aiosqlite
 
@@ -325,3 +327,30 @@ class DBHandler:
     async def execute(self, sql: str, *args, end: bool = False, **kwargs) -> aiosqlite.Cursor:
         """Alias for :meth:`exec`."""
         return await self.exec(sql, *args, end=end, **kwargs)
+
+    async def executemany(
+        self, sql: str, args: Iterable[Iterable[Any]], **kwargs
+    ) -> aiosqlite.Cursor:
+        """Executes a SQL multiquery.
+
+        Parameters
+        ----------
+        sql:
+            The mutliquery to execute.
+        *args:
+            Arguments for the mutliquery.
+        **kwargs:
+            Keyword arguments for the connection.
+        """
+        db = await self._connect(**kwargs)
+        try:
+            cursor = await db.executemany(sql, args)
+        except Exception as e:
+            if not self.connection:
+                await db.commit()
+                await db.close()
+            raise e
+        if not self.connection:
+            await db.commit()
+            await db.close()
+        return cursor

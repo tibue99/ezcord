@@ -24,6 +24,7 @@ from typing import Callable
 
 import aiohttp
 
+from .errors import ErrorMessageSent
 from .internal import get_error_text
 from .internal.dc import PYCORD, discord
 from .logs import log
@@ -136,6 +137,9 @@ class View(discord.ui.View):
 
         Executes all registered error handlers with the ``@ezcord.event`` decorator.
         """
+        if type(error) is ErrorMessageSent:
+            return
+
         if not PYCORD:
             error, item, interaction = item, interaction, error
 

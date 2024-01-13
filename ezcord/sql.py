@@ -183,8 +183,13 @@ class DBHandler:
             await self.connection.commit()
             await self.connection.close()
 
-    async def _close(self, db):
+    async def _close(self, db: aiosqlite.Connection):
         if not self.connection:
+            await db.close()
+
+    async def _commit_and_close(self, db: aiosqlite.Connection, end: bool = False):
+        if not self.connection or end:
+            await db.commit()
             await db.close()
 
     @staticmethod
@@ -315,13 +320,9 @@ class DBHandler:
         try:
             cursor = await db.execute(sql, args)
         except Exception as e:
-            if end or not self.connection:
-                await db.commit()
-                await db.close()
+            await self._commit_and_close(db, end)
             raise e
-        if end or not self.connection:
-            await db.commit()
-            await db.close()
+        await self._commit_and_close(db, end)
         return cursor
 
     async def execute(self, sql: str, *args, end: bool = False, **kwargs) -> aiosqlite.Cursor:
@@ -346,11 +347,7 @@ class DBHandler:
         try:
             cursor = await db.executemany(sql, args)
         except Exception as e:
-            if not self.connection:
-                await db.commit()
-                await db.close()
+            await self._commit_and_close(db)
             raise e
-        if not self.connection:
-            await db.commit()
-            await db.close()
+        await self._commit_and_close(db)
         return cursor

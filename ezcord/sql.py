@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from copy import deepcopy
+from typing import Any
 
 import aiosqlite
 
@@ -181,8 +183,13 @@ class DBHandler:
             await self.connection.commit()
             await self.connection.close()
 
-    async def _close(self, db):
+    async def _close(self, db: aiosqlite.Connection):
         if not self.connection:
+            await db.close()
+
+    async def _commit_and_close(self, db: aiosqlite.Connection, end: bool = False):
+        if not self.connection or end:
+            await db.commit()
             await db.close()
 
     @staticmethod
@@ -313,15 +320,34 @@ class DBHandler:
         try:
             cursor = await db.execute(sql, args)
         except Exception as e:
-            if end or not self.connection:
-                await db.commit()
-                await db.close()
+            await self._commit_and_close(db, end)
             raise e
-        if end or not self.connection:
-            await db.commit()
-            await db.close()
+        await self._commit_and_close(db, end)
         return cursor
 
     async def execute(self, sql: str, *args, end: bool = False, **kwargs) -> aiosqlite.Cursor:
         """Alias for :meth:`exec`."""
         return await self.exec(sql, *args, end=end, **kwargs)
+
+    async def executemany(
+        self, sql: str, args: Iterable[Iterable[Any]], **kwargs
+    ) -> aiosqlite.Cursor:
+        """Executes a SQL multiquery.
+
+        Parameters
+        ----------
+        sql:
+            The mutliquery to execute.
+        *args:
+            Arguments for the mutliquery.
+        **kwargs:
+            Keyword arguments for the connection.
+        """
+        db = await self._connect(**kwargs)
+        try:
+            cursor = await db.executemany(sql, args)
+        except Exception as e:
+            await self._commit_and_close(db)
+            raise e
+        await self._commit_and_close(db)
+        return cursor

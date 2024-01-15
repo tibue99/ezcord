@@ -25,7 +25,7 @@ jobs:
 
       - name: Test Pycord
         run: |
-          pip install py-cord
+          pip install git+https://github.com/Pycord-Development/pycord
           pytest
 
       - name: Test Discord.py

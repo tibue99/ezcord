@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -7,7 +7,7 @@ from ezcord import ConvertTimeError
 
 
 def test_convert_time():
-    dt = ezcord.set_utc(datetime.utcnow())
+    dt = datetime.now(tz=timezone.utc)
 
     assert isinstance(ezcord.convert_dt(dt), str)
     assert isinstance(ezcord.convert_dt(timedelta(seconds=5)), str)

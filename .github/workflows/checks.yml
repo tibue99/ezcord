@@ -7,12 +7,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -25,7 +25,7 @@ jobs:
 
       - name: Test Pycord
         run: |
-          pip install py-cord
+          pip install git+https://github.com/Pycord-Development/pycord
           pytest
 
       - name: Test Discord.py
@@ -37,7 +37,7 @@ jobs:
       - name: Test Nextcord
         run: |
           pip uninstall -y discord.py
-          pip install nextcord
+          pip install git+https://github.com/nextcord/nextcord
           pytest
 
       - name: Test Disnake

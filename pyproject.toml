@@ -19,6 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 dynamic = ["dependencies", "optional-dependencies", "version"]
 
@@ -35,5 +36,5 @@ GitHub = "https://github.com/tibue99/ezcord"
 Documentation = "https://ezcord.readthedocs.io"
 
 [build-system]
-requires = ["setuptools>=43.0.0", "wheel"]
+requires = ["setuptools>=62.6", "wheel"]
 build-backend = "setuptools.build_meta"

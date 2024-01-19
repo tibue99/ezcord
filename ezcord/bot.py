@@ -633,12 +633,16 @@ class Bot(_main_bot):  # type: ignore
 
     def add_status_changer(
         self,
-        *activities: str
-        | discord.Activity
-        | discord.Game
-        | discord.Streaming
-        | discord.CustomActivity
-        | list[str | discord.Activity | discord.CustomActivity | discord.Game | discord.Streaming],
+        *activities: (
+            str
+            | discord.Activity
+            | discord.Game
+            | discord.Streaming
+            | discord.CustomActivity
+            | list[
+                str | discord.Activity | discord.CustomActivity | discord.Game | discord.Streaming
+            ]
+        ),
         interval: int = 60,
         status: discord.Status = discord.Status.online,
         shuffle: bool = False,

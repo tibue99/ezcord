@@ -188,6 +188,9 @@ class Modal(discord.ui.Modal):
 
         Executes all registered error handlers with the ``@ezcord.event`` decorator.
         """
+        if type(error) is ErrorMessageSent:
+            return
+
         if not PYCORD:
             error, interaction = interaction, error
 

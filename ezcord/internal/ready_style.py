@@ -42,13 +42,18 @@ DEFAULT_COLORS: list[str] = [Fore.CYAN, Fore.MAGENTA, Fore.YELLOW, Fore.GREEN, F
 
 def get_default_info(bot: Bot) -> list[tuple[str, str]]:
     lib_name = discord.lib.capitalize()
+    try:
+        ping = f"{round(bot.latency * 1000):,}ms"
+    except OverflowError:
+        ping = "∞"
+
     return [
         ("Bot", f"{bot.user}"),
         ("ID", f"{bot.user.id}"),
         (lib_name, discord.__version__),
         ("Commands", f"{bot.cmd_count:,}"),
         ("Guilds", f"{len(bot.guilds):,}"),
-        ("Latency", f"{round(bot.latency * 1000):,}ms"),
+        ("Latency", ping),
     ]
 
 

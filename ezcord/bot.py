@@ -790,7 +790,14 @@ class Bot(_main_bot):  # type: ignore
         languages:
             A dictionary with command localizations. An example can be found in the
             :doc:`localization example </examples/localization>`.
+
+            If an ``en`` key is found, the values will be used for both ``en-GB`` and ``en-US``.
         """
+        if "en" in languages:
+            en = languages.pop("en")
+            languages["en-GB"] = en
+            languages["en-US"] = en
+
         for locale, localizations in languages.items():
             for cmd_name, cmd_localizations in localizations.items():
                 if cmd := discord.utils.get(

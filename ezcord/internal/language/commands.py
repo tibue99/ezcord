@@ -2,6 +2,8 @@
 which is licensed under the MIT License.
 """
 
+from __future__ import annotations
+
 from ...internal import discord
 
 

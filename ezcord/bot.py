@@ -19,6 +19,7 @@ from .internal import (
     READY_TITLE,
     EzConfig,
     get_error_text,
+    localize_command,
     print_custom_ready,
     print_ready,
     t,
@@ -776,6 +777,26 @@ class Bot(_main_bot):  # type: ignore
         self.enabled_extensions.append("blacklist")
         if not DPY:
             self.load_extension("ezcord.cogs.pyc.blacklist_setup", package="ezcord")
+
+    def localize_commands(self, languages: dict[str, dict]):
+        """
+        Localize commands with the given test dictionary. This should be called after the
+        commands have been added to the bot, but before they are synced.
+
+        This is currently only supported for Pycord.
+
+        Parameters
+        ----------
+        languages:
+            A dictionary with command localizations. An example can be found in the
+            :doc:`localization example </examples/localization>`.
+        """
+        for locale, localizations in languages.items():
+            for cmd_name, cmd_localizations in localizations.items():
+                if cmd := discord.utils.get(
+                    self._pending_application_commands, qualified_name=cmd_name
+                ):
+                    localize_command(cmd, locale, cmd_localizations)
 
     async def setup_hook(self):
         """This is used for Discord.py startup and should not be called manually."""

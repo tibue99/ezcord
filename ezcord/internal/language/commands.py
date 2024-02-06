@@ -10,7 +10,7 @@ from ...internal import discord
 def localize_command(
     command: discord.ApplicationCommand | discord.SlashCommandGroup,
     locale: str,
-    localizations: dict[str, dict],
+    localizations: dict,
 ):
     """Localize a slash command or a slash command group."""
 
@@ -45,3 +45,15 @@ def localize_command(
                             option.description_localizations = {locale: option_desc}
                         else:
                             option.description_localizations[locale] = option_desc
+
+                    if option_choices := localization.get("choices"):
+                        for choice in option.choices:
+                            if isinstance(choice, str):
+                                choice = discord.OptionChoice(name=choice)
+
+                            name = option_choices.get(choice.name)
+                            if name:
+                                if choice.name_localizations is discord.MISSING:
+                                    choice.name_localizations = {locale: name}
+                                else:
+                                    choice.name_localizations[locale] = name

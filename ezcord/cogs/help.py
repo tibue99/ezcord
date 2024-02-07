@@ -8,7 +8,7 @@ from .. import emb
 from ..bot import Bot, Cog
 from ..components import View
 from ..enums import HelpStyle
-from ..internal import fill_custom_variables, replace_embed_values, t
+from ..internal import fill_custom_variables, replace_embed_values, tr
 from ..internal.dc import PYCORD, discord, slash_command
 from ..logs import log
 
@@ -78,12 +78,12 @@ class Help(Cog, hidden=True):
         super().__init__(bot)
         self.help.guild_only = bot.help.guild_only
 
-    @slash_command(name=t("cmd_name"), description=t("cmd_description"))
+    @slash_command(name=tr("cmd_name"), description=tr("cmd_description"))
     async def help(self, ctx):
         embed = self.bot.help.embed
         if embed is None:
             embed = discord.Embed(
-                title=t("embed_title", i=ctx.interaction), color=discord.Color.blue()
+                title=tr("embed_title", i=ctx.interaction), color=discord.Color.blue()
             )
         else:
             interaction = ctx.interaction if PYCORD else ctx
@@ -124,7 +124,7 @@ class Help(Cog, hidden=True):
 
             desc = cog.description
             if not cog.description:
-                desc = t("default_description", name, i=ctx)
+                desc = tr("default_description", name, i=ctx)
                 if not desc:
                     log.warning(
                         f"The default description for cog '{name}' is invalid. "
@@ -189,7 +189,7 @@ class Help(Cog, hidden=True):
                     embed.add_field(name=field_name, value=desc, inline=False)
 
         if len(options) == 0:
-            return await ctx.response.send_message(t("no_commands", i=ctx), ephemeral=True)
+            return await ctx.response.send_message(tr("no_commands", i=ctx), ephemeral=True)
         if len(options) > 25 or len(embed.fields) > 25:
             log.error(
                 f"Help command category limit reached. Only 25 out of {len(options)} are shown."
@@ -215,7 +215,10 @@ class CategorySelect(discord.ui.Select):
         interaction,
     ):
         super().__init__(
-            min_values=1, max_values=1, placeholder=t("placeholder", i=interaction), options=options
+            min_values=1,
+            max_values=1,
+            placeholder=tr("placeholder", i=interaction),
+            options=options,
         )
         self.bot = bot
         self.member = member
@@ -237,7 +240,7 @@ class CategorySelect(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         if self.bot.help.author_only and interaction.user != self.member:
-            return await emb.error(interaction, t("wrong_user", i=interaction))
+            return await emb.error(interaction, tr("wrong_user", i=interaction))
 
         cmds = self.commands[self.values[0]]
         title = self.values[0].title()
@@ -307,7 +310,7 @@ class CategorySelect(discord.ui.Select):
                     break
 
         if len(commands) == 0:
-            embed.description = t("no_commands", i=interaction)
+            embed.description = tr("no_commands", i=interaction)
 
         view = CategoryView(self.options, self.bot, self.member, self.commands, interaction)
         for button in self.bot.help.buttons:

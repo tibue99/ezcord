@@ -130,7 +130,7 @@ def tp(
     i:
         The interaction to get the language from. Defaults to ``None``.
     """
-    word = t(key, *args, i=i)
+    word = tr(key, *args, i=i)
     locale = get_locale(i)
 
     if locale == "de":
@@ -156,7 +156,7 @@ def get_locale(interaction: discord.Interaction | None) -> str:
     return locale
 
 
-def t(key: str, *args: str, i: discord.Interaction | None = None) -> str:
+def tr(key: str, *args: str, i: discord.Interaction | None = None) -> str:
     """Load a string in the selected language.
 
     Parameters

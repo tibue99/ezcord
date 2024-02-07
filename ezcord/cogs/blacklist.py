@@ -12,7 +12,7 @@ from ..blacklist import _BanDB
 from ..bot import Bot, Cog
 from ..components import event
 from ..errors import Blacklisted, ErrorMessageSent
-from ..internal import EzConfig, t
+from ..internal import EzConfig, tr
 from ..internal.dc import DPY, PYCORD, commands, discord
 from ..logs import log
 from ..utils import create_text_file
@@ -35,7 +35,7 @@ async def _check_blacklist(interaction: discord.Interaction) -> bool:
         if EzConfig.blacklist.raise_error:
             raise Blacklisted()
         else:
-            await emb.error(interaction, t("no_perms", i=interaction))
+            await emb.error(interaction, tr("no_perms", i=interaction))
         raise ErrorMessageSent()
     return True
 
@@ -106,14 +106,14 @@ class Blacklist(Cog, hidden=True):
         bans = await _db.get_bans()
         if guild.owner and guild.owner.id in bans:
             try:
-                await guild.owner.send(t("guild_error", guild.name))
+                await guild.owner.send(tr("guild_error", guild.name))
             except discord.Forbidden:
                 pass
             await guild.leave()
 
     if PYCORD:
         admin = discord.SlashCommandGroup(
-            t("admin_group"),
+            tr("admin_group"),
             description="EzCord admin commands",
             guild_ids=EzConfig.admin_guilds,
             default_member_permissions=discord.Permissions(administrator=True),
@@ -122,7 +122,7 @@ class Blacklist(Cog, hidden=True):
         blacklist = admin.create_subgroup("blacklist")
     else:
         admin = discord.app_commands.Group(
-            name=t("admin_group"),
+            name=tr("admin_group"),
             description="EzCord admin commands",
             guild_ids=EzConfig.admin_guilds,
             default_permissions=discord.Permissions(administrator=True),

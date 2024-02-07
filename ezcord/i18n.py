@@ -20,7 +20,30 @@ WEBHOOK_EDIT = discord.WebhookMessage.edit
 def extract_parameters(func, **kwargs):
     """Extract all kwargs that are not part of the function signature."""
     params = inspect.signature(func).parameters
-    return {key: kwargs.pop(key) for key, value in kwargs.copy().items() if key not in params}
+    variables = {key: kwargs.pop(key) for key, value in kwargs.copy().items() if key not in params}
+    return variables, kwargs
+
+
+def ensure_interaction(interaction) -> discord.Interaction:
+    """Extracts and returns the interaction from the given object."""
+
+    if isinstance(interaction, discord.InteractionResponse):
+        return interaction._parent
+    if isinstance(interaction, discord.Interaction):
+        return interaction
+    return interaction
+
+
+def _check_embed(locale: str, **kwargs):
+    embed = kwargs.get("embed")
+    if embed and isinstance(embed, str):
+        new_embed = I18N.load_embed(embed, locale)
+        kwargs["embed"] = new_embed
+    elif embed:
+        new_embed_dict = I18N.load_lang_keys(embed.to_dict(), locale)
+        kwargs["embed"] = discord.Embed.from_dict(new_embed_dict)
+
+    return kwargs
 
 
 def _localize_send(send_func):
@@ -28,21 +51,14 @@ def _localize_send(send_func):
         if isinstance(self, discord.Webhook):
             locale = I18N.fallback_locale
         else:
-            locale = I18N.get_locale(self._parent)
-        variables = extract_parameters(send_func, **kwargs)
+            locale = I18N.get_locale(ensure_interaction(self))
+        variables, kwargs = extract_parameters(send_func, **kwargs)
 
         # Check content
         content = I18N.get_text(content, locale)
         content = I18N.replace_variables(content, **variables)
 
-        # Check embeds
-        embed = kwargs.get("embed")
-        if embed and isinstance(embed, str):
-            new_embed = I18N.load_embed(embed, locale)
-            kwargs["embed"] = new_embed
-        elif embed:
-            new_embed_dict = I18N.load_lang_keys(embed.to_dict(), locale)
-            kwargs["embed"] = discord.Embed.from_dict(new_embed_dict)
+        kwargs = _check_embed(locale, **kwargs)
 
         return await send_func(self, content, **kwargs)
 
@@ -50,9 +66,9 @@ def _localize_send(send_func):
 
 
 def _localize_edit(edit_func):
-    async def wrapper(self: discord.InteractionResponse, **kwargs):
-        locale = I18N.get_locale(self._parent)
-        variables = extract_parameters(edit_func, **kwargs)
+    async def wrapper(self: discord.InteractionResponse | discord.Interaction, **kwargs):
+        locale = I18N.get_locale(ensure_interaction(self))
+        variables, kwargs = extract_parameters(edit_func, **kwargs)
 
         # Check content (must be a kwarg)
         content = kwargs.get("content")
@@ -64,6 +80,15 @@ def _localize_edit(edit_func):
         return await edit_func(self, **kwargs)
 
     return wrapper
+
+
+def t(interaction: discord.Interaction, key: str, **kwargs):
+    """Get the localized string for the given key and inserts all variables."""
+    locale = I18N.get_locale(interaction)
+
+    content = I18N.get_text(key, locale)
+    content = I18N.replace_variables(content, **kwargs)
+    return content
 
 
 class I18N:
@@ -153,8 +178,10 @@ class I18N:
             setattr(discord.WebhookMessage, "edit_message", _localize_edit(WEBHOOK_EDIT))
 
     @staticmethod
-    def get_locale(interaction: discord.Interaction):
+    def get_locale(interaction: discord.Interaction | discord.InteractionResponse):
         """Get the locale from the interaction. By default, this is the guild's locale."""
+        interaction = ensure_interaction(interaction)
+
         if interaction.guild and not I18N.prefer_user_locale:
             locale = interaction.guild_locale
         else:
@@ -171,7 +198,12 @@ class I18N:
 
         file, method = None, None
         for i in list(reversed(stack))[2:]:
-            if i.name not in ["wrapper", "respond", I18N.load_lang_keys.__name__]:
+            if i.name not in [
+                "wrapper",
+                "respond",
+                I18N.load_lang_keys.__name__,
+                _check_embed.__name__,
+            ]:
                 file = i.filename
                 method = i.name
                 break
@@ -297,11 +329,6 @@ class I18N:
         for key, value in content.items():
             if isinstance(value, str):
                 content[key] = I18N._replace_general_variables(value)
-            # elif isinstance(value, list):
-            #     items = []
-            #     for element in value:
-            #         items.append(I18N._replace_dict(element))
-            #     content[key] = items
             elif isinstance(value, dict):
                 content[key] = I18N._replace_dict(value)
 

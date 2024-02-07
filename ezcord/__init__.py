@@ -3,11 +3,12 @@ __author__ = "tibue99"
 __license__ = "MIT"
 __version__ = "0.5.3"
 
-from . import blacklist, components, emb, logs, sql, times, utils
+from . import blacklist, components, emb, i18n, logs, sql, times, utils
 from .bot import *
 from .components import *
 from .emb import *
 from .enums import *
+from .i18n import *
 from .logs import *
 from .sql import *
 from .times import *

@@ -1,0 +1,7 @@
+Localisation
+=======================
+A class to handle localisation for all interactions.
+
+.. autoclass:: ezcord.i18n.I18N
+   :members:
+   :undoc-members:

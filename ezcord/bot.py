@@ -783,6 +783,9 @@ class Bot(_main_bot):  # type: ignore
         Localize commands with the given test dictionary. This should be called after the
         commands have been added to the bot, but before they are synced.
 
+        A list of available languages is available here:
+        https://discord.com/developers/docs/reference#locales
+
         This is currently only supported for Pycord.
 
         Parameters

@@ -18,7 +18,10 @@ WEBHOOK_EDIT = discord.WebhookMessage.edit
 if PYCORD:
     INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_response
 else:
-    INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_message
+    if hasattr(discord.Interaction, "edit_original_message"):
+        INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_message
+    else:
+        INTERACTION_EDIT_ORIGINAL = None
 
 
 def extract_parameters(func, **kwargs):

@@ -6,15 +6,19 @@ import traceback
 from pathlib import Path
 from typing import Literal
 
-from .internal.dc import discord
+from .internal.dc import PYCORD, discord
 from .logs import log
 
 INTERACTION_SEND = discord.InteractionResponse.send_message
 INTERACTION_EDIT = discord.InteractionResponse.edit_message
-INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_response
 
 WEBHOOK_SEND = discord.Webhook.send
 WEBHOOK_EDIT = discord.WebhookMessage.edit
+
+if PYCORD:
+    INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_response
+else:
+    INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_message
 
 
 def extract_parameters(func, **kwargs):

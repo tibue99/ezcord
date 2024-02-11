@@ -222,7 +222,7 @@ class I18N:
             return string
 
         for key, value in kwargs.items():
-            string = string.replace("{" + key + "}", value)
+            string = string.replace("{" + key + "}", str(value))
 
         return string
 

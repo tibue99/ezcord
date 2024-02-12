@@ -203,14 +203,13 @@ class I18N:
         """Returns the name of the file and the method for the current interaction."""
         stack = traceback.extract_stack()
 
+        # Ignore the following internal sources to determine the origin method
+        methods = ["respond"]
+        files = ["i18n", "emb"]
+
         file, method = None, None
         for i in list(reversed(stack))[2:]:
-            if i.name not in [
-                "wrapper",
-                "respond",
-                I18N.load_lang_keys.__name__,
-                _check_embed.__name__,
-            ]:
+            if i.name not in methods and Path(i.filename).stem not in files:
                 file = i.filename
                 method = i.name
                 break

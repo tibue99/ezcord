@@ -38,7 +38,7 @@ class TEmbed(discord.Embed):
         self.key = key
 
 
-def extract_parameters(func, **kwargs):
+def _extract_parameters(func, **kwargs):
     """Extract all kwargs that are not part of the function signature and returns them as
     a dictionary of variables.
     """
@@ -47,7 +47,7 @@ def extract_parameters(func, **kwargs):
     return variables, kwargs
 
 
-def ensure_interaction(interaction) -> discord.Interaction:
+def _ensure_interaction(interaction) -> discord.Interaction:
     """Extracts and returns the interaction from the given object."""
 
     if isinstance(interaction, discord.InteractionResponse):
@@ -82,8 +82,8 @@ def _localize_send(send_func):
         if isinstance(self, discord.Webhook):
             locale = I18N.fallback_locale
         else:
-            locale = I18N.get_locale(ensure_interaction(self))
-        variables, kwargs = extract_parameters(send_func, **kwargs)
+            locale = I18N.get_locale(_ensure_interaction(self))
+        variables, kwargs = _extract_parameters(send_func, **kwargs)
 
         # Check content
         content = I18N.get_text(content, locale, count)
@@ -100,8 +100,8 @@ def _localize_edit(edit_func):
     async def wrapper(
         self: discord.InteractionResponse | discord.Interaction, count: int | None = None, **kwargs
     ):
-        locale = I18N.get_locale(ensure_interaction(self))
-        variables, kwargs = extract_parameters(edit_func, **kwargs)
+        locale = I18N.get_locale(_ensure_interaction(self))
+        variables, kwargs = _extract_parameters(edit_func, **kwargs)
 
         # Check content (must be a kwarg)
         content = kwargs.get("content")
@@ -118,7 +118,7 @@ def _localize_edit(edit_func):
 
 
 def t(interaction: discord.Interaction, key: str, count: int | None = None, **variables):
-    """Get the localized string for the given key and inserts all variables."""
+    """Get the localized string for the given key and insert all variables."""
     locale = I18N.get_locale(interaction)
 
     content = I18N.get_text(key, locale, count)
@@ -215,7 +215,7 @@ class I18N:
     @staticmethod
     def get_locale(interaction: discord.Interaction | discord.InteractionResponse):
         """Get the locale from the interaction. By default, this is the guild's locale."""
-        interaction = ensure_interaction(interaction)
+        interaction = _ensure_interaction(interaction)
 
         if interaction.guild and not I18N.prefer_user_locale:
             locale = interaction.guild_locale

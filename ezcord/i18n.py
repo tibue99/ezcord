@@ -24,6 +24,20 @@ else:
         INTERACTION_EDIT_ORIGINAL = None
 
 
+class TEmbed(discord.Embed):
+    """A subclass of :class:`discord.Embed` for localized embeds.
+
+    Parameters
+    ----------
+    key:
+        The key of the embed in the language file.
+    """
+
+    def __init__(self, key: str, **kwargs):
+        super().__init__(**kwargs)
+        self.key = key
+
+
 def extract_parameters(func, **kwargs):
     """Extract all kwargs that are not part of the function signature."""
     params = inspect.signature(func).parameters
@@ -42,8 +56,14 @@ def ensure_interaction(interaction) -> discord.Interaction:
 
 
 def _check_embed(locale: str, **kwargs):
+    """Check if the kwargs contain an embed. Returns the updated kwargs.
+
+    - Embed is a TEmbed: Load the embed from the language file.
+    - Embed is a default Embed: Load all keys inside the embed from the language file
+    """
+
     embed = kwargs.get("embed")
-    if embed and isinstance(embed, str):
+    if embed and isinstance(embed, TEmbed):
         new_embed = I18N.load_embed(embed, locale)
         kwargs["embed"] = new_embed
     elif embed:
@@ -255,20 +275,25 @@ class I18N:
         return key
 
     @staticmethod
-    def load_embed(key: str, locale: str) -> discord.Embed:
+    def load_embed(embed: TEmbed, locale: str) -> discord.Embed:
         """Loads an embed from the language file."""
 
         file, cmd_name = I18N.get_location()
         try:
-            embed_dict = I18N.localizations[locale][Path(file).stem][cmd_name]["embeds"][key]
+            embed_dict = I18N.localizations[locale][Path(file).stem][cmd_name]["embeds"][embed.key]
             I18N.load_lang_keys(embed_dict, locale)
 
         except KeyError as e:
             if I18N.debug:
-                log.debug(f"Key {e} not found when loading embed for key '{key}'.")
-            return discord.Embed(description=key, color=discord.Color.blurple())
+                log.debug(f"Key {e} not found when loading embed for key '{embed.key}'.")
 
-        return discord.Embed.from_dict(embed_dict)
+            return discord.Embed(description=embed.key, color=discord.Color.blurple())
+
+        t_embed_dict = embed.to_dict()
+        for key, value in embed_dict.items():
+            t_embed_dict[key] = value
+
+        return discord.Embed.from_dict(t_embed_dict)
 
     @staticmethod
     def load_lang_keys(content: dict | str, locale: str) -> dict | str:

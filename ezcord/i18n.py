@@ -55,7 +55,7 @@ def ensure_interaction(interaction) -> discord.Interaction:
     return interaction
 
 
-def _check_embed(locale: str, **kwargs):
+def _check_embed(locale: str, count: int | None, **kwargs):
     """Check if the kwargs contain an embed. Returns the updated kwargs.
 
     - Embed is a TEmbed: Load the embed from the language file.
@@ -67,14 +67,16 @@ def _check_embed(locale: str, **kwargs):
         new_embed = I18N.load_embed(embed, locale)
         kwargs["embed"] = new_embed
     elif embed:
-        new_embed_dict = I18N.load_lang_keys(embed.to_dict(), locale)
+        new_embed_dict = I18N.load_lang_keys(embed.to_dict(), locale, count)
         kwargs["embed"] = discord.Embed.from_dict(new_embed_dict)
 
     return kwargs
 
 
 def _localize_send(send_func):
-    async def wrapper(self: discord.InteractionResponse, content=None, **kwargs):
+    async def wrapper(
+        self: discord.InteractionResponse, content=None, count: int | None = None, **kwargs
+    ):
         if isinstance(self, discord.Webhook):
             locale = I18N.fallback_locale
         else:
@@ -82,10 +84,10 @@ def _localize_send(send_func):
         variables, kwargs = extract_parameters(send_func, **kwargs)
 
         # Check content
-        content = I18N.get_text(content, locale)
+        content = I18N.get_text(content, locale, count)
         content = I18N.replace_variables(content, **variables)
 
-        kwargs = _check_embed(locale, **kwargs)
+        kwargs = _check_embed(locale, count, **kwargs)
 
         return await send_func(self, content, **kwargs)
 
@@ -93,14 +95,16 @@ def _localize_send(send_func):
 
 
 def _localize_edit(edit_func):
-    async def wrapper(self: discord.InteractionResponse | discord.Interaction, **kwargs):
+    async def wrapper(
+        self: discord.InteractionResponse | discord.Interaction, count: int | None = None, **kwargs
+    ):
         locale = I18N.get_locale(ensure_interaction(self))
         variables, kwargs = extract_parameters(edit_func, **kwargs)
 
         # Check content (must be a kwarg)
         content = kwargs.get("content")
         if content:
-            new_content = I18N.get_text(content, locale)
+            new_content = I18N.get_text(content, locale, count)
             new_content = I18N.replace_variables(new_content, **variables)
             kwargs["content"] = new_content
 
@@ -109,11 +113,11 @@ def _localize_edit(edit_func):
     return wrapper
 
 
-def t(interaction: discord.Interaction, key: str, **kwargs):
+def t(interaction: discord.Interaction, key: str, count: int | None = None, **kwargs):
     """Get the localized string for the given key and inserts all variables."""
     locale = I18N.get_locale(interaction)
 
-    content = I18N.get_text(key, locale)
+    content = I18N.get_text(key, locale, count)
     content = I18N.replace_variables(content, **kwargs)
     return content
 
@@ -253,7 +257,7 @@ class I18N:
         return string
 
     @staticmethod
-    def get_text(key: str, locale: str) -> str:
+    def get_text(key: str, locale: str, count: int | None = None) -> str:
         """Looks for the specified key in different locations of the language file."""
         file_name, method_name = I18N.get_location()
         lookups = [
@@ -271,6 +275,16 @@ class I18N:
             txt = current_section
             if isinstance(txt, str):
                 return txt
+            elif count and isinstance(txt, dict):
+                # Load pluralization if available
+                if count == 0 and "zero" in txt:
+                    return txt["zero"]
+                elif count == 1 and "one" in txt:
+                    return txt["one"]
+                elif count > 1 and "many" in txt:
+                    return txt["many"]
+                elif str(count) in txt:
+                    return txt[str(count)]
 
         return key
 
@@ -296,26 +310,26 @@ class I18N:
         return discord.Embed.from_dict(t_embed_dict)
 
     @staticmethod
-    def load_lang_keys(content: dict | str, locale: str) -> dict | str:
+    def load_lang_keys(content: dict | str, locale: str, count: int | None = None) -> dict | str:
         """Iterates through the content, loads the keys from the language file
         and replaces all variables with their values.
         """
 
         if isinstance(content, str):
-            content = I18N.get_text(content, locale)
+            content = I18N.get_text(content, locale, count)
             return I18N.replace_variables(content)
 
         for key, value in content.items():
             if isinstance(value, str):
-                value = I18N.get_text(value, locale)
+                value = I18N.get_text(value, locale, count)
                 content[key] = I18N.replace_variables(value)
             elif isinstance(value, list):
                 items = []
                 for element in value:
-                    items.append(I18N.load_lang_keys(element, locale))
+                    items.append(I18N.load_lang_keys(element, locale, count))
                 content[key] = items
             elif isinstance(value, dict):
-                content[key] = I18N.load_lang_keys(value, locale)
+                content[key] = I18N.load_lang_keys(value, locale, count)
 
         return content
 
@@ -337,7 +351,8 @@ class I18N:
         def replace_local(match: re.Match) -> str:
             match = match.group().replace("{general.", "").replace("}", "")
             if match in I18N._general_values:
-                return I18N._general_values[match]
+                if type(I18N._general_values[match]) is str:
+                    return I18N._general_values[match]
 
             return str(match)
 

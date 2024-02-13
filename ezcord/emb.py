@@ -335,5 +335,5 @@ class EzContext(_ctx_type):  # type: ignore
     async def info(self, msg: str, **kwargs):
         return await info(self, msg, **kwargs)
 
-    def t(self, key: str, **kwargs):
-        return t(self.interaction, key, **kwargs)
+    def t(self, key: str, count: int | None = None, **kwargs):
+        return t(self.interaction, key, count, **kwargs)

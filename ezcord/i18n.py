@@ -25,6 +25,25 @@ else:
         INTERACTION_EDIT_ORIGINAL = None
 
 
+def t(interaction: discord.Interaction, key: str, count: int | None = None, **variables):
+    """Get the localized string for the given key and insert all variables.
+
+    Parameters
+    ----------
+    interaction:
+        The interaction to get the locale from.
+    key:
+        The key of the string in the language file.
+    count:
+        The count for pluralization. Defaults to ``None``.
+    """
+    locale = I18N.get_locale(interaction)
+
+    content = I18N.get_text(key, locale, count)
+    content = I18N.replace_variables(content, **variables)
+    return content
+
+
 class TEmbed(discord.Embed):
     """A subclass of :class:`discord.Embed` for localized embeds.
 
@@ -118,20 +137,15 @@ def _localize_edit(edit_func):
     return wrapper
 
 
-def t(interaction: discord.Interaction, key: str, count: int | None = None, **variables):
-    """Get the localized string for the given key and insert all variables."""
-    locale = I18N.get_locale(interaction)
-
-    content = I18N.get_text(key, locale, count)
-    content = I18N.replace_variables(content, **variables)
-    return content
-
-
 class I18N:
     """A simple class to handle the localization of strings.
 
     A list of available languages is available here:
     https://discord.com/developers/docs/reference#locales
+
+    .. note::
+        Methods in this class are called automatically and do not need to be
+        called manually in most cases.
 
     Parameters
     ----------
@@ -194,7 +208,7 @@ class I18N:
             fallback_locale = "en-US"
 
         if process_strings:
-            I18N.localizations = self.process_strings(localizations)
+            I18N.localizations = self._process_strings(localizations)
         else:
             I18N.localizations = localizations
 
@@ -257,9 +271,10 @@ class I18N:
     def replace_variables(string: str, **variables):
         """Replace all given variables in the string.
 
-        Example:
-            replace_variables("Hello {name}", name="Timo")
-            >>> "Hello Timo"
+        Example
+        -------
+        >>> I18N.replace_variables("Hello {name}", name="Timo")
+        "Hello Timo"
         """
         if not string:
             return string
@@ -398,7 +413,7 @@ class I18N:
         return content
 
     @staticmethod
-    def process_strings(localizations: dict) -> dict:
+    def _process_strings(localizations: dict) -> dict:
         """Process all strings and replace general variables when loading the language file.
 
         A general variable is defined in one of the "general" sections of the language files.

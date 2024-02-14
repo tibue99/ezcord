@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import random
 import re
 import traceback
 from pathlib import Path
@@ -287,6 +288,8 @@ class I18N:
             txt = current_section
             if isinstance(txt, str):
                 return txt
+            elif isinstance(txt, list):
+                return random.choice(txt)
             elif count and isinstance(txt, dict):
                 # Load pluralization if available
                 if count == 0 and "zero" in txt:

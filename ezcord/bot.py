@@ -778,7 +778,7 @@ class Bot(_main_bot):  # type: ignore
         if not DPY:
             self.load_extension("ezcord.cogs.pyc.blacklist_setup", package="ezcord")
 
-    def localize_commands(self, languages: dict[str, dict]):
+    def localize_commands(self, languages: dict[str, dict], default: str = "en-US"):
         """
         Localize commands with the given test dictionary. This should be called after the
         commands have been added to the bot, but before they are synced.
@@ -795,18 +795,24 @@ class Bot(_main_bot):  # type: ignore
             :doc:`localization example </examples/localization>`.
 
             If an ``en`` key is found, the values will be used for both ``en-GB`` and ``en-US``.
+        default:
+            The default language to use for languages that are not in the dictionary.
+            Defaults to ``en-US``.
         """
         if "en" in languages:
             en = languages.pop("en")
             languages["en-GB"] = en
             languages["en-US"] = en
 
+        if default == "en":
+            default = "en-US"
+
         for locale, localizations in languages.items():
             for cmd_name, cmd_localizations in localizations.items():
                 if cmd := discord.utils.get(
                     self._pending_application_commands, qualified_name=cmd_name
                 ):
-                    localize_command(cmd, locale, cmd_localizations)
+                    localize_command(cmd, locale, cmd_localizations, default)
 
     async def setup_hook(self):
         """This is used for Discord.py startup and should not be called manually."""

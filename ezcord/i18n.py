@@ -138,12 +138,17 @@ class I18N:
         A dictionary containing the localizations for all strings.
 
         If an ``en`` key is found, the values will be used for both ``en-GB`` and ``en-US``.
+    fallback_locale:
+        The locale to use if the user's locale is not found in the localizations.
+        Defaults to ``en-US``.
     namespace:
         The structure to load the localization keys.
     process_strings:
         Whether to replace general variables when loading the language file. Defaults to ``True``.
     prefer_user_locale:
         Whether to prefer the user's locale over the guild's locale. Defaults to ``False``.
+    disable_translations:
+        A list of translations to disable. Defaults to ``None``.
     debug:
         Whether to print debug messages. Defaults to ``True``.
 
@@ -163,7 +168,7 @@ class I18N:
         self,
         localizations: dict[str, dict],
         *,
-        fallback_locale: str = "en",
+        fallback_locale: str = "en-US",
         namespace: str = "{file_name}.{command_name}.{key}",
         process_strings: bool = True,
         prefer_user_locale: bool = False,
@@ -183,6 +188,9 @@ class I18N:
             en = localizations.pop("en")
             localizations["en-GB"] = en
             localizations["en-US"] = en
+
+        if fallback_locale == "en":
+            fallback_locale = "en-US"
 
         if process_strings:
             I18N.localizations = self.process_strings(localizations)

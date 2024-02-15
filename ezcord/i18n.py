@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Literal
 
 from .internal.dc import PYCORD, discord
-from .logs import log
 
 MESSAGE_SEND = discord.abc.Messageable.send
 MESSAGE_EDIT = discord.Message.edit
@@ -192,25 +191,19 @@ class I18N:
     fallback_locale:
         The locale to use if the user's locale is not found in the localizations.
         Defaults to ``en-US``.
-    namespace:
-        The structure to load the localization keys.
     process_strings:
         Whether to replace general variables when loading the language file. Defaults to ``True``.
     prefer_user_locale:
         Whether to prefer the user's locale over the guild's locale. Defaults to ``False``.
     disable_translations:
         A list of translations to disable. Defaults to ``None``.
-    debug:
-        Whether to print debug messages. Defaults to ``True``.
 
         The log level in :meth:`ezcord.logs.set_log` must be set to ``DEBUG`` for this to work.
     """
 
     localizations: dict[str, dict]
     fallback_locale: str
-    namespace: str
     prefer_user_locale: bool
-    debug: bool
 
     _general_values: dict = {}  # general values for the current localization
     _current_general: dict = {}  # general values for the current group
@@ -220,7 +213,6 @@ class I18N:
         localizations: dict[str, dict],
         *,
         fallback_locale: str = "en-US",
-        namespace: str = "{file_name}.{command_name}.{key}",
         process_strings: bool = True,
         prefer_user_locale: bool = False,
         disable_translations: list[
@@ -236,7 +228,6 @@ class I18N:
             ]
         ]
         | None = None,
-        debug: bool = True,
     ):
         if "en" in localizations:
             en = localizations.pop("en")
@@ -252,9 +243,7 @@ class I18N:
             I18N.localizations = localizations
 
         I18N.fallback_locale = fallback_locale
-        I18N.namespace = namespace
         I18N.prefer_user_locale = prefer_user_locale
-        I18N.debug = debug
 
         if not disable_translations:
             disable_translations = []
@@ -317,6 +306,7 @@ class I18N:
     @staticmethod
     def get_location():
         """Returns the name of the file and the method for the current interaction."""
+
         stack = traceback.extract_stack()
 
         # Ignore the following internal sources to determine the origin method
@@ -352,6 +342,7 @@ class I18N:
     @staticmethod
     def _get_text(key: str, locale: str, count: int | None = None) -> str:
         """Looks for the specified key in different locations of the language file."""
+
         file_name, method_name = I18N.get_location()
         lookups = [
             (file_name, method_name, key),
@@ -397,21 +388,28 @@ class I18N:
         """Loads an embed from the language file."""
 
         file, cmd_name = I18N.get_location()
-        try:
-            embed_dict = I18N.localizations[locale][Path(file).stem][cmd_name]["embeds"][embed.key]
-            I18N.load_lang_keys(embed_dict, locale, **variables)
 
-        except KeyError as e:
-            if I18N.debug:
-                log.debug(f"Key {e} not found when loading embed for key '{embed.key}'.")
+        lookups = [
+            (file, cmd_name, embed.key),
+            (file, cmd_name, "embeds", embed.key),
+        ]
+        localizations = I18N.localizations[locale]
 
-            return discord.Embed(description=embed.key, color=discord.Color.blurple())
+        for lookup in lookups:
+            current_section = localizations.copy()
+            for location in lookup:
+                current_section = current_section.get(location, {})
 
-        t_embed_dict = embed.to_dict()
-        for key, value in embed_dict.items():
-            t_embed_dict[key] = value
+            if current_section:
+                I18N.load_lang_keys(current_section, locale, **variables)
 
-        return discord.Embed.from_dict(t_embed_dict)
+                t_embed_dict = embed.to_dict()
+                for key, value in current_section.items():
+                    t_embed_dict[key] = value
+
+                return discord.Embed.from_dict(t_embed_dict)
+
+        return discord.Embed(description=embed.key, color=discord.Color.blurple())
 
     @staticmethod
     def load_lang_keys(

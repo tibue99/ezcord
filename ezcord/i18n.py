@@ -55,8 +55,10 @@ class TEmbed(discord.Embed):
     """
 
     def __init__(self, key: str, **kwargs):
+        variables, kwargs = _extract_parameters(discord.Embed.__init__, **kwargs)
         super().__init__(**kwargs)
         self.key = key
+        self.variables = variables
 
 
 def _extract_parameters(func, **kwargs):
@@ -77,8 +79,11 @@ def _check_embed(locale: str, count: int | None, variables: dict, **kwargs):
 
     embed = kwargs.get("embed")
     if isinstance(embed, TEmbed):
+        variables = {**variables, **embed.variables}
         embed = I18N.load_embed(embed, locale, **variables)
     if embed:
+        if "count" in variables:
+            count = variables.pop("count")
         new_embed_dict = I18N.load_lang_keys(embed.to_dict(), locale, count, **variables)
         kwargs["embed"] = discord.Embed.from_dict(new_embed_dict)
 

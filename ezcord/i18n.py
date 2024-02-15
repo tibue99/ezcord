@@ -10,8 +10,12 @@ from typing import Literal
 from .internal.dc import PYCORD, discord
 from .logs import log
 
+MESSAGE_SEND = discord.abc.Messageable.send
+MESSAGE_EDIT = discord.Message.edit
+
 INTERACTION_SEND = discord.InteractionResponse.send_message
 INTERACTION_EDIT = discord.InteractionResponse.edit_message
+INTERACTION_MODAL = discord.InteractionResponse.send_modal
 
 WEBHOOK_SEND = discord.Webhook.send
 WEBHOOK_EDIT = discord.WebhookMessage.edit
@@ -67,16 +71,6 @@ def _extract_parameters(func, **kwargs):
     return variables, kwargs
 
 
-def _ensure_interaction(interaction) -> discord.Interaction:
-    """Extracts and returns the interaction from the given object."""
-
-    if isinstance(interaction, discord.InteractionResponse):
-        return interaction._parent
-    if isinstance(interaction, discord.Interaction):
-        return interaction
-    return interaction
-
-
 def _check_embed(locale: str, count: int | None, variables: dict, **kwargs):
     """Check if the kwargs contain an embed. Returns the updated kwargs.
 
@@ -85,24 +79,47 @@ def _check_embed(locale: str, count: int | None, variables: dict, **kwargs):
     """
 
     embed = kwargs.get("embed")
-    if embed and isinstance(embed, TEmbed):
-        new_embed = I18N.load_embed(embed, locale, **variables)
-        kwargs["embed"] = new_embed
-    elif embed:
+    if isinstance(embed, TEmbed):
+        embed = I18N.load_embed(embed, locale, **variables)
+    if embed:
         new_embed_dict = I18N.load_lang_keys(embed.to_dict(), locale, count, **variables)
         kwargs["embed"] = discord.Embed.from_dict(new_embed_dict)
 
     return kwargs
 
 
+def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
+    """Load all keys inside the view from the language file."""
+
+    view = kwargs.get("view")
+    if view:
+        for child in view.children:
+            print(child)
+            if hasattr(child, "label"):
+                child.label = I18N.get_text(child.label, locale, count)
+                child.label = I18N.replace_variables(child.label, **variables)
+            if hasattr(child, "placeholder"):
+                child.placeholder = I18N.get_text(child.placeholder, locale, count)
+                child.placeholder = I18N.replace_variables(child.placeholder, **variables)
+
+            if hasattr(child, "options"):
+                for option in child.options:
+                    option.label = I18N.get_text(option.label, locale, count)
+                    option.label = I18N.replace_variables(option.label, **variables)
+                    option.description = I18N.get_text(option.description, locale, count)
+                    option.description = I18N.replace_variables(option.description, **variables)
+
+    return kwargs
+
+
 def _localize_send(send_func):
     async def wrapper(
-        self: discord.InteractionResponse, content=None, count: int | None = None, **kwargs
+        self: discord.InteractionResponse | discord.Webhook | discord.abc.Messageable,
+        content=None,
+        count: int | None = None,
+        **kwargs,
     ):
-        if isinstance(self, discord.Webhook):
-            locale = I18N.fallback_locale
-        else:
-            locale = I18N.get_locale(_ensure_interaction(self))
+        locale = I18N.get_locale(self)
         variables, kwargs = _extract_parameters(send_func, **kwargs)
 
         # Check content
@@ -110,6 +127,7 @@ def _localize_send(send_func):
         content = I18N.replace_variables(content, **variables)
 
         kwargs = _check_embed(locale, count, variables, **kwargs)
+        kwargs = _check_view(locale, count, variables, **kwargs)
 
         return await send_func(self, content, **kwargs)
 
@@ -118,9 +136,11 @@ def _localize_send(send_func):
 
 def _localize_edit(edit_func):
     async def wrapper(
-        self: discord.InteractionResponse | discord.Interaction, count: int | None = None, **kwargs
+        self: discord.InteractionResponse | discord.Interaction | discord.Message,
+        count: int | None = None,
+        **kwargs,
     ):
-        locale = I18N.get_locale(_ensure_interaction(self))
+        locale = I18N.get_locale(self)
         variables, kwargs = _extract_parameters(edit_func, **kwargs)
 
         # Check content (must be a kwarg)
@@ -131,10 +151,31 @@ def _localize_edit(edit_func):
             kwargs["content"] = new_content
 
         kwargs = _check_embed(locale, count, variables, **kwargs)
+        kwargs = _check_view(locale, count, variables, **kwargs)
 
         return await edit_func(self, **kwargs)
 
     return wrapper
+
+
+async def _localize_modal(
+    self: discord.InteractionResponse, modal: discord.ui.Modal, count: int | None = None, **kwargs
+):
+    locale = I18N.get_locale(self)
+    variables, kwargs = _extract_parameters(INTERACTION_MODAL, **kwargs)
+
+    modal.title = I18N.get_text(modal.title, locale, count)
+    modal.title = I18N.replace_variables(modal.title, **variables)
+
+    for child in modal.children:
+        child.label = I18N.get_text(child.label, locale, count)
+        child.label = I18N.replace_variables(child.label, **variables)
+
+        if hasattr(child, "placeholder"):
+            child.placeholder = I18N.get_text(child.placeholder, locale, count)
+            child.placeholder = I18N.replace_variables(child.placeholder, **variables)
+
+    return await INTERACTION_MODAL(self, modal)
 
 
 class I18N:
@@ -189,7 +230,10 @@ class I18N:
         prefer_user_locale: bool = False,
         disable_translations: list[
             Literal[
+                "send",
+                "edit",
                 "send_message",
+                "send_modal",
                 "edit_message",
                 "edit_original_response",
                 "webhook_send",
@@ -220,8 +264,15 @@ class I18N:
         if not disable_translations:
             disable_translations = []
 
+        if "send" not in disable_translations:
+            setattr(discord.abc.Messageable, "send", _localize_send(MESSAGE_SEND))
+        if "edit" not in disable_translations:
+            setattr(discord.Message, "edit", _localize_edit(MESSAGE_EDIT))
+
         if "send_message" not in disable_translations:
             setattr(discord.InteractionResponse, "send_message", _localize_send(INTERACTION_SEND))
+        if "send_modal" not in disable_translations:
+            setattr(discord.InteractionResponse, "send_modal", _localize_modal)
         if "edit_message" not in disable_translations:
             setattr(discord.InteractionResponse, "edit_message", _localize_edit(INTERACTION_EDIT))
         if "edit_original_response" not in disable_translations:
@@ -236,14 +287,33 @@ class I18N:
             setattr(discord.WebhookMessage, "edit_message", _localize_edit(WEBHOOK_EDIT))
 
     @staticmethod
-    def get_locale(interaction: discord.Interaction | discord.InteractionResponse):
-        """Get the locale from the interaction. By default, this is the guild's locale."""
-        interaction = _ensure_interaction(interaction)
+    def get_locale(
+        obj: discord.Interaction
+        | discord.InteractionResponse
+        | discord.Webhook
+        | discord.Guild
+        | discord.User
+        | discord.Member,
+    ):
+        """Get the locale from the given object. By default, this is the guild's locale."""
 
-        if interaction.guild and not I18N.prefer_user_locale:
-            locale = interaction.guild_locale
-        else:
-            locale = interaction.locale
+        interaction, locale = None, None
+        if isinstance(obj, discord.Interaction):
+            interaction = obj
+        elif isinstance(obj, discord.InteractionResponse):
+            interaction = obj._parent
+        elif isinstance(obj, discord.Webhook):
+            locale = obj.guild.preferred_locale
+        elif isinstance(obj, discord.User) or isinstance(obj, discord.Member):
+            locale = obj.locale
+        elif isinstance(obj, discord.Guild):
+            locale = obj.preferred_locale
+
+        if interaction:
+            if interaction.guild and not I18N.prefer_user_locale:
+                locale = interaction.guild_locale
+            else:
+                locale = interaction.locale
 
         if locale not in I18N.localizations:
             return I18N.fallback_locale

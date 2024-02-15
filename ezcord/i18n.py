@@ -42,10 +42,7 @@ def t(interaction: discord.Interaction, key: str, count: int | None = None, **va
         The count for pluralization. Defaults to ``None``.
     """
     locale = I18N.get_locale(interaction)
-
-    content = I18N.get_text(key, locale, count)
-    content = I18N.replace_variables(content, **variables)
-    return content
+    return I18N.load_text(key, locale, count, **variables)
 
 
 class TEmbed(discord.Embed):
@@ -94,20 +91,18 @@ def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
     view = kwargs.get("view")
     if view:
         for child in view.children:
-            print(child)
             if hasattr(child, "label"):
-                child.label = I18N.get_text(child.label, locale, count)
-                child.label = I18N.replace_variables(child.label, **variables)
+                child.label = I18N.load_text(child.label, locale, count, **variables)
+
             if hasattr(child, "placeholder"):
-                child.placeholder = I18N.get_text(child.placeholder, locale, count)
-                child.placeholder = I18N.replace_variables(child.placeholder, **variables)
+                child.placeholder = I18N.load_text(child.placeholder, locale, count, **variables)
 
             if hasattr(child, "options"):
                 for option in child.options:
-                    option.label = I18N.get_text(option.label, locale, count)
-                    option.label = I18N.replace_variables(option.label, **variables)
-                    option.description = I18N.get_text(option.description, locale, count)
-                    option.description = I18N.replace_variables(option.description, **variables)
+                    option.label = I18N.load_text(option.label, locale, count, **variables)
+                    option.description = I18N.load_text(
+                        option.description, locale, count, **variables
+                    )
 
     return kwargs
 
@@ -123,8 +118,7 @@ def _localize_send(send_func):
         variables, kwargs = _extract_parameters(send_func, **kwargs)
 
         # Check content
-        content = I18N.get_text(content, locale, count)
-        content = I18N.replace_variables(content, **variables)
+        content = I18N.load_text(content, locale, count, **variables)
 
         kwargs = _check_embed(locale, count, variables, **kwargs)
         kwargs = _check_view(locale, count, variables, **kwargs)
@@ -146,8 +140,7 @@ def _localize_edit(edit_func):
         # Check content (must be a kwarg)
         content = kwargs.get("content")
         if content:
-            new_content = I18N.get_text(content, locale, count)
-            new_content = I18N.replace_variables(new_content, **variables)
+            new_content = I18N.load_text(content, locale, count, **variables)
             kwargs["content"] = new_content
 
         kwargs = _check_embed(locale, count, variables, **kwargs)
@@ -164,16 +157,13 @@ async def _localize_modal(
     locale = I18N.get_locale(self)
     variables, kwargs = _extract_parameters(INTERACTION_MODAL, **kwargs)
 
-    modal.title = I18N.get_text(modal.title, locale, count)
-    modal.title = I18N.replace_variables(modal.title, **variables)
+    modal.title = I18N.load_text(modal.title, locale, count, **variables)
 
     for child in modal.children:
-        child.label = I18N.get_text(child.label, locale, count)
-        child.label = I18N.replace_variables(child.label, **variables)
+        child.label = I18N.load_text(child.label, locale, count, **variables)
 
         if hasattr(child, "placeholder"):
-            child.placeholder = I18N.get_text(child.placeholder, locale, count)
-            child.placeholder = I18N.replace_variables(child.placeholder, **variables)
+            child.placeholder = I18N.load_text(child.placeholder, locale, count, **variables)
 
     return await INTERACTION_MODAL(self, modal)
 
@@ -338,12 +328,12 @@ class I18N:
         return Path(file).stem, method
 
     @staticmethod
-    def replace_variables(string: str, **variables):
+    def _replace_variables(string: str, **variables):
         """Replace all given variables in the string.
 
         Example
         -------
-        >>> I18N.replace_variables("Hello {name}", name="Timo")
+        >>> I18N._replace_variables("Hello {name}", name="Timo")
         "Hello Timo"
         """
         if not string:
@@ -355,7 +345,7 @@ class I18N:
         return string
 
     @staticmethod
-    def get_text(key: str, locale: str, count: int | None = None) -> str:
+    def _get_text(key: str, locale: str, count: int | None = None) -> str:
         """Looks for the specified key in different locations of the language file."""
         file_name, method_name = I18N.get_location()
         lookups = [
@@ -389,6 +379,15 @@ class I18N:
         return key
 
     @staticmethod
+    def load_text(key: str, locale: str, count: int | None = None, **variables):
+        """A helper methods that calls :meth:`get_text` to load the specified key
+        and :meth:`replace_variables` to replace the variables.
+        """
+
+        string = I18N._get_text(key, locale, count)
+        return I18N._replace_variables(string, **variables)
+
+    @staticmethod
     def load_embed(embed: TEmbed, locale: str, **variables) -> discord.Embed:
         """Loads an embed from the language file."""
 
@@ -418,13 +417,11 @@ class I18N:
         """
 
         if isinstance(content, str):
-            content = I18N.get_text(content, locale, count)
-            return I18N.replace_variables(content, **variables)
+            return I18N.load_text(content, locale, count, **variables)
 
         for key, value in content.items():
             if isinstance(value, str):
-                value = I18N.get_text(value, locale, count)
-                content[key] = I18N.replace_variables(value, **variables)
+                content[key] = I18N.load_text(value, locale, count, **variables)
             elif isinstance(value, list):
                 items = []
                 for element in value:

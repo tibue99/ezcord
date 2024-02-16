@@ -195,6 +195,9 @@ class I18N:
         Whether to replace general variables when loading the language file. Defaults to ``True``.
     prefer_user_locale:
         Whether to prefer the user's locale over the guild's locale. Defaults to ``False``.
+    localize_numbers:
+        This sets the thousands separator to a period or comma, depending on the current locale.
+        Defaults to ``True``.
     disable_translations:
         A list of translations to disable. Defaults to ``None``.
 
@@ -204,6 +207,7 @@ class I18N:
     localizations: dict[str, dict]
     fallback_locale: str
     prefer_user_locale: bool
+    localize_numbers: bool
 
     _general_values: dict = {}  # general values for the current localization
     _current_general: dict = {}  # general values for the current group
@@ -215,6 +219,7 @@ class I18N:
         fallback_locale: str = "en-US",
         process_strings: bool = True,
         prefer_user_locale: bool = False,
+        localize_numbers: bool = True,
         disable_translations: list[
             Literal[
                 "send",
@@ -244,6 +249,7 @@ class I18N:
 
         I18N.fallback_locale = fallback_locale
         I18N.prefer_user_locale = prefer_user_locale
+        I18N.localize_numbers = localize_numbers
 
         if not disable_translations:
             disable_translations = []
@@ -323,8 +329,8 @@ class I18N:
         return Path(file).stem, method
 
     @staticmethod
-    def _replace_variables(string: str, **variables):
-        """Replace all given variables in the string.
+    def _replace_variables(string: str, locale: str, **variables):
+        """Replace all given variables in the string. Supports localized numbers.
 
         Example
         -------
@@ -335,6 +341,10 @@ class I18N:
             return string
 
         for key, value in variables.items():
+            if I18N.localize_numbers and isinstance(value, int):
+                value = f"{value:,}"
+                if locale == "de":
+                    value = value.replace(",", ".")
             string = string.replace("{" + key + "}", str(value))
 
         return string
@@ -381,7 +391,7 @@ class I18N:
         """
 
         string = I18N._get_text(key, locale, count)
-        return I18N._replace_variables(string, **variables)
+        return I18N._replace_variables(string, locale, **variables)
 
     @staticmethod
     def load_embed(embed: TEmbed, locale: str, **variables) -> discord.Embed:

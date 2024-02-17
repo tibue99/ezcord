@@ -210,6 +210,9 @@ class I18N:
         A list of translations to disable. Defaults to ``None``.
 
         The log level in :meth:`ezcord.logs.set_log` must be set to ``DEBUG`` for this to work.
+    variables:
+        Additional variables to replace in the language file. This is useful for
+        values that are the same in all languages.
     """
 
     localizations: dict[str, dict]
@@ -241,6 +244,7 @@ class I18N:
             ]
         ]
         | None = None,
+        **variables,
     ):
         if "en" in localizations:
             en = localizations.pop("en")
@@ -251,7 +255,7 @@ class I18N:
             fallback_locale = "en-US"
 
         if process_strings:
-            I18N.localizations = self._process_strings(localizations)
+            I18N.localizations = self._process_strings(localizations, **variables)
         else:
             I18N.localizations = localizations
 
@@ -482,7 +486,7 @@ class I18N:
     def _replace_general_variables(string: str) -> str:
         """Replaces global and local general variables with their values."""
 
-        def replace_global(match: re.Match):
+        def replace_local(match: re.Match):
             match = match.group().replace("{.", "").replace("}", "")
 
             if match in I18N._current_general:
@@ -493,7 +497,7 @@ class I18N:
 
             return match
 
-        def replace_local(match: re.Match) -> str:
+        def replace_global(match: re.Match) -> str:
             match = match.group().replace("{", "").replace("}", "")
             if match in I18N._general_values:
                 if type(I18N._general_values[match]) is str:
@@ -501,8 +505,8 @@ class I18N:
 
             return str(match)
 
-        string = re.sub(r"{\..*}", replace_global, string)
-        string = re.sub(r"{.*}", replace_local, string)
+        string = re.sub(r"{\..*}", replace_local, string)
+        string = re.sub(r"{.*}", replace_global, string)
         return string
 
     @staticmethod
@@ -531,7 +535,7 @@ class I18N:
         return content
 
     @staticmethod
-    def _process_strings(localizations: dict) -> dict:
+    def _process_strings(localizations: dict, **variables) -> dict:
         """Process all strings and replace general variables when loading the language file.
 
         A general variable is defined in one of the "general" sections of the language files.
@@ -539,7 +543,7 @@ class I18N:
         new_dict = {}
         for locale, values in localizations.items():
             if "general" in values:
-                I18N._general_values = values["general"]
+                I18N._general_values = {**values["general"], **variables}
 
             new_dict[locale] = I18N._replace_dict(values)
 

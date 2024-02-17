@@ -494,7 +494,7 @@ class I18N:
             return match
 
         def replace_local(match: re.Match) -> str:
-            match = match.group().replace("{general.", "").replace("}", "")
+            match = match.group().replace("{", "").replace("}", "")
             if match in I18N._general_values:
                 if type(I18N._general_values[match]) is str:
                     return I18N._general_values[match]
@@ -502,7 +502,7 @@ class I18N:
             return str(match)
 
         string = re.sub(r"{\..*}", replace_global, string)
-        string = re.sub(r"{general.*}", replace_local, string)
+        string = re.sub(r"{.*}", replace_local, string)
         return string
 
     @staticmethod
@@ -520,6 +520,11 @@ class I18N:
         for key, value in content.items():
             if isinstance(value, str):
                 content[key] = I18N._replace_general_variables(value)
+            if isinstance(value, list):
+                items = []
+                for element in value:
+                    items.append(I18N._replace_dict(element))
+                content[key] = items
             elif isinstance(value, dict):
                 content[key] = I18N._replace_dict(value)
 

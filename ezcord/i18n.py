@@ -3,7 +3,6 @@ from __future__ import annotations
 import inspect
 import random
 import re
-import traceback
 from pathlib import Path
 from typing import Literal
 
@@ -95,18 +94,23 @@ def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
 
     view = kwargs.get("view")
     if view:
+        view_name = view.__class__.__name__
         for child in view.children:
             if hasattr(child, "label"):
-                child.label = I18N.load_text(child.label, locale, count, **variables)
+                child.label = I18N.load_text(child.label, locale, count, view_name, **variables)
 
             if hasattr(child, "placeholder"):
-                child.placeholder = I18N.load_text(child.placeholder, locale, count, **variables)
+                child.placeholder = I18N.load_text(
+                    child.placeholder, locale, count, view_name, **variables
+                )
 
             if hasattr(child, "options"):
                 for option in child.options:
-                    option.label = I18N.load_text(option.label, locale, count, **variables)
+                    option.label = I18N.load_text(
+                        option.label, locale, count, view_name, **variables
+                    )
                     option.description = I18N.load_text(
-                        option.description, locale, count, **variables
+                        option.description, locale, count, view_name, **variables
                     )
 
     return kwargs
@@ -161,14 +165,17 @@ async def _localize_modal(
 ):
     locale = I18N.get_locale(self)
     variables, kwargs = _extract_parameters(INTERACTION_MODAL, **kwargs)
+    modal_name = modal.__class__.__name__
 
-    modal.title = I18N.load_text(modal.title, locale, count, **variables)
+    modal.title = I18N.load_text(modal.title, locale, count, modal_name, **variables)
 
     for child in modal.children:
-        child.label = I18N.load_text(child.label, locale, count, **variables)
+        child.label = I18N.load_text(child.label, locale, count, modal_name, **variables)
 
         if hasattr(child, "placeholder"):
-            child.placeholder = I18N.load_text(child.placeholder, locale, count, **variables)
+            child.placeholder = I18N.load_text(
+                child.placeholder, locale, count, modal_name, **variables
+            )
 
     return await INTERACTION_MODAL(self, modal)
 
@@ -314,22 +321,32 @@ class I18N:
 
     @staticmethod
     def get_location():
-        """Returns the name of the file and the method for the current interaction."""
+        """Returns the name of the file, method and class for the current interaction.
 
-        stack = traceback.extract_stack()
+        This can only get the class if a method was executed from inside the class.
+        """
+
+        inspect_stack = inspect.stack()
 
         # Ignore the following internal sources to determine the origin method
         methods = ["respond"]
         files = ["i18n", "emb", "interactions"]
 
-        file, method = None, None
-        for i in list(reversed(stack))[2:]:
-            if i.name not in methods and Path(i.filename).stem not in files:
+        file, method, class_ = None, None, None
+        for i in inspect_stack[2:]:
+            if i.function not in methods and Path(i.filename).stem not in files:
+                try:
+                    class_ = i.frame.f_locals["self"].__class__.__name__
+                except KeyError:
+                    pass  # No class found
                 file = i.filename
-                method = i.name
+                method = i.function
                 break
 
-        return Path(file).stem, method
+        if file:
+            file = Path(file).stem
+
+        return file, method, class_
 
     @staticmethod
     def _replace_variables(string: str, locale: str, **variables):
@@ -353,12 +370,14 @@ class I18N:
         return string
 
     @staticmethod
-    def _get_text(key: str, locale: str, count: int | None = None) -> str:
+    def _get_text(key: str, locale: str, count: int | None, called_class: str | None) -> str:
         """Looks for the specified key in different locations of the language file."""
 
-        file_name, method_name = I18N.get_location()
+        file_name, method_name, class_name = I18N.get_location()
         lookups = [
             (file_name, method_name, key),
+            (file_name, called_class, key),
+            (file_name, class_name, key),
             (file_name, "general", key),
             ("general", key),
         ]
@@ -388,23 +407,34 @@ class I18N:
         return key
 
     @staticmethod
-    def load_text(key: str, locale: str, count: int | None = None, **variables):
+    def load_text(
+        key: str,
+        locale: str,
+        count: int | None = None,
+        called_class: str | None = None,
+        **variables,
+    ):
         """A helper methods that calls :meth:`get_text` to load the specified key
         and :meth:`replace_variables` to replace the variables.
+
+        A class name can be given if the kwargs contain a view or modal.
+        This name will be used to load strings from the init method or from decorators, as the
+        class can only be fetched automatically if a method was executed from inside the class.
         """
 
-        string = I18N._get_text(key, locale, count)
+        string = I18N._get_text(key, locale, count, called_class)
         return I18N._replace_variables(string, locale, **variables)
 
     @staticmethod
     def load_embed(embed: TEmbed, locale: str, **variables) -> discord.Embed:
         """Loads an embed from the language file."""
 
-        file, cmd_name = I18N.get_location()
+        file_name, cmd_name, class_name = I18N.get_location()
 
         lookups = [
-            (file, cmd_name, embed.key),
-            (file, cmd_name, "embeds", embed.key),
+            (file_name, cmd_name, embed.key),
+            (file_name, cmd_name, "embeds", embed.key),
+            (file_name, class_name, embed.key),
         ]
         localizations = I18N.localizations[locale]
 

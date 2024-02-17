@@ -17,6 +17,7 @@ INTERACTION_EDIT = discord.InteractionResponse.edit_message
 INTERACTION_MODAL = discord.InteractionResponse.send_modal
 
 WEBHOOK_SEND = discord.Webhook.send
+WEBHOOK_EDIT_MESSAGE = discord.Webhook.edit_message
 WEBHOOK_EDIT = discord.WebhookMessage.edit
 
 if PYCORD:
@@ -53,7 +54,7 @@ class TEmbed(discord.Embed):
         The key of the embed in the language file.
     """
 
-    def __init__(self, key: str, **kwargs):
+    def __init__(self, key: str = "embed", **kwargs):
         variables, kwargs = _extract_parameters(discord.Embed.__init__, **kwargs)
         super().__init__(**kwargs)
         self.key = key
@@ -274,6 +275,8 @@ class I18N:
         if "webhook_send" not in disable_translations:
             setattr(discord.Webhook, "send", _localize_send(WEBHOOK_SEND))
         if "webhook_edit_message" not in disable_translations:
+            setattr(discord.Webhook, "edit_message", _localize_edit(WEBHOOK_EDIT_MESSAGE))
+        if "webhook_edit_message" not in disable_translations:
             setattr(discord.WebhookMessage, "edit_message", _localize_edit(WEBHOOK_EDIT))
 
     @staticmethod
@@ -292,7 +295,7 @@ class I18N:
             interaction = obj
         elif isinstance(obj, discord.InteractionResponse):
             interaction = obj._parent
-        elif isinstance(obj, discord.Webhook):
+        elif isinstance(obj, discord.Webhook) and obj.guild:
             locale = obj.guild.preferred_locale
         elif isinstance(obj, discord.User) or isinstance(obj, discord.Member):
             locale = obj.locale
@@ -317,7 +320,7 @@ class I18N:
 
         # Ignore the following internal sources to determine the origin method
         methods = ["respond"]
-        files = ["i18n", "emb"]
+        files = ["i18n", "emb", "interactions"]
 
         file, method = None, None
         for i in list(reversed(stack))[2:]:

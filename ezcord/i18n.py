@@ -497,9 +497,10 @@ class I18N:
 
             return match
 
-        def replace_global(match: re.Match) -> str:
-            match = match.group().replace("{", "").replace("}", "")
+        def replace_global(possible_match: re.Match) -> str:
+            match = possible_match.group()
             if match in I18N._general_values:
+                match = match.replace("{", "").replace("}", "")
                 if type(I18N._general_values[match]) is str:
                     return I18N._general_values[match]
 

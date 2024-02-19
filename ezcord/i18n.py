@@ -94,23 +94,28 @@ def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
 
     view = kwargs.get("view")
     if view:
-        view_name = view.__class__.__name__
+        class_name = view.__class__.__name__
         for child in view.children:
+            if type(child) not in [discord.ui.Select, discord.ui.Button]:
+                # if a child element of the view has its own subclass, search for this class name
+                # in the language file instead of the view name
+                class_name = child.__class__.__name__
+
             if hasattr(child, "label"):
-                child.label = I18N.load_text(child.label, locale, count, view_name, **variables)
+                child.label = I18N.load_text(child.label, locale, count, class_name, **variables)
 
             if hasattr(child, "placeholder"):
                 child.placeholder = I18N.load_text(
-                    child.placeholder, locale, count, view_name, **variables
+                    child.placeholder, locale, count, class_name, **variables
                 )
 
             if hasattr(child, "options"):
                 for option in child.options:
                     option.label = I18N.load_text(
-                        option.label, locale, count, view_name, **variables
+                        option.label, locale, count, class_name, **variables
                     )
                     option.description = I18N.load_text(
-                        option.description, locale, count, view_name, **variables
+                        option.description, locale, count, class_name, **variables
                     )
 
     return kwargs

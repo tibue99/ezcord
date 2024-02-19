@@ -59,6 +59,10 @@ class TEmbed(discord.Embed):
         self.key = key
         self.variables = variables
 
+        _, method, class_ = I18N.get_location()
+        self.method_name = method
+        self.class_name = class_
+
 
 def _extract_parameters(func, **kwargs):
     """Extract all kwargs that are not part of the function signature and returns them as
@@ -440,8 +444,14 @@ class I18N:
 
         file_name, cmd_name, class_name = I18N.get_location()
 
+        # search not only the location of the embed usage,
+        # but also the location of the embed creation
+        original_method, original_class = embed.method_name, embed.class_name
+
         lookups = [
             (file_name, cmd_name, embed.key),
+            (file_name, original_method, embed.key),
+            (file_name, original_class, embed.key),
             (file_name, cmd_name, "embeds", embed.key),
             (file_name, class_name, embed.key),
         ]

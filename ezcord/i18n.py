@@ -80,14 +80,19 @@ def _check_embed(locale: str, count: int | None, variables: dict, **kwargs):
     - Embed is a default Embed: Load all keys inside the embed from the language file
     """
 
+    add_locations: tuple = ()
     embed = kwargs.get("embed")
     if isinstance(embed, TEmbed):
         variables = {**variables, **embed.variables}
+        add_locations = (embed.method_name, embed.class_name)
         embed = I18N.load_embed(embed, locale, **variables)
+
     if embed:
         if "count" in variables:
             count = variables.pop("count")
-        new_embed_dict = I18N.load_lang_keys(embed.to_dict(), locale, count, **variables)
+        new_embed_dict = I18N.load_lang_keys(
+            embed.to_dict(), locale, count, add_locations, **variables
+        )
         kwargs["embed"] = discord.Embed.from_dict(new_embed_dict)
 
     return kwargs
@@ -390,7 +395,9 @@ class I18N:
         return string
 
     @staticmethod
-    def _get_text(key: str, locale: str, count: int | None, called_class: str | None) -> str:
+    def _get_text(
+        key: str, locale: str, count: int | None, called_class: str | None, add_locations: tuple
+    ) -> str:
         """Looks for the specified key in different locations of the language file."""
 
         file_name, method_name, class_name = I18N.get_location()
@@ -401,6 +408,9 @@ class I18N:
             (file_name, "general", key),
             ("general", key),
         ]
+        for location in add_locations:
+            lookups.append((file_name, location, key))
+
         localizations = I18N.localizations[locale]
 
         for lookup in lookups:
@@ -432,6 +442,7 @@ class I18N:
         locale: str,
         count: int | None = None,
         called_class: str | None = None,
+        add_locations: tuple = (),
         **variables,
     ):
         """A helper methods that calls :meth:`get_text` to load the specified key
@@ -440,9 +451,13 @@ class I18N:
         A class name can be given if the kwargs contain a view or modal.
         This name will be used to load strings from the init method or from decorators, as the
         class can only be fetched automatically if a method was executed from inside the class.
+
+        Additional locations can be added to the lookup by passing a tuple of strings.
+        This is used to load embed keys from the location of the embed creation,
+        instead of the location of the embed usage.
         """
 
-        string = I18N._get_text(key, locale, count, called_class)
+        string = I18N._get_text(key, locale, count, called_class, add_locations)
         return I18N._replace_variables(string, locale, **variables)
 
     @staticmethod
@@ -482,25 +497,33 @@ class I18N:
 
     @staticmethod
     def load_lang_keys(
-        content: dict | str, locale: str, count: int | None = None, **variables
+        content: dict | str,
+        locale: str,
+        count: int | None = None,
+        add_locations: tuple = (),
+        **variables,
     ) -> dict | str:
         """Iterates through the content, loads the keys from the language file
         and replaces all variables with their values.
         """
 
         if isinstance(content, str):
-            return I18N.load_text(content, locale, count, **variables)
+            return I18N.load_text(content, locale, count, add_locations=add_locations, **variables)
 
         for key, value in content.items():
             if isinstance(value, str):
-                content[key] = I18N.load_text(value, locale, count, **variables)
+                content[key] = I18N.load_text(
+                    value, locale, count, add_locations=add_locations, **variables
+                )
             elif isinstance(value, list):
                 items = []
                 for element in value:
-                    items.append(I18N.load_lang_keys(element, locale, count, **variables))
+                    items.append(
+                        I18N.load_lang_keys(element, locale, count, add_locations, **variables)
+                    )
                 content[key] = items
             elif isinstance(value, dict):
-                content[key] = I18N.load_lang_keys(value, locale, count, **variables)
+                content[key] = I18N.load_lang_keys(value, locale, count, add_locations, **variables)
 
         return content
 

@@ -15,6 +15,7 @@ from typing import Any
 
 from .errors import (
     ChannelNotFound,
+    GuildNotFound,
     InsufficientPermissions,
     InvalidLink,
     MessageNotFound,
@@ -240,7 +241,17 @@ async def get_msg(
             return None
 
     guild_id, channel_id, message_id = matches.groups()
-    guild = await obj.fetch_guild(guild_id) if isinstance(obj, discord.Bot) else obj
+    try:
+        guild = (
+            await discord.utils.get_or_fetch(obj, "guild", guild_id)
+            if isinstance(obj, discord.Bot)
+            else obj
+        )
+    except discord.NotFound:
+        if raise_error:
+            raise GuildNotFound
+        else:
+            return None
 
     try:
         channel = await discord.utils.get_or_fetch(guild, "channel", channel_id)

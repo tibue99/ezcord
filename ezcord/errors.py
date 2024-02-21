@@ -28,3 +28,19 @@ class Blacklisted(EzcordException):
 
     This error can be caught in a command error handler to send a custom response.
     """
+
+
+class MessageNotFound(EzcordException):
+    """Error raised when a message is not found in a certain channel."""
+
+
+class ChannelNotFound(EzcordException):
+    """Error raised when the given channel is not found in a certain guild."""
+
+
+class InsufficientPermissions(EzcordException):
+    """Gets raised when the bot does not have permissions to access a certain channel."""
+
+
+class InvalidLink(EzcordException):
+    """Gets raised when an invalid link has been passed."""

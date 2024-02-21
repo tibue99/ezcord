@@ -9,11 +9,18 @@ import itertools
 import json
 import os
 import random
+import re
 from pathlib import Path
 from typing import Any
 
+from .errors import (
+    ChannelNotFound,
+    InsufficientPermissions,
+    InvalidLink,
+    MessageNotFound,
+)
 from .internal import get_locale
-from .internal.dc import discord
+from .internal.dc import commands, discord
 
 
 def create_json_file(
@@ -216,3 +223,44 @@ def count_lines(
                     total_lines += 1
 
     return total_lines
+
+
+async def get_msg(
+    obj: discord.Guild | discord.Bot, message_url: str, raise_error: bool
+) -> None | discord.Message:
+    pattern = (
+        r"channels\/(\d+)\/(\d+)\/(\d+)"  # discord.com/channels/guild_id/channel_id/message_id
+    )
+    matches = re.search(pattern, message_url)
+
+    if not matches or len(matches.groups()) != 3:
+        if raise_error:
+            raise InvalidLink
+        else:
+            return None
+
+    guild_id, channel_id, message_id = matches.groups()
+    guild = await obj.fetch_guild(guild_id) if isinstance(obj, discord.Bot) else obj
+
+    try:
+        channel = await discord.utils.get_or_fetch(guild, "channel", channel_id)
+    except commands.BotMissingPermissions or commands.MissingPermissions:
+        if raise_error:
+            raise InsufficientPermissions
+        else:
+            return None
+    except discord.NotFound:
+        if raise_error:
+            raise ChannelNotFound
+        else:
+            return None
+
+    try:
+        message = await channel.fetch_message(message_id)
+    except discord.NotFound:
+        if raise_error:
+            raise MessageNotFound
+        else:
+            return None
+
+    return message

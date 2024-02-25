@@ -1,4 +1,5 @@
 import random
+from copy import copy
 from itertools import cycle
 
 from ..bot import Bot, Cog
@@ -29,7 +30,7 @@ class Activity(Cog, hidden=True):
     @tasks.loop()
     async def change_activity(self):
         """Replaces default variables and user variables in the activity name."""
-        act = next(self.activities)
+        act = copy(next(self.activities))
 
         for var, replace_value in get_bot_values(self.bot).items():
             act.name = act.name.replace("{" + var + "}", str(replace_value))

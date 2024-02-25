@@ -533,7 +533,6 @@ class I18N:
 
         def replace_local(match: re.Match):
             match = match.group().replace("{.", "").replace("}", "")
-
             if match in I18N._current_general:
                 return I18N._current_general[match]
 
@@ -544,10 +543,10 @@ class I18N:
 
         def replace_global(possible_match: re.Match) -> str:
             match = possible_match.group()
-            if match in I18N._general_values:
-                match = match.replace("{", "").replace("}", "")
-                if type(I18N._general_values[match]) is str:
-                    return I18N._general_values[match]
+            clean_match = match.replace("{", "").replace("}", "")
+            if clean_match in I18N._general_values:
+                if type(I18N._general_values[clean_match]) is str:
+                    return I18N._general_values[clean_match]
 
             return str(match)
 

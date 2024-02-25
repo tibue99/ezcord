@@ -549,8 +549,8 @@ class I18N:
 
             return str(match)
 
-        string = re.sub(r"{\..*}", replace_local, string)
-        string = re.sub(r"{.*}", replace_global, string)
+        string = re.sub(r"{\..*?}", replace_local, string)
+        string = re.sub(r"{.*?}", replace_global, string)
         return string
 
     @staticmethod
@@ -591,4 +591,5 @@ class I18N:
 
             new_dict[locale] = I18N._replace_dict(values)
 
+        print(new_dict)
         return new_dict

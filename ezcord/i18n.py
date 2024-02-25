@@ -474,7 +474,6 @@ class I18N:
             (file_name, cmd_name, embed.key),
             (file_name, original_method, embed.key),
             (file_name, original_class, embed.key),
-            (file_name, cmd_name, "embeds", embed.key),
             (file_name, class_name, embed.key),
         ]
         localizations = I18N.localizations[locale]

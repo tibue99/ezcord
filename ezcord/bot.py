@@ -549,7 +549,7 @@ class Bot(_main_bot):  # type: ignore
         timeout: int | None = None,
         ephemeral: bool = True,
         author_only: bool = True,
-        guild_only: bool = True,
+        guild_only: bool = False,
         buttons: list[discord.Button] | None = None,
         title_format: str = "{emoji} - {name}",
         description_format: str = "{description}",
@@ -591,7 +591,7 @@ class Bot(_main_bot):  # type: ignore
             Whether the help command should only be visible to the author. Defaults to ``True``.
             This only works if ``ephemeral`` is ``False``.
         guild_only:
-            Whether the help command should only be visible in guilds. Defaults to ``True``.
+            Whether the help command should only be visible in guilds. Defaults to ``False``.
         buttons:
             A list of buttons to add to the help command. Defaults to ``None``.
         title_format:

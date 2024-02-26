@@ -328,8 +328,10 @@ class I18N:
             interaction = obj._parent
         elif isinstance(obj, discord.Webhook) and obj.guild:
             locale = obj.guild.preferred_locale
-        elif isinstance(obj, discord.User) or isinstance(obj, discord.Member):
+        elif isinstance(obj, discord.User):
             locale = obj.locale
+        elif isinstance(obj, discord.Member):
+            locale = obj.guild.preferred_locale
         elif isinstance(obj, discord.Guild):
             locale = obj.preferred_locale
 

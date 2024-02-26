@@ -134,6 +134,7 @@ def _localize_send(send_func):
     async def wrapper(
         self: discord.InteractionResponse | discord.Webhook | discord.abc.Messageable,
         content=None,
+        *,
         count: int | None = None,
         **kwargs,
     ):
@@ -153,10 +154,15 @@ def _localize_send(send_func):
 
 def _localize_edit(edit_func):
     async def wrapper(
-        self: discord.InteractionResponse | discord.Interaction | discord.Message,
+        self: discord.InteractionResponse | discord.Interaction | discord.Message | discord.Webhook,
+        message_id: int | None = None,
+        *,
         count: int | None = None,
         **kwargs,
     ):
+        """The message_id is only needed for followup.edit_message, because it's a positional
+        argument in the original function.
+        """
         locale = I18N.get_locale(self)
         variables, kwargs = _extract_parameters(edit_func, **kwargs)
 
@@ -169,13 +175,20 @@ def _localize_edit(edit_func):
         kwargs = _check_embed(locale, count, variables, **kwargs)
         kwargs = _check_view(locale, count, variables, **kwargs)
 
+        if isinstance(self, discord.Webhook):
+            return await edit_func(self, message_id, **kwargs)
+
         return await edit_func(self, **kwargs)
 
     return wrapper
 
 
 async def _localize_modal(
-    self: discord.InteractionResponse, modal: discord.ui.Modal, count: int | None = None, **kwargs
+    self: discord.InteractionResponse,
+    modal: discord.ui.Modal,
+    *,
+    count: int | None = None,
+    **kwargs,
 ):
     locale = I18N.get_locale(self)
     variables, kwargs = _extract_parameters(INTERACTION_MODAL, **kwargs)

@@ -236,6 +236,8 @@ class I18N:
     ignore_discord_ids:
         Whether to not localize numbers that could be a Discord ID. Default to  ``True``.
         This only has an effect if ``localize_numbers`` is set to ``True``.
+    exclude_methods:
+        Method names to exclude from the search of keys in the language file.
     disable_translations:
         A list of translations to disable. Defaults to ``None``.
 
@@ -250,6 +252,7 @@ class I18N:
     prefer_user_locale: bool
     localize_numbers: bool
     ignore_discord_ids: bool
+    exclude_methods: list[str] | None
 
     _general_values: dict = {}  # general values for the current localization
     _current_general: dict = {}  # general values for the current group
@@ -263,6 +266,7 @@ class I18N:
         prefer_user_locale: bool = False,
         localize_numbers: bool = True,
         ignore_discord_ids: bool = True,
+        exclude_methods: list[str] | None = None,
         disable_translations: list[
             Literal[
                 "send",
@@ -295,6 +299,9 @@ class I18N:
         I18N.prefer_user_locale = prefer_user_locale
         I18N.localize_numbers = localize_numbers
         I18N.ignore_discord_ids = ignore_discord_ids
+        if not exclude_methods:
+            exclude_methods = []
+        I18N.exclude_methods = exclude_methods
 
         if not disable_translations:
             disable_translations = []
@@ -368,7 +375,7 @@ class I18N:
         inspect_stack = inspect.stack()
 
         # Ignore the following internal sources to determine the origin method
-        methods = ["respond"]
+        methods = ["respond"] + I18N.exclude_methods
         files = ["i18n", "emb", "interactions"]
 
         file, method, class_ = None, None, None

@@ -436,6 +436,8 @@ class I18N:
             txt = current_section
             if isinstance(txt, str):
                 return txt
+            elif isinstance(txt, int):
+                return str(txt)
             elif isinstance(txt, list):
                 return random.choice(txt)
             elif count and isinstance(txt, dict):

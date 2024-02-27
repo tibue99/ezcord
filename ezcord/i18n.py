@@ -4,7 +4,7 @@ import inspect
 import random
 import re
 from pathlib import Path
-from typing import Literal
+from typing import Literal, TypeAlias
 
 from .internal.dc import PYCORD, discord
 
@@ -19,6 +19,15 @@ WEBHOOK_SEND = discord.Webhook.send
 WEBHOOK_EDIT_MESSAGE = discord.Webhook.edit_message
 WEBHOOK_EDIT = discord.WebhookMessage.edit
 
+LOCALE_OBJECT: TypeAlias = (
+    discord.Interaction
+    | discord.ApplicationContext
+    | discord.InteractionResponse
+    | discord.Webhook
+    | discord.Guild
+    | discord.Member
+)
+
 if PYCORD:
     INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_response
 else:
@@ -28,7 +37,7 @@ else:
         INTERACTION_EDIT_ORIGINAL = None
 
 
-def t(interaction: discord.Interaction, key: str, count: int | None = None, **variables):
+def t(interaction: LOCALE_OBJECT, key: str, count: int | None = None, **variables):
     """Get the localized string for the given key and insert all variables.
 
     Parameters
@@ -51,6 +60,8 @@ class TEmbed(discord.Embed):
     ----------
     key:
         The key of the embed in the language file.
+    kwargs:
+        Parameters from :class:`discord.Embed` or custom variables.
     """
 
     def __init__(self, key: str = "embed", **kwargs):
@@ -136,9 +147,10 @@ def _localize_send(send_func):
         content=None,
         *,
         count: int | None = None,
+        use_locale: LOCALE_OBJECT | None = None,
         **kwargs,
     ):
-        locale = I18N.get_locale(self)
+        locale = I18N.get_locale(use_locale or self)
         variables, kwargs = _extract_parameters(send_func, **kwargs)
 
         # Check content
@@ -333,15 +345,14 @@ class I18N:
             setattr(discord.WebhookMessage, "edit_message", _localize_edit(WEBHOOK_EDIT))
 
     @staticmethod
-    def get_locale(
-        obj: discord.Interaction
-        | discord.ApplicationContext
-        | discord.InteractionResponse
-        | discord.Webhook
-        | discord.Guild
-        | discord.Member,
-    ):
-        """Get the locale from the given object. By default, this is the guild's locale."""
+    def get_locale(obj: LOCALE_OBJECT):
+        """Get the locale from the given object. By default, this is the guild's locale.
+
+        Parameters
+        ----------
+        obj:
+            The object to get the locale from.
+        """
 
         interaction, locale = None, None
         if isinstance(obj, discord.Interaction):

@@ -1,6 +1,6 @@
-Localisation
+Localization
 =======================
-A module to handle localisation for all interactions. This is currently only supported for Pycord.
+A module to handle localization for all interactions. This is currently only supported for Pycord.
 
 .. automodule:: ezcord.i18n
    :members:

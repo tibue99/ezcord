@@ -108,15 +108,11 @@ class Help(Cog, hidden=True):
 
     @slash_command(name=tr("cmd_name"), description=tr("cmd_description"))
     async def help(self, ctx):
+        interaction = ctx.interaction if PYCORD else ctx
         embed = self.bot.help.embed
         if embed is None:
             embed = discord.Embed(
                 title=tr("embed_title", i=ctx.interaction), color=discord.Color.blue()
-            )
-        else:
-            interaction = ctx.interaction if PYCORD else ctx
-            embed = replace_embed_values(
-                embed, interaction, await fill_custom_variables(self.bot.help.kwargs)
             )
 
         # check language file for embed localization
@@ -127,6 +123,10 @@ class Help(Cog, hidden=True):
             embed_overrides = {}
         for key, value in embed_overrides.items():
             setattr(embed, key, value)
+
+        embed = replace_embed_values(
+            embed, interaction, await fill_custom_variables(self.bot.help.kwargs)
+        )
 
         options = []
         commands: dict[str, dict] = {}

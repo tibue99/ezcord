@@ -335,6 +335,7 @@ class I18N:
     @staticmethod
     def get_locale(
         obj: discord.Interaction
+        | discord.ApplicationContext
         | discord.InteractionResponse
         | discord.Webhook
         | discord.Guild
@@ -348,6 +349,9 @@ class I18N:
             interaction = obj
         elif isinstance(obj, discord.InteractionResponse):
             interaction = obj._parent
+        elif isinstance(obj, discord.ApplicationContext):
+            interaction = obj.interaction
+
         elif isinstance(obj, discord.Webhook) and obj.guild:
             locale = obj.guild.preferred_locale
         elif isinstance(obj, discord.User):

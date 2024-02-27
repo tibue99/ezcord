@@ -339,7 +339,6 @@ class I18N:
         | discord.InteractionResponse
         | discord.Webhook
         | discord.Guild
-        | discord.User
         | discord.Member,
     ):
         """Get the locale from the given object. By default, this is the guild's locale."""
@@ -354,12 +353,13 @@ class I18N:
 
         elif isinstance(obj, discord.Webhook) and obj.guild:
             locale = obj.guild.preferred_locale
-        elif isinstance(obj, discord.User):
-            locale = obj.locale
         elif isinstance(obj, discord.Member):
             locale = obj.guild.preferred_locale
         elif isinstance(obj, discord.Guild):
             locale = obj.preferred_locale
+
+        elif isinstance(obj, discord.User):
+            locale = I18N.fallback_locale
 
         if interaction:
             if interaction.guild and not I18N.prefer_user_locale:

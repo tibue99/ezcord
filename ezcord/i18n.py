@@ -257,6 +257,8 @@ class I18N:
     _general_values: dict = {}  # general values for the current localization
     _current_general: dict = {}  # general values for the current group
 
+    cmd_localizations: dict[str, dict] = {}  # set through bot.localize_commands
+
     def __init__(
         self,
         localizations: dict[str, dict],
@@ -615,5 +617,4 @@ class I18N:
 
             new_dict[locale] = I18N._replace_dict(values)
 
-        print(new_dict)
         return new_dict

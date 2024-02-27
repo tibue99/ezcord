@@ -15,10 +15,12 @@ from .emb import EzContext
 from .emb import error as error_emb
 from .enums import CogLog, HelpStyle, ReadyEvent
 from .errors import ErrorMessageSent
+from .i18n import I18N
 from .internal import (
     READY_TITLE,
     EzConfig,
     get_error_text,
+    localize_cog,
     localize_command,
     print_custom_ready,
     print_ready,
@@ -778,7 +780,9 @@ class Bot(_main_bot):  # type: ignore
         if not DPY:
             self.load_extension("ezcord.cogs.pyc.blacklist_setup", package="ezcord")
 
-    def localize_commands(self, languages: dict[str, dict], default: str = "en-US"):
+    def localize_commands(
+        self, languages: dict[str, dict], default: str = "en-US", cogs: bool = True
+    ):
         """
         Localize commands with the given test dictionary. This should be called after the
         commands have been added to the bot, but before they are synced.
@@ -798,6 +802,8 @@ class Bot(_main_bot):  # type: ignore
         default:
             The default language to use for languages that are not in the dictionary.
             Defaults to ``en-US``.
+        cogs:
+            Whether to localize the cogs. Defaults to ``True``.
         """
         if "en" in languages:
             en = languages.pop("en")
@@ -807,12 +813,18 @@ class Bot(_main_bot):  # type: ignore
         if default == "en":
             default = "en-US"
 
+        I18N.cmd_localizations = languages
+
         for locale, localizations in languages.items():
             for cmd_name, cmd_localizations in localizations.items():
                 if cmd := discord.utils.get(
                     self._pending_application_commands, qualified_name=cmd_name
                 ):
                     localize_command(cmd, locale, cmd_localizations, default)
+
+            if cogs and "cogs" in localizations:
+                for cog_name, cog in self.cogs.items():
+                    localize_cog(cog_name, cog, locale, localizations["cogs"])
 
     async def setup_hook(self):
         """This is used for Discord.py startup and should not be called manually."""

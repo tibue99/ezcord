@@ -4,7 +4,7 @@ import inspect
 import random
 import re
 from pathlib import Path
-from typing import Literal, TypeAlias
+from typing import TYPE_CHECKING, Literal, Type, Union
 
 from .internal.dc import PYCORD, discord
 
@@ -19,14 +19,18 @@ WEBHOOK_SEND = discord.Webhook.send
 WEBHOOK_EDIT_MESSAGE = discord.Webhook.edit_message
 WEBHOOK_EDIT = discord.WebhookMessage.edit
 
-LOCALE_OBJECT: TypeAlias = (
-    discord.Interaction
-    | discord.ApplicationContext
-    | discord.InteractionResponse
-    | discord.Webhook
-    | discord.Guild
-    | discord.Member
-)
+if TYPE_CHECKING:
+    import discord  # type: ignore
+
+LOCALE_OBJECT = Union[
+    discord.Interaction,
+    discord.ApplicationContext,
+    discord.InteractionResponse,
+    discord.Webhook,
+    discord.Guild,
+    discord.Member,
+]
+
 
 if PYCORD:
     INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_response

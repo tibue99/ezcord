@@ -23,3 +23,10 @@ de:
       group_greet:
         name: gruppen_begrüßung
         description: Begrüßung mit einer SlashCommandGroup
+
+  cogs:
+    # Cogs names and descriptions can be localized as well
+    # This is useful for the help command
+    Miscellaneous:
+      name: Sonstiges
+      description: Sonstige Befehle

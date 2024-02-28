@@ -22,3 +22,9 @@ example_cog:
       #   general variables are inserted when the language file is loaded
       title: "{accept} the cookie?"
       description: This is an {.example} text!
+
+# You can also localize the embed for the Ezcord help command
+help:
+  embed:
+    title: Localized Help Command
+    description: This is a localized help command

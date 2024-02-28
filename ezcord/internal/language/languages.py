@@ -133,7 +133,6 @@ def localize_cog(
     """Localize a cog. This is only used for the help command."""
 
     if localized_cog := localizations.get(cog_name):
-        print(localized_cog)
         if localized_name := localized_cog.get("name"):
             if not hasattr(cog, "name_localizations"):
                 cog.name_localizations = {locale: localized_name}

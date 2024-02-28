@@ -388,6 +388,19 @@ class I18N:
         return locale
 
     @staticmethod
+    def get_clean_locale(obj: LOCALE_OBJECT):
+        """Get the clean locale from the given object. This is the locale without the region,
+        e.g. ``en`` instead of ``en-US`.
+
+        Parameters
+        ----------
+        obj:
+            The object to get the locale from.
+        """
+        locale = I18N.get_locale(obj)
+        return locale.split("-")[0]
+
+    @staticmethod
     def get_location():
         """Returns the name of the file, method and class for the current interaction.
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import inspect
 import random
 import re
+from copy import deepcopy
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Union
 
@@ -100,7 +101,7 @@ def _check_embed(locale: str, count: int | None, variables: dict, **kwargs):
     if isinstance(embed, TEmbed):
         variables = {**variables, **embed.variables}
         add_locations = (embed.method_name, embed.class_name)
-        embed = I18N.load_embed(embed, locale, **variables)
+        embed = I18N.load_embed(embed, locale)
 
     if embed:
         if "count" in variables:
@@ -506,7 +507,7 @@ class I18N:
         return I18N._replace_variables(string, locale, **variables)
 
     @staticmethod
-    def load_embed(embed: TEmbed, locale: str, **variables) -> discord.Embed:
+    def load_embed(embed: TEmbed, locale: str) -> discord.Embed:
         """Loads an embed from the language file."""
 
         file_name, cmd_name, class_name = I18N.get_location()
@@ -529,8 +530,6 @@ class I18N:
                 current_section = current_section.get(location, {})
 
             if current_section:
-                I18N.load_lang_keys(current_section, locale, **variables)
-
                 t_embed_dict = embed.to_dict()
                 for key, value in current_section.items():
                     t_embed_dict[key] = value
@@ -549,10 +548,14 @@ class I18N:
     ) -> dict | str:
         """Iterates through the content, loads the keys from the language file
         and replaces all variables with their values.
+
+        Does not modify the original content.
         """
 
         if isinstance(content, str):
             return I18N.load_text(content, locale, count, add_locations=add_locations, **variables)
+
+        content = deepcopy(content)
 
         for key, value in content.items():
             if isinstance(value, str):

@@ -1,0 +1,24 @@
+general:
+  # General values can be accessed everywhere
+  accept: Accept
+  decline: Decline
+  cookie:
+    one: Cookie
+    many: Cookies  # Specify the plural form of a word
+
+example_cog:
+  general:
+    example: example
+
+  command1:
+    welcome:
+      # Use lists to select a random message from the list
+      - Hey {user}
+      - Hi {user}
+
+    embed1:
+      # Use general variables (global or from the current cog)
+      # In comparison to dynamic variables like {user},
+      #   general variables are inserted when the language file is loaded
+      title: "{accept} the cookie?"
+      description: This is an {.example} text!

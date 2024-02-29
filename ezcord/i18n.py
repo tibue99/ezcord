@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Union
 
 from .internal.dc import PYCORD, discord
+from .logs import log
 
 MESSAGE_SEND = discord.abc.Messageable.send
 MESSAGE_EDIT = discord.Message.edit
@@ -283,6 +284,8 @@ class I18N:
         A list of translations to disable. Defaults to ``None``.
 
         The log level in :meth:`ezcord.logs.set_log` must be set to ``DEBUG`` for this to work.
+    debug:
+        Whether to send debug messages and warnings. Defaults to ``True``.
     variables:
         Additional variables to replace in the language file. This is useful for
         values that are the same in all languages.
@@ -323,6 +326,7 @@ class I18N:
             ]
         ]
         | None = None,
+        debug: bool = True,
         **variables,
     ):
         if "en" in localizations:
@@ -348,6 +352,9 @@ class I18N:
 
         if not disable_translations:
             disable_translations = []
+
+        if debug:
+            I18N.check_localizations()
 
         if "send" not in disable_translations:
             setattr(discord.abc.Messageable, "send", _localize_send(MESSAGE_SEND))
@@ -678,3 +685,30 @@ class I18N:
             new_dict[locale] = I18N._replace_dict(values)
 
         return new_dict
+
+    @staticmethod
+    def find_missing_keys(fallback: dict, current_locale: dict):
+        """Find keys and sub-keys that are missing in the current locale."""
+
+        missing_keys = []
+
+        def explore_dict(original: dict, current: dict, path: str):
+            for key, value in original.items():
+                if key not in current:
+                    missing_keys.append(f"{path}.{key}".lstrip("."))
+                elif isinstance(value, dict) and isinstance(current.get(key), dict):
+                    explore_dict(value, current[key], f"{path}.{key}")
+
+        explore_dict(fallback, current_locale, "")
+        return missing_keys
+
+    @staticmethod
+    def check_localizations():
+        """Checks if all locales have the same keys."""
+
+        for locale, values in I18N.localizations.items():
+            missing_keys = I18N.find_missing_keys(I18N.localizations[I18N.fallback_locale], values)
+            if len(missing_keys) > 0:
+                log.warn(
+                    f"Locale '{locale}' misses some keys from the fallback locale: {missing_keys}"
+                )

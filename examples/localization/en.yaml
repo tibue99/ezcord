@@ -1,10 +1,10 @@
 general:
-  # General values can be accessed everywhere
+  # General values can be accessed from anywhere
   accept: Accept
   decline: Decline
   cookie:
     one: Cookie
-    many: Cookies  # Specify the plural form of a word
+    many: Cookies  # Specify the plural form
 
 example_cog:
   general:

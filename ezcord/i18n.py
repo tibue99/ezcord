@@ -13,7 +13,6 @@ from .logs import log
 MESSAGE_SEND = discord.abc.Messageable.send
 MESSAGE_EDIT = discord.Message.edit
 
-INTERACTION_RESPOND = discord.Interaction.respond
 INTERACTION_SEND = discord.InteractionResponse.send_message
 INTERACTION_EDIT = discord.InteractionResponse.edit_message
 INTERACTION_MODAL = discord.InteractionResponse.send_modal
@@ -21,6 +20,18 @@ INTERACTION_MODAL = discord.InteractionResponse.send_modal
 WEBHOOK_SEND = discord.Webhook.send
 WEBHOOK_EDIT_MESSAGE = discord.Webhook.edit_message
 WEBHOOK_EDIT = discord.WebhookMessage.edit
+
+
+if PYCORD:
+    INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_response
+    INTERACTION_RESPOND = discord.Interaction.respond
+else:
+    INTERACTION_RESPOND = None
+    if hasattr(discord.Interaction, "edit_original_message"):
+        INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_message
+    else:
+        INTERACTION_EDIT_ORIGINAL = None
+
 
 if TYPE_CHECKING:
     import discord  # type: ignore
@@ -33,15 +44,6 @@ if TYPE_CHECKING:
         discord.Guild,
         discord.Member,
     ]
-
-
-if PYCORD:
-    INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_response
-else:
-    if hasattr(discord.Interaction, "edit_original_message"):
-        INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_message
-    else:
-        INTERACTION_EDIT_ORIGINAL = None
 
 
 def t(interaction: LOCALE_OBJECT, key: str, count: int | None = None, **variables):

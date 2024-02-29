@@ -157,7 +157,7 @@ async def _send_embed(
         )
     else:
         return await target.followup.send(
-            content=content, embed=embed, ephemeral=ephemeral, **kwargs
+            content=content, embed=embed, ephemeral=ephemeral, use_locale=target, **kwargs
         )
 
 

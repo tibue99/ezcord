@@ -12,6 +12,7 @@ from .internal.dc import PYCORD, discord
 MESSAGE_SEND = discord.abc.Messageable.send
 MESSAGE_EDIT = discord.Message.edit
 
+INTERACTION_RESPOND = discord.Interaction.respond
 INTERACTION_SEND = discord.InteractionResponse.send_message
 INTERACTION_EDIT = discord.InteractionResponse.edit_message
 INTERACTION_MODAL = discord.InteractionResponse.send_modal
@@ -148,13 +149,36 @@ def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
 
 def _localize_send(send_func):
     async def wrapper(
-        self: discord.InteractionResponse | discord.Webhook | discord.abc.Messageable,
+        self: discord.InteractionResponse
+        | discord.Webhook
+        | discord.abc.Messageable
+        | discord.Interaction,
         content=None,
         *,
         count: int | None = None,
         use_locale: LOCALE_OBJECT | None = None,
         **kwargs,
     ):
+        """Wrapper to localize the content and the embed of a message.
+
+        Parameters
+        ----------
+        self:
+            The object to send the message from.
+        content:
+            The content of the message.
+        count:
+            The count for pluralization. Defaults to ``None``.
+        use_locale:
+            Use a specific ofject to extract the locale from. This is useful for DMs
+            or followup messages. Defaults to ``None``.
+        """
+
+        if isinstance(self, discord.Interaction):
+            # This is used for cases where followup.send is executed inside of interaction.respond,
+            # because the locale can't be extracted from application webhooks
+            return await send_func(self, content, use_locale=self, **kwargs)
+
         locale = I18N.get_locale(use_locale or self)
         variables, kwargs = _extract_parameters(send_func, **kwargs)
 
@@ -344,6 +368,7 @@ class I18N:
             )
         if "webhook_send" not in disable_translations:
             setattr(discord.Webhook, "send", _localize_send(WEBHOOK_SEND))
+            setattr(discord.Interaction, "respond", _localize_send(INTERACTION_RESPOND))
         if "webhook_edit_message" not in disable_translations:
             setattr(discord.Webhook, "edit_message", _localize_edit(WEBHOOK_EDIT_MESSAGE))
         if "webhook_edit_message" not in disable_translations:

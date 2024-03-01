@@ -13,15 +13,9 @@ import re
 from pathlib import Path
 from typing import Any
 
-from .errors import (
-    ChannelNotFound,
-    GuildNotFound,
-    InsufficientPermissions,
-    InvalidLink,
-    MessageNotFound,
-)
+from .errors import ChannelNotFound, InvalidFormat, MessageNotFound, MissingPermission
 from .internal import get_locale
-from .internal.dc import commands, discord
+from .internal.dc import discord
 
 
 def create_json_file(
@@ -226,52 +220,60 @@ def count_lines(
     return total_lines
 
 
-async def get_msg(
-    obj: discord.Guild | discord.Bot, message_url: str, raise_error: bool
-) -> None | discord.Message:
-    pattern = (
-        r"channels\/(\d+)\/(\d+)\/(\d+)"  # discord.com/channels/guild_id/channel_id/message_id
-    )
+async def load_message(
+    obj: discord.Guild | discord.Bot, message_url: str, error: bool = False
+) -> discord.Message | None:
+    """Get a message from a message URL.
+
+    Parameters
+    ----------
+    obj:
+        The object to use to fetch the message.
+    message_url:
+        The URL of the message.
+    error:
+        Whether to raise an error if the message couldn't be found. If this is ``False``,
+        the function will return ``None`` if the message couldn't be found. Defaults to ``False``.
+
+    Raises
+    ------
+    InvalidFormat
+        The message URL is invalid.
+    MissingPermission
+        The bot does not have permissions to access the channel.
+    ChannelNotFound
+        The channel was not found.
+    MessageNotFound
+        The message couldn't be found in the given channel, perhaps it was deleted.
+    """
+    pattern = r"channels\/(\d+)\/(\d+)\/(\d+)"  # /channels/guild_id/channel_id/message_id
     matches = re.search(pattern, message_url)
 
     if not matches or len(matches.groups()) != 3:
-        if raise_error:
-            raise InvalidLink
-        else:
-            return None
+        if error:
+            raise InvalidFormat("The message URL is invalid.")
+        return None
 
-    guild_id, channel_id, message_id = matches.groups()
-    try:
-        guild = (
-            await discord.utils.get_or_fetch(obj, "guild", guild_id)
-            if isinstance(obj, discord.Bot)
-            else obj
-        )
-    except discord.NotFound:
-        if raise_error:
-            raise GuildNotFound
-        else:
-            return None
+    _, channel_id, message_id = matches.groups()
 
     try:
-        channel = await discord.utils.get_or_fetch(guild, "channel", channel_id)
-    except commands.BotMissingPermissions or commands.MissingPermissions:
-        if raise_error:
-            raise InsufficientPermissions
-        else:
-            return None
+        channel = await discord.utils.get_or_fetch(obj, "channel", channel_id)
+    except discord.Forbidden:
+        if error:
+            raise MissingPermission("The bot does not have permissions to access the channel.")
+        return None
     except discord.NotFound:
-        if raise_error:
-            raise ChannelNotFound
-        else:
-            return None
+        if error:
+            raise ChannelNotFound("The channel was not found.")
+        return None
 
     try:
         message = await channel.fetch_message(message_id)
     except discord.NotFound:
-        if raise_error:
-            raise MessageNotFound
-        else:
-            return None
+        if error:
+            raise MessageNotFound(
+                "The message couldn't be found in the given channel, perhaps it was deleted."
+            )
+        return None
 
     return message

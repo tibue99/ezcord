@@ -30,21 +30,17 @@ class Blacklisted(EzcordException):
     """
 
 
+class InvalidFormat(EzcordException):
+    """Raised when an invalid URL has been passed."""
+
+
 class MessageNotFound(EzcordException):
-    """Error raised when a message is not found in a certain channel."""
+    """Raised when a message is not found in a certain channel."""
 
 
 class ChannelNotFound(EzcordException):
-    """Error raised when the given channel is not found in a certain guild."""
+    """Raised when a channel is not found."""
 
 
-class GuildNotFound(EzcordException):
-    """Error raised when the given guild is not found."""
-
-
-class InsufficientPermissions(EzcordException):
-    """Gets raised when the bot does not have permissions to access a certain channel."""
-
-
-class InvalidLink(EzcordException):
-    """Gets raised when an invalid link has been passed."""
+class MissingPermission(EzcordException):
+    """Raised when the bot does not have permission to access a certain object."""

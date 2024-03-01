@@ -9,8 +9,12 @@ This is currently only available for Pycord.
 - Other strings can be localized with the :class:`~ezcord.i18n.I18N` class
 
 .. warning::
-   ``followup.send`` currently can't get the locale automatically. Use ``interaction.respond`` instead
-   or pass the interaction manually using the ``use_locale`` argument.
+   The following cases can't get the current locale automatically. You can use the ``use_locale``
+   parameter to pass an object to extract the locale automatically.
+
+   - **followup.send** - Use ``interaction.respond`` instead (or pass the interaction manually using the ``use_locale`` argument
+   - **followup.edit_message** - Pass the interaction manually using the ``use_locale`` argument
+   - **DMs** - Pass a localizable object manually using the ``use_locale`` argument
 
 Localize Commands
 -----------------
@@ -38,7 +42,7 @@ Variables can be defined in the language file with curly braces.
 .. note::
    The following **variable types** are available. You can find examples for all types below.
 
-   - **General:** Can be used anywhere in the language file or in the code
+   - **General:** Can be used anywhere in the language file and in the code
    - **General, but inside a file name key:** Can be used within this file name key by placing a dot before the variable
    - **Method specific:** These variables are specified in the code and will be replaced with the given value
 
@@ -52,7 +56,7 @@ Usage Example
 -------------
 The language file keys can be used in multiple ways.
 
-- You can use the :meth:`~ezcord.i18n.t` class to get a localized string
+- You can use the :meth:`~ezcord.i18n.t` function to get a localized string
 - You can use the :class:`~ezcord.i18n.TEmbed` class if you want to define the embed in the language file
 - You can simply use the language file keys as message content
 - You can even use language file keys directly in embeds, views and modals! Just make sure that

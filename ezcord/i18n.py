@@ -412,6 +412,9 @@ class I18N:
         elif isinstance(obj, discord.Guild):
             locale = obj.preferred_locale
 
+        elif isinstance(obj, discord.abc.Messageable) and hasattr(obj, "guild") and obj.guild:
+            locale = obj.guild.preferred_locale
+
         elif isinstance(obj, discord.User):
             locale = I18N.fallback_locale
 

@@ -46,19 +46,19 @@ if TYPE_CHECKING:
     ]
 
 
-def t(interaction: LOCALE_OBJECT, key: str, count: int | None = None, **variables):
+def t(obj: LOCALE_OBJECT, key: str, count: int | None = None, **variables):
     """Get the localized string for the given key and insert all variables.
 
     Parameters
     ----------
-    interaction:
-        The interaction to get the locale from.
+    obj:
+        The object to get the locale from.
     key:
         The key of the string in the language file.
     count:
         The count for pluralization. Defaults to ``None``.
     """
-    locale = I18N.get_locale(interaction)
+    locale = I18N.get_locale(obj)
     return I18N.load_text(key, locale, count, **variables)
 
 
@@ -202,12 +202,16 @@ def _localize_edit(edit_func):
         message_id: int | None = None,
         *,
         count: int | None = None,
+        use_locale: LOCALE_OBJECT | None = None,
         **kwargs,
     ):
         """The message_id is only needed for followup.edit_message, because it's a positional
         argument in the original function.
+
+        The parameter "use_locale" is only needed for followup.edit_message,
+        because the locale can't be extracted automatically.
         """
-        locale = I18N.get_locale(self)
+        locale = I18N.get_locale(use_locale or self)
         variables, kwargs = _extract_parameters(edit_func, **kwargs)
 
         # Check content (must be a kwarg)

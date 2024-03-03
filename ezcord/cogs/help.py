@@ -112,7 +112,7 @@ class Help(Cog, hidden=True):
         embed = self.bot.help.embed
         if embed is None:
             embed = discord.Embed(
-                title=tr("embed_title", i=ctx.interaction), color=discord.Color.blue()
+                title=tr("embed_title", use_locale=ctx.interaction), color=discord.Color.blue()
             )
 
         # check language file for embed localization
@@ -159,7 +159,7 @@ class Help(Cog, hidden=True):
 
             desc = get_cog_desc(cog, locale)
             if not desc:
-                desc = tr("default_description", name, i=ctx)
+                desc = tr("default_description", name, use_locale=ctx)
                 if not desc:
                     log.warning(
                         f"The default description for cog '{name}' is invalid. "
@@ -225,7 +225,9 @@ class Help(Cog, hidden=True):
                     embed.add_field(name=field_name, value=desc, inline=False)
 
         if len(options) == 0:
-            return await ctx.response.send_message(tr("no_commands", i=ctx), ephemeral=True)
+            return await ctx.response.send_message(
+                tr("no_commands", use_locale=ctx), ephemeral=True
+            )
         if len(options) > 25 or len(embed.fields) > 25:
             log.error(
                 f"Help command category limit reached. Only 25 out of {len(options)} are shown."
@@ -253,7 +255,7 @@ class CategorySelect(discord.ui.Select):
         super().__init__(
             min_values=1,
             max_values=1,
-            placeholder=tr("placeholder", i=interaction),
+            placeholder=tr("placeholder", use_locale=interaction),
             options=options,
         )
         self.bot = bot
@@ -280,7 +282,7 @@ class CategorySelect(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         if self.bot.help.author_only and interaction.user != self.member:
-            return await emb.error(interaction, tr("wrong_user", i=interaction))
+            return await emb.error(interaction, tr("wrong_user", use_locale=interaction))
 
         locale = I18N.get_locale(interaction)
         title = self.values[0]
@@ -349,7 +351,7 @@ class CategorySelect(discord.ui.Select):
                     break
 
         if len(commands) == 0:
-            embed.description = tr("no_commands", i=interaction)
+            embed.description = tr("no_commands", use_locale=interaction)
 
         view = CategoryView(self.options, self.bot, self.member, self.commands, interaction)
         for button in self.bot.help.buttons:

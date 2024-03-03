@@ -4,11 +4,15 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from ..internal.dc import discord
+from ..i18n import I18N
 from ..logs import log
 from .config import EzConfig
 from .language.languages import load_lang
+
+if TYPE_CHECKING:
+    from ..i18n import LOCALE_OBJECT
 
 
 def plural_de(amount: int, word: str, relative: bool = True) -> str:
@@ -113,7 +117,11 @@ def plural_fr(amount: int, word: str) -> str:
 
 
 def tp(
-    key: str, amount: int, *args: str, relative: bool = True, i: discord.Interaction | None = None
+    key: str,
+    amount: int,
+    *args: str,
+    relative: bool = True,
+    use_locale: LOCALE_OBJECT | None = None,
 ) -> str:
     """Load a string in the selected language and pluralize it.
 
@@ -127,11 +135,11 @@ def tp(
         The arguments to format the string with.
     relative:
         Whether to use relative time. Defaults to ``True``.
-    i:
-        The interaction to get the language from. Defaults to ``None``.
+    use_locale:
+        The object to get the locale from. Defaults to ``None``.
     """
-    word = tr(key, *args, i=i)
-    locale = get_locale(i)
+    word = tr(key, *args, use_locale=use_locale)
+    locale = get_locale(use_locale)
 
     if locale == "de":
         return plural_de(amount, word, relative)
@@ -143,20 +151,21 @@ def tp(
         return plural_en(amount, word)
 
 
-def get_locale(interaction: discord.Interaction | None) -> str:
-    if not interaction and EzConfig.lang == "auto":
-        return EzConfig.default_lang
-
-    if interaction and EzConfig.lang == "auto":
-        locale = interaction.guild_locale if interaction.guild_locale else interaction.locale
-        locale = locale.split("-")[0]
+def get_locale(obj) -> str:
+    if EzConfig.lang == "auto":
+        if obj:
+            try:
+                return I18N.get_clean_locale(obj)
+            except AttributeError:
+                # I18N not set up
+                return EzConfig.default_lang
+        else:
+            return EzConfig.default_lang
     else:
-        locale = EzConfig.lang
-
-    return locale
+        return EzConfig.lang
 
 
-def tr(key: str, *args: str, i: discord.Interaction | None = None) -> str:
+def tr(key: str, *args: str, use_locale: LOCALE_OBJECT | None = None) -> str:
     """Load a string in the selected language.
 
     Parameters
@@ -165,8 +174,8 @@ def tr(key: str, *args: str, i: discord.Interaction | None = None) -> str:
         The text to load.
     *args:
         The arguments to format the string with.
-    i:
-        The interaction to get the language from. Defaults to ``None``.
+    use_locale:
+        The object to get the language from. Defaults to ``None``.
     """
     n = 1
     origin_file = Path(inspect.stack()[n].filename).stem
@@ -176,7 +185,7 @@ def tr(key: str, *args: str, i: discord.Interaction | None = None) -> str:
         origin_file = Path(inspect.stack()[n].filename).stem
 
     lang = EzConfig.lang
-    locale = get_locale(i)
+    locale = get_locale(use_locale)
 
     try:
         lang_dict = load_lang(locale)

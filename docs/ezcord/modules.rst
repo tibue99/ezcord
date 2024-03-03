@@ -15,3 +15,4 @@ Here is an overview of all features.
    sql
    errors
    blacklist
+   i18n

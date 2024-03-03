@@ -30,6 +30,7 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING
 
+from .i18n import t
 from .internal import load_embed, replace_dict, save_embeds
 from .internal.dc import PYCORD, discord
 
@@ -156,7 +157,7 @@ async def _send_embed(
         )
     else:
         return await target.followup.send(
-            content=content, embed=embed, ephemeral=ephemeral, **kwargs
+            content=content, embed=embed, ephemeral=ephemeral, use_locale=target, **kwargs
         )
 
 
@@ -333,3 +334,6 @@ class EzContext(_ctx_type):  # type: ignore
 
     async def info(self, msg: str, **kwargs):
         return await info(self, msg, **kwargs)
+
+    def t(self, key: str, count: int | None = None, **kwargs):
+        return t(self.interaction, key, count, **kwargs)

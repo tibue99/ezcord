@@ -15,13 +15,16 @@ from .emb import EzContext
 from .emb import error as error_emb
 from .enums import CogLog, HelpStyle, ReadyEvent
 from .errors import ErrorMessageSent
+from .i18n import I18N
 from .internal import (
     READY_TITLE,
     EzConfig,
     get_error_text,
+    localize_cog,
+    localize_command,
     print_custom_ready,
     print_ready,
-    t,
+    tr,
 )
 from .internal.config import Blacklist
 from .internal.dc import DPY, PYCORD, CogMeta, bridge, checks, commands, discord
@@ -435,24 +438,24 @@ class Bot(_main_bot):  # type: ignore
             or type(error) is commands.CheckFailure
         ):
             if self.error_handler:
-                await error_emb(ctx, t("no_user_perms", i=ctx))
+                await error_emb(ctx, tr("no_user_perms", use_locale=ctx))
             return
 
         if isinstance(error, commands.CommandOnCooldown):
             if self.error_handler:
                 seconds = round(ctx.command.get_cooldown_retry_after(ctx))
-                cooldown_txt = t("cooldown", dc_timestamp(seconds), i=ctx)
-                await error_emb(ctx, cooldown_txt, title=t("cooldown_title", i=ctx))
+                cooldown_txt = tr("cooldown", dc_timestamp(seconds), use_locale=ctx)
+                await error_emb(ctx, cooldown_txt, title=tr("cooldown_title", use_locale=ctx))
 
         elif isinstance(error, checks.BotMissingPermissions):
             if self.error_handler:
                 perms = "\n".join(error.missing_permissions)
-                perm_txt = f"{t('no_perms', i=ctx)} ```\n{perms}```"
-                await error_emb(ctx, perm_txt, title=t("no_perms_title", i=ctx))
+                perm_txt = f"{tr('no_perms', use_locale=ctx)} ```\n{perms}```"
+                await error_emb(ctx, perm_txt, title=tr("no_perms_title", use_locale=ctx))
 
         elif isinstance(error, commands.NotOwner):
             if self.error_handler:
-                await error_emb(ctx, t("no_user_perms", i=ctx))
+                await error_emb(ctx, tr("no_user_perms", use_locale=ctx))
 
         else:
             if "original" in error.__dict__ and not self.full_error_traceback:
@@ -463,9 +466,9 @@ class Bot(_main_bot):  # type: ignore
                 error_msg = f"{error}"
 
             if self.error_handler:
-                error_txt = f"{t('error', f'```{error_msg}```', i=ctx)}"
+                error_txt = f"{tr('error', f'```{error_msg}```', use_locale=ctx)}"
                 try:
-                    await error_emb(ctx, error_txt, title=t("error_title", i=ctx))
+                    await error_emb(ctx, error_txt, title=tr("error_title", use_locale=ctx))
                 except discord.HTTPException as e:
                     # ignore invalid interaction error, probably took too long to respond
                     if e.code != 10062:
@@ -776,6 +779,52 @@ class Bot(_main_bot):  # type: ignore
         self.enabled_extensions.append("blacklist")
         if not DPY:
             self.load_extension("ezcord.cogs.pyc.blacklist_setup", package="ezcord")
+
+    def localize_commands(
+        self, languages: dict[str, dict], default: str = "en-US", cogs: bool = True
+    ):
+        """
+        Localize commands with the given test dictionary. This should be called after the
+        commands have been added to the bot, but before they are synced.
+
+        A list of available languages is available here:
+        https://discord.com/developers/docs/reference#locales
+
+        This is currently only supported for Pycord.
+
+        Parameters
+        ----------
+        languages:
+            A dictionary with command localizations. An example can be found in the
+            :doc:`localization example </examples/localization>`.
+
+            If an ``en`` key is found, the values will be used for both ``en-GB`` and ``en-US``.
+        default:
+            The default language to use for languages that are not in the dictionary.
+            Defaults to ``en-US``.
+        cogs:
+            Whether to localize the cogs. Defaults to ``True``.
+        """
+        if "en" in languages:
+            en = languages.pop("en")
+            languages["en-GB"] = en
+            languages["en-US"] = en
+
+        if default == "en":
+            default = "en-US"
+
+        I18N.cmd_localizations = languages
+
+        for locale, localizations in languages.items():
+            for cmd_name, cmd_localizations in localizations.items():
+                if cmd := discord.utils.get(
+                    self._pending_application_commands, qualified_name=cmd_name
+                ):
+                    localize_command(cmd, locale, cmd_localizations, default)
+
+            if cogs and "cogs" in localizations:
+                for cog_name, cog in self.cogs.items():
+                    localize_cog(cog_name, cog, locale, localizations["cogs"])
 
     async def setup_hook(self):
         """This is used for Discord.py startup and should not be called manually."""

@@ -8,7 +8,8 @@ from .. import emb
 from ..bot import Bot, Cog
 from ..components import View
 from ..enums import HelpStyle
-from ..internal import fill_custom_variables, replace_embed_values, t
+from ..i18n import I18N
+from ..internal import fill_custom_variables, replace_embed_values, tr
 from ..internal.dc import PYCORD, discord, slash_command
 from ..logs import log
 
@@ -22,10 +23,25 @@ def get_emoji(cog: Cog) -> str:
     return emoji
 
 
-def get_group(cog: Cog) -> str | None:
+def get_group(cog: Cog, cog_name: str, locale: str) -> tuple[str | None, str]:
+    group = None
     if hasattr(cog, "group") and cog.group:
-        return cog.group
-    return None
+        group = cog.group
+
+    name = group if group else cog_name
+
+    localized_name = None
+    if hasattr(cog, "name_localizations"):
+        localized_name = cog.name_localizations.get(locale, cog_name)
+
+    try:
+        # if the command has a group, the localized name will be loaded from the group cog instead
+        localized_name = I18N.cmd_localizations[locale]["cogs"][name]["name"]
+    except (KeyError, AttributeError):
+        pass
+
+    name = localized_name or name
+    return group, name
 
 
 def replace_placeholders(s: str, **kwargs: str):
@@ -34,6 +50,18 @@ def replace_placeholders(s: str, **kwargs: str):
             continue
         s = s.replace(f"{{{key}}}", value)
     return s
+
+
+def get_cmd_desc(command, locale: str):
+    if command.description_localizations is not discord.MISSING:
+        return command.description_localizations.get(locale, command.description)
+    return command.description
+
+
+def get_cog_desc(cog, locale: str) -> str | None:
+    if hasattr(cog, "description_localizations"):
+        return cog.description_localizations.get(locale, cog.description)
+    return None
 
 
 def get_perm_parent(cmd: discord.SlashCommand) -> discord.SlashCommandGroup | None:
@@ -78,18 +106,30 @@ class Help(Cog, hidden=True):
         super().__init__(bot)
         self.help.guild_only = bot.help.guild_only
 
-    @slash_command(name=t("cmd_name"), description=t("cmd_description"))
+    @slash_command(name=tr("cmd_name"), description=tr("cmd_description"))
     async def help(self, ctx):
+        interaction = ctx.interaction if PYCORD else ctx
         embed = self.bot.help.embed
         if embed is None:
             embed = discord.Embed(
-                title=t("embed_title", i=ctx.interaction), color=discord.Color.blue()
+                title=tr("embed_title", use_locale=ctx.interaction), color=discord.Color.blue()
             )
-        else:
-            interaction = ctx.interaction if PYCORD else ctx
-            embed = replace_embed_values(
-                embed, interaction, await fill_custom_variables(self.bot.help.kwargs)
-            )
+
+        # check language file for embed localization
+        locale = I18N.get_locale(ctx)
+        try:
+            embed_overrides = I18N.localizations[locale]["help"]["embed"]
+        except (KeyError, AttributeError):
+            # KeyError: language file for this locale does not have a help/embed section
+            # AttributeError: I18N class is not in use
+            embed_overrides = {}
+
+        for key, value in embed_overrides.items():
+            setattr(embed, key, value)
+
+        embed = replace_embed_values(
+            embed, interaction, await fill_custom_variables(self.bot.help.kwargs)
+        )
 
         options = []
         commands: dict[str, dict] = {}
@@ -97,9 +137,7 @@ class Help(Cog, hidden=True):
             if hasattr(cog, "hidden") and cog.hidden:
                 continue
 
-            group = get_group(cog)
-            name = group if group else name
-            name = name.title()
+            group, name = get_group(cog, name, locale)
 
             if len(name) == 0:
                 log.warning(
@@ -122,16 +160,17 @@ class Help(Cog, hidden=True):
             emoji = get_emoji(cog)
             commands[name]["emoji"] = emoji
 
-            desc = cog.description
-            if not cog.description:
-                desc = t("default_description", name, i=ctx)
+            desc = get_cog_desc(cog, locale)
+            if not desc:
+                desc = tr("default_description", name, use_locale=ctx)
                 if not desc:
                     log.warning(
                         f"The default description for cog '{name}' is invalid. "
                         f"This can be changed in the language file."
                     )
 
-            commands[name]["description"] = desc
+            if "description" not in commands[name]:
+                commands[name]["description"] = desc
 
             field_name = replace_placeholders(self.bot.help.title, name=name, emoji=emoji)
             desc = replace_placeholders(
@@ -189,7 +228,9 @@ class Help(Cog, hidden=True):
                     embed.add_field(name=field_name, value=desc, inline=False)
 
         if len(options) == 0:
-            return await ctx.response.send_message(t("no_commands", i=ctx), ephemeral=True)
+            return await ctx.response.send_message(
+                tr("no_commands", use_locale=ctx), ephemeral=True
+            )
         if len(options) > 25 or len(embed.fields) > 25:
             log.error(
                 f"Help command category limit reached. Only 25 out of {len(options)} are shown."
@@ -215,13 +256,16 @@ class CategorySelect(discord.ui.Select):
         interaction,
     ):
         super().__init__(
-            min_values=1, max_values=1, placeholder=t("placeholder", i=interaction), options=options
+            min_values=1,
+            max_values=1,
+            placeholder=tr("placeholder", use_locale=interaction),
+            options=options,
         )
         self.bot = bot
         self.member = member
         self.commands = commands
 
-    def get_mention(self, cmd) -> str:
+    def get_mention(self, cmd, locale: str) -> str:
         """This is only needed for Discord.py."""
         if self.bot.all_dpy_commands:
             for c in self.bot.all_dpy_commands:
@@ -229,7 +273,11 @@ class CategorySelect(discord.ui.Select):
                     cmd = c
                     break
 
-        default = f"**/{cmd.qualified_name}**"
+        if cmd.name_localizations is not discord.MISSING:
+            default = cmd.name_localizations.get(locale, f"**/{cmd.qualified_name}**")
+        else:
+            default = f"**/{cmd.qualified_name}**"
+
         try:
             return cmd.mention or default
         except AttributeError:
@@ -237,10 +285,11 @@ class CategorySelect(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         if self.bot.help.author_only and interaction.user != self.member:
-            return await emb.error(interaction, t("wrong_user", i=interaction))
+            return await emb.error(interaction, tr("wrong_user", use_locale=interaction))
 
-        cmds = self.commands[self.values[0]]
-        title = self.values[0].title()
+        locale = I18N.get_locale(interaction)
+        title = self.values[0]
+        cmds = self.commands[title]
         emoji = cmds["emoji"]
 
         embed = self.bot.help.embed
@@ -273,16 +322,16 @@ class CategorySelect(discord.ui.Select):
         if style == HelpStyle.embed_fields:
             for command in commands:
                 embed.add_field(
-                    name=f"**{self.get_mention(command)}**",
-                    value=f"`{command.description}`",
+                    name=f"**{self.get_mention(command, locale)}**",
+                    value=f"`{get_cmd_desc(command, locale)}`",
                     inline=False,
                 )
 
         elif style == HelpStyle.codeblocks or style == HelpStyle.codeblocks_inline:
             for command in commands:
                 embed.add_field(
-                    name=f"**{self.get_mention(command)}**",
-                    value=f"```{command.description}```",
+                    name=f"**{self.get_mention(command, locale)}**",
+                    value=f"```{get_cmd_desc(command, locale)}```",
                     inline=style == HelpStyle.codeblocks_inline,
                 )
 
@@ -290,9 +339,7 @@ class CategorySelect(discord.ui.Select):
             embed.description = desc + "\n"
             for command in commands:
                 if len(embed.description) <= 3500:
-                    embed.description += (
-                        f"**{self.get_mention(command)}**\n{command.description}\n\n"
-                    )
+                    embed.description += f"**{self.get_mention(command, locale)}**\n{get_cmd_desc(command, locale)}\n\n"
                 else:
                     log.error("Help embed length limit reached. Some commands are not shown.")
                     break
@@ -301,13 +348,13 @@ class CategorySelect(discord.ui.Select):
             embed.description = desc
             for command in commands:
                 if len(embed.description) <= 3500:
-                    embed.description += f"### {self.get_mention(command)}\n{command.description}\n"
+                    embed.description += f"### {self.get_mention(command, locale)}\n{get_cmd_desc(command, locale)}\n"
                 else:
                     log.error("Help embed length limit reached. Some commands are not shown.")
                     break
 
         if len(commands) == 0:
-            embed.description = t("no_commands", i=interaction)
+            embed.description = tr("no_commands", use_locale=interaction)
 
         view = CategoryView(self.options, self.bot, self.member, self.commands, interaction)
         for button in self.bot.help.buttons:

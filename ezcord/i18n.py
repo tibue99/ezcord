@@ -299,7 +299,7 @@ class I18N:
 
     localizations: dict[str, dict]
     fallback_locale: str
-    prefer_user_locale: bool
+    prefer_user_locale: bool = False
     localize_numbers: bool
     ignore_discord_ids: bool
     exclude_methods: list[str] | None
@@ -388,8 +388,8 @@ class I18N:
             setattr(discord.WebhookMessage, "edit_message", _localize_edit(WEBHOOK_EDIT))
 
     @staticmethod
-    def get_locale(obj: LOCALE_OBJECT):
-        """Get the locale from the given object. By default, this is the guild's locale.
+    def extract_object_locale(obj: LOCALE_OBJECT):
+        """Extracts the interaction and the locale from the given object.
 
         Parameters
         ----------
@@ -418,15 +418,30 @@ class I18N:
         elif isinstance(obj, discord.User):
             locale = I18N.fallback_locale
 
+        return interaction, locale
+
+    @staticmethod
+    def get_locale(obj: LOCALE_OBJECT):
+        """Get the locale from the given object. By default, this is the guild's locale.
+
+        Parameters
+        ----------
+        obj:
+            The object to get the locale from.
+        """
+        interaction, locale = I18N.extract_object_locale(obj)
         if interaction:
             if interaction.guild and not I18N.prefer_user_locale:
                 locale = interaction.guild_locale
             else:
                 locale = interaction.locale
 
-        if locale not in I18N.localizations:
-            return I18N.fallback_locale
-        return locale
+        if hasattr(I18N, "localizations"):
+            if locale not in I18N.localizations:
+                return I18N.fallback_locale
+            return locale
+        else:
+            return locale  # I18N class is not in use
 
     @staticmethod
     def get_clean_locale(obj: LOCALE_OBJECT):

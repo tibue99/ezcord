@@ -23,7 +23,7 @@ class EzConfig:
     BLACKLIST_COMMANDS = Literal["add", "remove", "show", "owner", "server", "show_servers"]
 
     lang: str = "en"
-    default_lang: str = "de"
+    default_lang: str = "en"
     embed_templates: dict = {}
 
     # Blacklist

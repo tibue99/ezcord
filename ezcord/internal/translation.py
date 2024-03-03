@@ -154,11 +154,7 @@ def tp(
 def get_locale(obj) -> str:
     if EzConfig.lang == "auto":
         if obj:
-            try:
-                return I18N.get_clean_locale(obj)
-            except AttributeError:
-                # I18N not set up
-                return EzConfig.default_lang
+            return I18N.get_clean_locale(obj)
         else:
             return EzConfig.default_lang
     else:

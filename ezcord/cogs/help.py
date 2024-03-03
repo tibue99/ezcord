@@ -37,7 +37,7 @@ def get_group(cog: Cog, cog_name: str, locale: str) -> tuple[str | None, str]:
     try:
         # if the command has a group, the localized name will be loaded from the group cog instead
         localized_name = I18N.cmd_localizations[locale]["cogs"][name]["name"]
-    except KeyError:
+    except (KeyError, AttributeError):
         pass
 
     name = localized_name or name
@@ -119,8 +119,11 @@ class Help(Cog, hidden=True):
         locale = I18N.get_locale(ctx)
         try:
             embed_overrides = I18N.localizations[locale]["help"]["embed"]
-        except KeyError:
+        except (KeyError, AttributeError):
+            # KeyError: language file for this locale does not have a help/embed section
+            # AttributeError: I18N class is not in use
             embed_overrides = {}
+
         for key, value in embed_overrides.items():
             setattr(embed, key, value)
 

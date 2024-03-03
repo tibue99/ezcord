@@ -1,10 +1,29 @@
+class FakeDiscord:
+    """A fake class that is used when EzCord is used without a supported Discord library."""
+
+    DiscordException = Exception
+    CogMeta = type
+
+    def __getattr__(self, name):
+        if name in ("Embed", "View", "Modal", "ApplicationContext", "Interaction", "Bot", "Cog"):
+            return object
+
+        return FakeDiscord()
+
+    def __call__(self, *args, **kwargs):
+        pass
+
+
 try:
     from .dc_imports import discord
-except ImportError:
-    raise ModuleNotFoundError("No discord library found. Please install a supported library.")
 
-commands = __import__(f"{discord.lib}.ext.commands", fromlist=[""])
-tasks = __import__(f"{discord.lib}.ext.tasks", fromlist=[""])
+    commands = __import__(f"{discord.lib}.ext.commands", fromlist=[""])
+    tasks = __import__(f"{discord.lib}.ext.tasks", fromlist=[""])
+
+except ImportError:
+    # EzCord is used without a supported Discord library
+    discord = commands = FakeDiscord()  # type: ignore
+    tasks, checks = None, commands  # type: ignore
 
 
 if discord.__title__ == "pycord":

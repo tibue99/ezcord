@@ -9,12 +9,14 @@ from typing import Callable
 from ..internal.dc import discord
 from .config import EzConfig
 
-_TEMPLATES: dict[str, discord.Embed] = {
-    "success_embed": discord.Embed(color=discord.Color.green()),
-    "error_embed": discord.Embed(color=discord.Color.red()),
-    "warn_embed": discord.Embed(color=discord.Color.gold()),
-    "info_embed": discord.Embed(color=discord.Color.blue()),
-}
+
+def _get_templates() -> dict[str, discord.Embed]:
+    return {
+        "success_embed": discord.Embed(color=discord.Color.green()),
+        "error_embed": discord.Embed(color=discord.Color.red()),
+        "warn_embed": discord.Embed(color=discord.Color.gold()),
+        "info_embed": discord.Embed(color=discord.Color.blue()),
+    }
 
 
 def save_embeds(**kwargs: discord.Embed | str):
@@ -23,11 +25,11 @@ def save_embeds(**kwargs: discord.Embed | str):
     If one of the default values is not included, a default template will be saved.
     """
     embeds = {}
-    overrides = _TEMPLATES if len(kwargs) == 0 else kwargs
+    overrides = _get_templates() if len(kwargs) == 0 else kwargs
 
     for name, embed in overrides.items():
         if embed is None:
-            embeds[name] = _TEMPLATES[name].to_dict()
+            embeds[name] = _get_templates()[name].to_dict()
         elif isinstance(embed, str):
             embeds[name] = embed
         else:
@@ -51,7 +53,7 @@ def load_embed(name: str) -> discord.Embed | str:
     try:
         return discord.Embed.from_dict(embeds[name])
     except KeyError:
-        if name in _TEMPLATES.keys():
+        if name in _get_templates().keys():
             save_embeds()
             return load_embed()
         else:

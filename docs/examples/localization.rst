@@ -36,6 +36,7 @@ Create a language file (in this case ``en.yaml``) with the following structure:
 - Create a key for every file name
 - Inside the file name keys, you can create a key for every method name where you need to localize strings.
   You can use the class name as well, that's useful for Views or Modals.
+- Now you can create a key-value pair for every string that you want to localize.
 
 Variables can be defined in the language file with curly braces.
 
@@ -59,7 +60,7 @@ The language file keys can be used in multiple ways.
 - You can use the :meth:`~ezcord.i18n.t` function to get a localized string
 - You can use the :class:`~ezcord.i18n.TEmbed` class if you want to define the embed in the language file
 - You can simply use the language file keys as message content
-- You can even use language file keys directly in embeds, views and modals! Just make sure that
+- You can even use language file keys directly in embeds, views and modals. Just make sure that
   the key is in the language file matches the current method or class name.
 
 Variables can be passed directly to all send/edit methods like ``ctx.respond`` like in the example below.

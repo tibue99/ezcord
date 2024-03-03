@@ -360,7 +360,7 @@ class I18N:
             disable_translations = []
 
         if debug:
-            I18N.check_localizations()
+            I18N._check_localizations()
 
         if "send" not in disable_translations:
             setattr(discord.abc.Messageable, "send", _localize_send(MESSAGE_SEND))
@@ -388,8 +388,8 @@ class I18N:
             setattr(discord.WebhookMessage, "edit_message", _localize_edit(WEBHOOK_EDIT))
 
     @staticmethod
-    def extract_object_locale(obj: LOCALE_OBJECT):
-        """Extracts the interaction and the locale from the given object.
+    def get_locale(obj: LOCALE_OBJECT):
+        """Get the locale from the given object. By default, this is the guild's locale.
 
         Parameters
         ----------
@@ -418,18 +418,6 @@ class I18N:
         elif isinstance(obj, discord.User):
             locale = I18N.fallback_locale
 
-        return interaction, locale
-
-    @staticmethod
-    def get_locale(obj: LOCALE_OBJECT):
-        """Get the locale from the given object. By default, this is the guild's locale.
-
-        Parameters
-        ----------
-        obj:
-            The object to get the locale from.
-        """
-        interaction, locale = I18N.extract_object_locale(obj)
         if interaction:
             if interaction.guild and not I18N.prefer_user_locale:
                 locale = interaction.guild_locale
@@ -446,7 +434,7 @@ class I18N:
     @staticmethod
     def get_clean_locale(obj: LOCALE_OBJECT):
         """Get the clean locale from the given object. This is the locale without the region,
-        e.g. ``en`` instead of ``en-US`.
+        e.g. ``en`` instead of ``en-US``.
 
         Parameters
         ----------
@@ -711,7 +699,7 @@ class I18N:
         return new_dict
 
     @staticmethod
-    def find_missing_keys(fallback: dict, current_locale: dict):
+    def _find_missing_keys(fallback: dict, current_locale: dict):
         """Find keys and sub-keys that are missing in the current locale."""
 
         missing_keys = []
@@ -727,11 +715,11 @@ class I18N:
         return missing_keys
 
     @staticmethod
-    def check_localizations():
+    def _check_localizations():
         """Checks if all locales have the same keys."""
 
         for locale, values in I18N.localizations.items():
-            missing_keys = I18N.find_missing_keys(I18N.localizations[I18N.fallback_locale], values)
+            missing_keys = I18N._find_missing_keys(I18N.localizations[I18N.fallback_locale], values)
             if len(missing_keys) > 0:
                 log.warn(
                     f"Locale '{locale}' misses some keys from the fallback locale: {missing_keys}"

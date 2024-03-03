@@ -1,3 +1,8 @@
+class NoDiscordLibFound:
+    def __init__(self, *args, **kwargs):
+        raise ModuleNotFoundError("No discord library found. Please install a supported library.")
+
+
 class FakeDiscord:
     """A fake class that is used when EzCord is used without a supported Discord library."""
 
@@ -6,7 +11,7 @@ class FakeDiscord:
 
     def __getattr__(self, name):
         if name in ("Embed", "View", "Modal", "ApplicationContext", "Interaction", "Bot", "Cog"):
-            return object
+            return NoDiscordLibFound
 
         return FakeDiscord()
 

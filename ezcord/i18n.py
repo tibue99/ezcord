@@ -576,6 +576,9 @@ class I18N:
         instead of the location of the embed usage.
         """
 
+        if key is None:
+            return None
+
         string = I18N._get_text(key, locale, count, called_class, add_locations)
         return I18N._replace_variables(string, locale, **variables)
 

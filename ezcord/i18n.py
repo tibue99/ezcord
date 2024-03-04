@@ -515,7 +515,7 @@ class I18N:
         """Looks for the specified key in different locations of the language file."""
 
         file_name, method_name, class_name = I18N.get_location()
-        lookups = [
+        lookups: list[list | tuple] = [
             (file_name, method_name, key),
             (file_name, called_class, key),
             (file_name, class_name, key),
@@ -524,6 +524,9 @@ class I18N:
         ]
         for location in add_locations:
             lookups.append((file_name, location, key))
+        if "." in key:
+            lookups.append([file_name] + key.split("."))
+            lookups.append(key.split("."))
 
         localizations = I18N.localizations[locale]
 
@@ -586,12 +589,16 @@ class I18N:
         # but also the location of the embed creation
         original_method, original_class = embed.method_name, embed.class_name
 
-        lookups = [
+        lookups: list[list | tuple] = [
             (file_name, cmd_name, embed.key),
             (file_name, original_method, embed.key),
             (file_name, original_class, embed.key),
             (file_name, class_name, embed.key),
         ]
+        if "." in embed.key:
+            lookups.append([file_name] + embed.key.split("."))
+            lookups.append(embed.key.split("."))
+
         localizations = I18N.localizations[locale]
 
         for lookup in lookups:

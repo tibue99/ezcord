@@ -5,7 +5,7 @@ import random
 import re
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Union
+from typing import TYPE_CHECKING, Literal, Union, overload
 
 from .internal.dc import PYCORD, discord
 from .logs import log
@@ -388,7 +388,17 @@ class I18N:
             setattr(discord.WebhookMessage, "edit_message", _localize_edit(WEBHOOK_EDIT))
 
     @staticmethod
-    def get_locale(obj: LOCALE_OBJECT):
+    @overload
+    def get_locale(obj: str) -> str:
+        ...
+
+    @staticmethod
+    @overload
+    def get_locale(obj: LOCALE_OBJECT) -> str:
+        ...
+
+    @staticmethod
+    def get_locale(obj):
         """Get the locale from the given object. By default, this is the guild's locale.
 
         Parameters
@@ -396,6 +406,9 @@ class I18N:
         obj:
             The object to get the locale from.
         """
+
+        if isinstance(obj, str):
+            return obj
 
         interaction, locale = None, None
         if isinstance(obj, discord.Interaction):
@@ -502,7 +515,7 @@ class I18N:
         """Looks for the specified key in different locations of the language file."""
 
         file_name, method_name, class_name = I18N.get_location()
-        lookups = [
+        lookups: list[list | tuple] = [
             (file_name, method_name, key),
             (file_name, called_class, key),
             (file_name, class_name, key),
@@ -511,6 +524,9 @@ class I18N:
         ]
         for location in add_locations:
             lookups.append((file_name, location, key))
+        if "." in key:
+            lookups.append([file_name] + key.split("."))
+            lookups.append(key.split("."))
 
         localizations = I18N.localizations[locale]
 
@@ -573,12 +589,16 @@ class I18N:
         # but also the location of the embed creation
         original_method, original_class = embed.method_name, embed.class_name
 
-        lookups = [
+        lookups: list[list | tuple] = [
             (file_name, cmd_name, embed.key),
             (file_name, original_method, embed.key),
             (file_name, original_class, embed.key),
             (file_name, class_name, embed.key),
         ]
+        if "." in embed.key:
+            lookups.append([file_name] + embed.key.split("."))
+            lookups.append(embed.key.split("."))
+
         localizations = I18N.localizations[locale]
 
         for lookup in lookups:

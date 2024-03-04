@@ -5,7 +5,7 @@ import random
 import re
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Union
+from typing import TYPE_CHECKING, Literal, Union, overload
 
 from .internal.dc import PYCORD, discord
 from .logs import log
@@ -388,7 +388,17 @@ class I18N:
             setattr(discord.WebhookMessage, "edit_message", _localize_edit(WEBHOOK_EDIT))
 
     @staticmethod
-    def get_locale(obj: LOCALE_OBJECT):
+    @overload
+    def get_locale(obj: str) -> str:
+        ...
+
+    @staticmethod
+    @overload
+    def get_locale(obj: LOCALE_OBJECT) -> str:
+        ...
+
+    @staticmethod
+    def get_locale(obj):
         """Get the locale from the given object. By default, this is the guild's locale.
 
         Parameters
@@ -396,6 +406,9 @@ class I18N:
         obj:
             The object to get the locale from.
         """
+
+        if isinstance(obj, str):
+            return obj
 
         interaction, locale = None, None
         if isinstance(obj, discord.Interaction):

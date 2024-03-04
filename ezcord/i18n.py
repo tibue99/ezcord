@@ -425,7 +425,11 @@ class I18N:
         elif isinstance(obj, discord.Guild):
             locale = obj.preferred_locale
 
-        elif isinstance(obj, discord.abc.Messageable) and hasattr(obj, "guild") and obj.guild:
+        elif (
+            isinstance(obj, discord.abc.Messageable | discord.Message)
+            and hasattr(obj, "guild")
+            and obj.guild
+        ):
             locale = obj.guild.preferred_locale
 
         elif isinstance(obj, discord.User):
@@ -542,7 +546,7 @@ class I18N:
                 return str(txt)
             elif isinstance(txt, list):
                 return random.choice(txt)
-            elif count and isinstance(txt, dict):
+            elif count is not None and isinstance(txt, dict):
                 # Load pluralization if available
                 if count == 0 and "zero" in txt:
                     return txt["zero"]

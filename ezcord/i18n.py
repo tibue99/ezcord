@@ -408,6 +408,8 @@ class I18N:
         """
 
         if isinstance(obj, str):
+            if hasattr(I18N, "localizations") and obj not in I18N.localizations:
+                return I18N.fallback_locale
             return obj
 
         interaction, locale = None, None
@@ -445,8 +447,8 @@ class I18N:
             if locale not in I18N.localizations:
                 return I18N.fallback_locale
             return locale
-        else:
-            return locale  # I18N class is not in use
+
+        return locale  # I18N class is not in use
 
     @staticmethod
     def get_clean_locale(obj: LOCALE_OBJECT):

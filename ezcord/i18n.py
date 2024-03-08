@@ -24,7 +24,11 @@ WEBHOOK_EDIT = discord.WebhookMessage.edit
 
 if PYCORD:
     INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_response
-    INTERACTION_RESPOND = discord.Interaction.respond
+    if hasattr(discord.Interaction, "respond"):
+        # older py-cord versions might not have this method
+        INTERACTION_RESPOND = discord.Interaction.respond
+    else:
+        INTERACTION_RESPOND = None
 else:
     INTERACTION_RESPOND = None
     if hasattr(discord.Interaction, "edit_original_message"):

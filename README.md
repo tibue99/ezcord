@@ -20,6 +20,10 @@ and [Pycord](https://github.com/Pycord-Development/pycord) with some utility fun
 - Error webhook reports
 - Custom logging
 
+### 📚 i18n
+- Slash command translation (groups, options, choices)
+- Translate messages, embeds, views, modals and more
+
 ### ⚙️ Extensions
 - **Help command** - Automatically generate a help command for your bot
 - **Status changer** - Change the bot's status in an interval

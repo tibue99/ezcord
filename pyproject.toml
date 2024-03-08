@@ -29,7 +29,6 @@ version = {attr = "ezcord.__version__"}
 
 [tool.setuptools.dynamic.optional-dependencies]
 docs = {file = "docs/requirements.txt"}
-dev = {file = "dev-requirements.txt"}
 
 [project.urls]
 GitHub = "https://github.com/tibue99/ezcord"

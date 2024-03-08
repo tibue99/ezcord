@@ -5,7 +5,7 @@ import random
 import re
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Union
+from typing import TYPE_CHECKING, Literal, Union, overload
 
 from .internal.dc import PYCORD, discord
 from .logs import log
@@ -388,7 +388,17 @@ class I18N:
             setattr(discord.WebhookMessage, "edit_message", _localize_edit(WEBHOOK_EDIT))
 
     @staticmethod
-    def get_locale(obj: LOCALE_OBJECT):
+    @overload
+    def get_locale(obj: str) -> str:
+        ...
+
+    @staticmethod
+    @overload
+    def get_locale(obj: LOCALE_OBJECT) -> str:
+        ...
+
+    @staticmethod
+    def get_locale(obj):
         """Get the locale from the given object. By default, this is the guild's locale.
 
         Parameters
@@ -396,6 +406,11 @@ class I18N:
         obj:
             The object to get the locale from.
         """
+
+        if isinstance(obj, str):
+            if hasattr(I18N, "localizations") and obj not in I18N.localizations:
+                return I18N.fallback_locale
+            return obj
 
         interaction, locale = None, None
         if isinstance(obj, discord.Interaction):
@@ -412,7 +427,11 @@ class I18N:
         elif isinstance(obj, discord.Guild):
             locale = obj.preferred_locale
 
-        elif isinstance(obj, discord.abc.Messageable) and hasattr(obj, "guild") and obj.guild:
+        elif (
+            isinstance(obj, discord.abc.Messageable | discord.Message)
+            and hasattr(obj, "guild")
+            and obj.guild
+        ):
             locale = obj.guild.preferred_locale
 
         elif isinstance(obj, discord.User):
@@ -428,8 +447,8 @@ class I18N:
             if locale not in I18N.localizations:
                 return I18N.fallback_locale
             return locale
-        else:
-            return locale  # I18N class is not in use
+
+        return locale  # I18N class is not in use
 
     @staticmethod
     def get_clean_locale(obj: LOCALE_OBJECT):
@@ -502,7 +521,7 @@ class I18N:
         """Looks for the specified key in different locations of the language file."""
 
         file_name, method_name, class_name = I18N.get_location()
-        lookups = [
+        lookups: list[list | tuple] = [
             (file_name, method_name, key),
             (file_name, called_class, key),
             (file_name, class_name, key),
@@ -511,6 +530,9 @@ class I18N:
         ]
         for location in add_locations:
             lookups.append((file_name, location, key))
+        if "." in key:
+            lookups.append([file_name] + key.split("."))
+            lookups.append(key.split("."))
 
         localizations = I18N.localizations[locale]
 
@@ -526,7 +548,7 @@ class I18N:
                 return str(txt)
             elif isinstance(txt, list):
                 return random.choice(txt)
-            elif count and isinstance(txt, dict):
+            elif count is not None and isinstance(txt, dict):
                 # Load pluralization if available
                 if count == 0 and "zero" in txt:
                     return txt["zero"]
@@ -560,6 +582,9 @@ class I18N:
         instead of the location of the embed usage.
         """
 
+        if key is None:
+            return None
+
         string = I18N._get_text(key, locale, count, called_class, add_locations)
         return I18N._replace_variables(string, locale, **variables)
 
@@ -573,12 +598,16 @@ class I18N:
         # but also the location of the embed creation
         original_method, original_class = embed.method_name, embed.class_name
 
-        lookups = [
+        lookups: list[list | tuple] = [
             (file_name, cmd_name, embed.key),
             (file_name, original_method, embed.key),
             (file_name, original_class, embed.key),
             (file_name, class_name, embed.key),
         ]
+        if "." in embed.key:
+            lookups.append([file_name] + embed.key.split("."))
+            lookups.append(embed.key.split("."))
+
         localizations = I18N.localizations[locale]
 
         for lookup in lookups:

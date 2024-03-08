@@ -97,9 +97,4 @@ if __name__ == "__main__":
 ```
 
 ## Contributing
-I am always happy to receive contributions. Here is how to do it:
-1. Fork this repository
-2. Make changes
-3. Create a pull request
-
-You can also [create an issue](https://github.com/tibue99/ezcord/issues/new) if you find any bugs.
+You are welcome to contribute to this repository! Please refer to the full [contribution guide](https://ezcord.readthedocs.io/en/latest/pages/contributing.html).

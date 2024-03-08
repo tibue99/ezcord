@@ -8,6 +8,7 @@ This is the documentation for **EzCord**, an easy-to-use extension for Discord.p
    :caption: Contents
 
    pages/getting_started
+   pages/contributing
    examples/examples
    ezcord/modules
 

@@ -30,7 +30,7 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING
 
-from .i18n import t
+from .i18n import I18N, t
 from .internal import load_embed, replace_dict, save_embeds
 from .internal.dc import PYCORD, discord
 
@@ -156,9 +156,14 @@ async def _send_embed(
             content=content, embed=embed, ephemeral=ephemeral, **kwargs
         )
     else:
-        return await target.followup.send(
-            content=content, embed=embed, ephemeral=ephemeral, use_locale=target, **kwargs
-        )
+        if I18N.initialized:
+            return await target.followup.send(
+                content=content, embed=embed, ephemeral=ephemeral, use_locale=target, **kwargs
+            )
+        else:
+            return await target.followup.send(
+                content=content, embed=embed, ephemeral=ephemeral, **kwargs
+            )
 
 
 def _insert_info(

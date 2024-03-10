@@ -312,6 +312,7 @@ class I18N:
     _current_general: dict = {}  # general values for the current group
 
     cmd_localizations: dict[str, dict] = {}  # set through bot.localize_commands
+    initialized: bool = False
 
     def __init__(
         self,
@@ -339,6 +340,7 @@ class I18N:
         debug: bool = True,
         **variables,
     ):
+        I18N.initialized = True
         if "en" in localizations:
             en = localizations.pop("en")
             localizations["en-GB"] = en

@@ -255,6 +255,8 @@ async def _localize_modal(
             child.placeholder = I18N.load_text(
                 child.placeholder, locale, count, modal_name, **variables
             )
+        if hasattr(child, "value"):
+            child.value = I18N.load_text(child.value, locale, count, modal_name, **variables)
 
     return await INTERACTION_MODAL(self, modal)
 

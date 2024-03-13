@@ -122,6 +122,32 @@ def _check_embed(locale: str, count: int | None, variables: dict, **kwargs):
     return kwargs
 
 
+def _check_embeds(locale: str, count: int | None, variables: dict, **kwargs):
+    """Check if the kwargs contain an embed list. Returns the updated kwargs."""
+
+    add_locations: tuple = ()
+    embeds = kwargs.get("embeds")
+    if not embeds:
+        return kwargs
+
+    new_embeds = []
+    for embed in embeds:
+        if isinstance(embed, TEmbed):
+            variables = {**variables, **embed.variables}
+            add_locations = (embed.method_name, embed.class_name)
+            embed = I18N.load_embed(embed, locale)
+
+        if "count" in variables:
+            count = variables.pop("count")
+        new_embed_dict = I18N.load_lang_keys(
+            embed.to_dict(), locale, count, add_locations, **variables
+        )
+        new_embeds.append(discord.Embed.from_dict(new_embed_dict))
+
+    kwargs["embeds"] = new_embeds
+    return kwargs
+
+
 def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
     """Load all keys inside the view from the language file."""
 
@@ -193,6 +219,7 @@ def _localize_send(send_func):
         content = I18N.load_text(content, locale, count, **variables)
 
         kwargs = _check_embed(locale, count, variables, **kwargs)
+        kwargs = _check_embeds(locale, count, variables, **kwargs)
         kwargs = _check_view(locale, count, variables, **kwargs)
 
         return await send_func(self, content, **kwargs)
@@ -225,6 +252,7 @@ def _localize_edit(edit_func):
             kwargs["content"] = new_content
 
         kwargs = _check_embed(locale, count, variables, **kwargs)
+        kwargs = _check_embeds(locale, count, variables, **kwargs)
         kwargs = _check_view(locale, count, variables, **kwargs)
 
         if isinstance(self, discord.Webhook):

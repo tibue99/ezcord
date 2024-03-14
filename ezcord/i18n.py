@@ -203,14 +203,14 @@ def _localize_send(send_func):
         count:
             The count for pluralization. Defaults to ``None``.
         use_locale:
-            Use a specific ofject to extract the locale from. This is useful for DMs
+            Use a specific object to extract the locale from. This is useful for DMs
             or followup messages. Defaults to ``None``.
         """
 
         if isinstance(self, discord.Interaction):
             # This is used for cases where followup.send is executed inside of interaction.respond,
             # because the locale can't be extracted from application webhooks
-            return await send_func(self, content, use_locale=self, **kwargs)
+            return await send_func(self, content, count=count, use_locale=self, **kwargs)
 
         locale = I18N.get_locale(use_locale or self)
         variables, kwargs = _extract_parameters(send_func, **kwargs)
@@ -758,6 +758,8 @@ class I18N:
         for locale, values in localizations.items():
             if "general" in values:
                 I18N._general_values = {**values["general"], **variables}
+            else:
+                I18N._general_values = variables
 
             new_dict[locale] = I18N._replace_dict(values)
 

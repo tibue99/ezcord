@@ -182,10 +182,12 @@ def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
 
 def _localize_send(send_func):
     async def wrapper(
-        self: discord.InteractionResponse
-        | discord.Webhook
-        | discord.abc.Messageable
-        | discord.Interaction,
+        self: (
+            discord.InteractionResponse
+            | discord.Webhook
+            | discord.abc.Messageable
+            | discord.Interaction
+        ),
         content=None,
         *,
         count: int | None = None,
@@ -354,19 +356,21 @@ class I18N:
         localize_numbers: bool = True,
         ignore_discord_ids: bool = True,
         exclude_methods: list[str] | None = None,
-        disable_translations: list[
-            Literal[
-                "send",
-                "edit",
-                "send_message",
-                "send_modal",
-                "edit_message",
-                "edit_original_response",
-                "webhook_send",
-                "webhook_edit_message",
+        disable_translations: (
+            list[
+                Literal[
+                    "send",
+                    "edit",
+                    "send_message",
+                    "send_modal",
+                    "edit_message",
+                    "edit_original_response",
+                    "webhook_send",
+                    "webhook_edit_message",
+                ]
             ]
-        ]
-        | None = None,
+            | None
+        ) = None,
         debug: bool = True,
         **variables,
     ):
@@ -425,13 +429,11 @@ class I18N:
 
     @staticmethod
     @overload
-    def get_locale(obj: str) -> str:
-        ...
+    def get_locale(obj: str) -> str: ...
 
     @staticmethod
     @overload
-    def get_locale(obj: LOCALE_OBJECT) -> str:
-        ...
+    def get_locale(obj: LOCALE_OBJECT) -> str: ...
 
     @staticmethod
     def get_locale(obj):

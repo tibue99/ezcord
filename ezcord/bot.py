@@ -553,6 +553,8 @@ class Bot(_main_bot):  # type: ignore
         ephemeral: bool = True,
         author_only: bool = True,
         guild_only: bool = False,
+        contexts: set[discord.InteractionContextType] | None = None,
+        integration_types: set[discord.IntegrationType] | None = None,
         buttons: list[discord.Button] | None = None,
         title_format: str = "{emoji} - {name}",
         description_format: str = "{description}",
@@ -595,6 +597,10 @@ class Bot(_main_bot):  # type: ignore
             This only works if ``ephemeral`` is ``False``.
         guild_only:
             Whether the help command should only be visible in guilds. Defaults to ``False``.
+        contexts:
+            A list of interaction contexts to show the help command in. Defaults to ``None``.
+        integration_types:
+            A list of integration types to show the help command in. Defaults to ``None``.
         buttons:
             A list of buttons to add to the help command. Defaults to ``None``.
         title_format:
@@ -624,6 +630,8 @@ class Bot(_main_bot):  # type: ignore
             ephemeral,
             author_only,
             guild_only,
+            contexts,
+            integration_types,
             buttons,
             title_format,
             description_format,
@@ -971,6 +979,8 @@ class _CustomHelp:
     ephemeral: bool
     author_only: bool
     guild_only: bool
+    contexts: set[discord.InteractionContextType] | None
+    integration_types: set[discord.IntegrationType] | None
     buttons: list[discord.Button]
     title: str
     description: str

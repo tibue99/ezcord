@@ -4,7 +4,7 @@ import re
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Literal
 
-from .errors import ConvertTimeError
+from .errors import ConvertTimeError, DurationError
 from .internal import tp
 from .internal.dc import discord
 
@@ -152,6 +152,8 @@ def convert_to_seconds(
     ------
     :exc:`ConvertTimeError`
          No valid number was found, or ``default_unit`` is ``None`` while no valid unit was found.
+    :exc:`DurationError`
+        The duration is too long.
 
     Example
     -------
@@ -202,4 +204,9 @@ def convert_to_seconds(
         found_units["days"] = found_units["months"] * 30
         del found_units["months"]
 
-    return int(timedelta(**found_units).total_seconds())
+    try:
+        return int(timedelta(**found_units).total_seconds())
+    except OverflowError:
+        if error:
+            raise DurationError(f"Duration '{string}' is too long.")
+        return 0

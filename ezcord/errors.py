@@ -23,6 +23,10 @@ class ConvertTimeError(EzcordException):
     """Raised when a time conversion fails."""
 
 
+class DurationError(ConvertTimeError):
+    """Raised when a given duration is too long."""
+
+
 class Blacklisted(EzcordException):
     """Can be raised when a blacklisted user tries to use a command.
 

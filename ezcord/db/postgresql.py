@@ -151,7 +151,7 @@ class PGHandler:
         if not self.connection:
             await db.close()
 
-    async def one(self, sql: str, *args, fill: bool = False, **kwargs):
+    async def one(self, sql: str, *args, **kwargs) -> asyncpg.Record | None:
         """Returns one result row. If no row is found, ``None`` is returned.
 
         If the query returns only one column, the value of that column is returned.
@@ -162,9 +162,6 @@ class PGHandler:
             The SQL query to execute.
         *args:
             Arguments for the query.
-        fill:
-            Whether to return ``None`` for all selected values if no row is found.
-            Defaults to ``False``.
         **kwargs:
             Keyword arguments for the connection.
 
@@ -173,23 +170,12 @@ class PGHandler:
         The result row or ``None``. A result row is either a tuple or a single value.
         """
         args = self._process_args(args)
-        db = await self._connect(**kwargs)
-        try:
-            async with db.execute(sql, args) as cursor:
-                result = await cursor.fetchone()
-        except Exception as e:
-            await self._close(db)
-            raise e
+        con = await self._connect(**kwargs)
 
-        await self._close(db)
+        result = await con.fetchrow(sql, *args)
 
-        if result is None:
-            if fill:
-                return (None,) * len(cursor.description)
-            return None
-
-        if len(result) == 1:
-            return result[0]
+        # if len(result) == 1:
+        #     return result[0]
 
         return result
 
@@ -212,18 +198,12 @@ class PGHandler:
         A list of result rows. A result row is either a tuple or a single value.
         """
         args = self._process_args(args)
-        db = await self._connect(**kwargs)
-        try:
-            async with db.execute(sql, args) as cursor:
-                result = await cursor.fetchall()
-        except Exception as e:
-            # await self._close(db)
-            raise e
+        con = await self._connect(**kwargs)
 
-        # await self._close(db)
+        result = await con.fetch(sql, *args)
 
-        if len(result) == 0 or len(result[0]) == 1:
-            return [row[0] for row in result]
+        # if len(result) == 0 or len(result[0]) == 1:
+        #     return [row[0] for row in result]
 
         return result
 
@@ -240,14 +220,8 @@ class PGHandler:
             Keyword arguments for the connection.
         """
         args = self._process_args(args)
-        db = await self._connect(**kwargs)
-        try:
-            cursor = await db.execute(sql, args)
-        except Exception as e:
-            await self._close(db)
-            raise e
-        await self._close(db)
-        return cursor
+        con = await self._connect(**kwargs)
+        return await con.execute(sql, *args)
 
     async def execute(self, sql: str, *args, **kwargs) -> str:
         """Alias for :meth:`exec`."""
@@ -265,11 +239,5 @@ class PGHandler:
         **kwargs:
             Keyword arguments for the connection.
         """
-        db = await self._connect(**kwargs)
-        try:
-            cursor = await db.executemany(sql, args)
-        except Exception as e:
-            await self._close(db)
-            raise e
-        await self._close(db)
-        return cursor
+        con = await self._connect(**kwargs)
+        return await con.executemany(sql, args)

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from copy import deepcopy
 from typing import Any
 
 import asyncpg
@@ -35,6 +34,7 @@ class PGHandler:
         Keyword arguments for :func:`asyncpg.connect`.
     """
 
+    pool: asyncpg.Pool | None = None
     _auto_setup: list[PGHandler] = []
 
     def __init__(
@@ -82,42 +82,26 @@ class PGHandler:
 
         return args
 
-    def start(self, **kwargs) -> PGHandler:
-        """Opens a new connection with the current DB settings. Additional settings can
-        be provided as keyword arguments.
-
-        This should be used as an asynchronous context manager. The connection will commit
-        automatically after exiting the context manager.
-
-        Parameters
-        ----------
-        **kwargs:
-            Additional keyword arguments for :func:`asyncpg.connect`.
-
-        Example
-        -------
-        .. code-block:: python3
-
-            class VipDB(DBHandler):
-                def __init__(self):
-                    super().__init__("ezcord.db")
-
-                async def setup(self):
-                    async with self.start() as db:
-                        await db.exec(
-                            "CREATE TABLE IF NOT EXISTS vip (id INTEGER PRIMARY KEY, name TEXT)"
-                        )
-                        await db.exec("INSERT INTO vip (name) VALUES (?)", "Timo")
+    async def _check_pool(self, **kwargs) -> asyncpg.Pool:
+        """Create a new connection pool. If the class instance has an active connection,
+        that connection will be returned instead.
         """
-        cls = deepcopy(self)
-        cls.kwargs = {**self.kwargs, **kwargs}
 
-        return cls
+        if self.pool is not None:
+            return self.pool
 
-    async def connect(self, **kwargs) -> PGHandler:
-        """Alias for :meth:`start`."""
+        con_args = {**kwargs, **self.kwargs}
+        self.pool = await asyncpg.create_pool(
+            host=self.host,
+            port=self.port,
+            database=self.dbname,
+            user=self.user,
+            password=self.password,
+            command_timeout=30,
+            **con_args,
+        )
 
-        return self.start(**kwargs)
+        return self.pool
 
     async def _connect(self, **kwargs) -> asyncpg.Connection:
         """Connect to a database. If the class instance has an active connection,
@@ -170,9 +154,10 @@ class PGHandler:
         The result row or ``None``. A result row is either a tuple or a single value.
         """
         args = self._process_args(args)
-        con = await self._connect(**kwargs)
+        pool = await self._check_pool(**kwargs)
 
-        result = await con.fetchrow(sql, *args)
+        async with pool.acquire() as con:
+            result = await con.fetchrow(sql, *args)
 
         # if len(result) == 1:
         #     return result[0]
@@ -198,9 +183,10 @@ class PGHandler:
         A list of result rows. A result row is either a tuple or a single value.
         """
         args = self._process_args(args)
-        con = await self._connect(**kwargs)
+        pool = await self._check_pool(**kwargs)
 
-        result = await con.fetch(sql, *args)
+        async with pool.acquire() as con:
+            result = await con.fetch(sql, *args)
 
         # if len(result) == 0 or len(result[0]) == 1:
         #     return [row[0] for row in result]
@@ -220,8 +206,10 @@ class PGHandler:
             Keyword arguments for the connection.
         """
         args = self._process_args(args)
-        con = await self._connect(**kwargs)
-        return await con.execute(sql, *args)
+        pool = await self._check_pool(**kwargs)
+
+        async with pool.acquire() as con:
+            return await con.execute(sql, *args)
 
     async def execute(self, sql: str, *args, **kwargs) -> str:
         """Alias for :meth:`exec`."""
@@ -239,5 +227,7 @@ class PGHandler:
         **kwargs:
             Keyword arguments for the connection.
         """
-        con = await self._connect(**kwargs)
-        return await con.executemany(sql, args)
+        pool = await self._check_pool(**kwargs)
+
+        async with pool.acquire() as con:
+            return await con.executemany(sql, args)

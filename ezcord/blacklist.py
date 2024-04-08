@@ -9,8 +9,8 @@ However, if you want to manage the blacklist in your own code, you can use these
 
 from __future__ import annotations
 
-from .db.sqlite import DBHandler
 from .internal import EzConfig
+from .sql import DBHandler
 
 
 class _BanDB(DBHandler):

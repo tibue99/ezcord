@@ -5,6 +5,7 @@ Here is an overview of all features.
 .. toctree::
    :maxdepth: 4
 
+   db/db
    bot
    embed
    utils
@@ -12,7 +13,6 @@ Here is an overview of all features.
    logs
    enums
    components
-   sql
    errors
    blacklist
    i18n

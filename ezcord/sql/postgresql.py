@@ -6,19 +6,31 @@ from typing import Any
 import asyncpg
 
 
+def _process_args(args) -> tuple:
+    """If SQL query parameters are passed as a tuple instead of single values,
+    the tuple will be unpacked.
+    """
+
+    if len(args) == 1 and isinstance(args, tuple):
+        if isinstance(args[0], tuple):
+            args = args[0]
+
+    return args
+
+
 class EzConnection(asyncpg.Connection):
     """A subclass of :class:`asyncpg.Connection` that adds aliases
     to be compatible with the sqlite handler.
     """
 
     async def one(self, sql: str, *args, **kwargs) -> asyncpg.Record | None:
-        return await super().fetchrow(sql, *args, **kwargs)
+        return await super().fetchrow(sql, *_process_args(args), **kwargs)
 
     async def all(self, sql: str, *args, **kwargs) -> list:
-        return await super().fetch(sql, *args, **kwargs)
+        return await super().fetch(sql, *_process_args(args), **kwargs)
 
     async def exec(self, sql: str, *args, **kwargs) -> str:
-        return await super().execute(sql, *args, **kwargs)
+        return await super().execute(sql, *_process_args(args), **kwargs)
 
 
 class PGHandler:
@@ -71,17 +83,6 @@ class PGHandler:
         if auto_setup and self not in self._auto_setup:
             PGHandler._auto_setup.append(self)
 
-    def _process_args(self, args) -> tuple:
-        """If SQL query parameters are passed as a tuple instead of single values,
-        the tuple will be unpacked.
-        """
-
-        if len(args) == 1 and isinstance(args, tuple):
-            if isinstance(args[0], tuple):
-                args = args[0]
-
-        return args
-
     async def _check_pool(self) -> asyncpg.Pool:
         """Create a new connection pool. If the class instance has an active connection pool,
         that pool will be returned instead.
@@ -116,7 +117,7 @@ class PGHandler:
         -------
         The result record or ``None``.
         """
-        args = self._process_args(args)
+        args = _process_args(args)
         pool = await self._check_pool()
 
         async with pool.acquire() as con:
@@ -136,7 +137,7 @@ class PGHandler:
         -------
         A list of result records.
         """
-        args = self._process_args(args)
+        args = _process_args(args)
         pool = await self._check_pool()
 
         async with pool.acquire() as con:
@@ -152,7 +153,7 @@ class PGHandler:
         *args:
             Arguments for the query.
         """
-        args = self._process_args(args)
+        args = _process_args(args)
         pool = await self._check_pool()
 
         async with pool.acquire() as con:

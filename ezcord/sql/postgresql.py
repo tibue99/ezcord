@@ -6,6 +6,20 @@ from typing import Any
 import asyncpg
 
 
+class EzConnection(asyncpg.Connection):
+    async def one(self, sql: str, *args, **kwargs) -> asyncpg.Record | None:
+        return await super().fetchrow(sql, *args, **kwargs)
+
+    async def all(self, sql: str, *args, **kwargs) -> list:
+        return await super().fetch(sql, *args, **kwargs)
+
+    async def exec(self, sql: str, *args, **kwargs) -> str:
+        return await super().execute(sql, *args, **kwargs)
+
+    async def executemany(self, sql: str, args: Iterable[Iterable[Any]], **kwargs) -> str:
+        return await super().executemany(sql, *args, **kwargs)
+
+
 class PGHandler:
     """A class that provides helper methods for PostgreSQL databases.
 
@@ -86,6 +100,7 @@ class PGHandler:
             user=self.user,
             password=self.password,
             command_timeout=30,
+            connection_class=EzConnection,
             **self.kwargs,
         )
         return self.pool

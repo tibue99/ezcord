@@ -36,20 +36,13 @@ class EzConnection(asyncpg.Connection):
 class PGHandler:
     """A class that provides helper methods for PostgreSQL databases.
 
+    .. note::
+
+            It's recommended to set the database connection parameters in the.env file.
+            Reference: https://www.postgresql.org/docs/current/libpq-envars.html
+
     Parameters
     ----------
-    host:
-        The host of the database.
-    port:
-        The port of the database.
-    dbname:
-        The name of the database.
-    user:
-        The user of the database.
-    password:
-        The password of the database.
-    command_timeout:
-        The default command timeout for queries. Defaults to ``30 seconds``.
     auto_setup:
         Whether to call :meth:`setup` when the first instance of this class is created.
         Defaults to ``True``.
@@ -63,21 +56,9 @@ class PGHandler:
     def __init__(
         self,
         *,
-        host: str | None = None,
-        port: str | None = "5432",
-        dbname: str | None = None,
-        user: str | None = None,
-        password: str | None = None,
-        command_timeout: int = 30,
         auto_setup: bool = True,
         **kwargs,
     ):
-        self.host = host
-        self.port = port
-        self.dbname = dbname
-        self.user = user
-        self.password = password
-        self.command_timeout = command_timeout
         self.kwargs = kwargs
 
         if auto_setup and self not in self._auto_setup:
@@ -91,16 +72,7 @@ class PGHandler:
         if self.pool is not None:
             return self.pool
 
-        self.pool = await asyncpg.create_pool(
-            host=self.host,
-            port=self.port,
-            database=self.dbname,
-            user=self.user,
-            password=self.password,
-            command_timeout=self.command_timeout,
-            connection_class=EzConnection,
-            **self.kwargs,
-        )
+        self.pool = await asyncpg.create_pool(connection_class=EzConnection, **self.kwargs)
         return self.pool
 
     async def one(self, sql: str, *args, **kwargs) -> asyncpg.Record | None:

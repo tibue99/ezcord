@@ -2,6 +2,6 @@ PostgreSQL
 =======================
 Some helper functions for connection pools in ``asyncpg``.
 
-.. autoclass:: ezcord.sql.PGHandler
+.. automodule:: ezcord.sql.postgresql
    :members:
    :undoc-members:

@@ -29,7 +29,7 @@ from .internal import (
 from .internal.config import Blacklist
 from .internal.dc import DPY, PYCORD, CogMeta, bridge, checks, commands, discord
 from .logs import DEFAULT_LOG, custom_log, set_log
-from .sql import DBHandler
+from .sql import DBHandler, PGHandler
 from .times import dc_timestamp
 
 if PYCORD:
@@ -139,7 +139,7 @@ class Bot(_main_bot):  # type: ignore
         if ready_event:
             self.add_listener(self._ready_event, "on_ready")
         self.add_listener(self._check_cog_groups, "on_ready")
-        self.add_listener(self._db_setup, "on_ready")
+        self.add_listener(self._db_setup, "on_connect")
 
         self.ready_event_adds: dict = {}
         self.ready_event_removes: list[int | str] = []
@@ -399,7 +399,7 @@ class Bot(_main_bot):  # type: ignore
     async def _db_setup():
         """Calls the setup method of all registered :class:`.DBHandler` instances."""
 
-        setup_copy = DBHandler._auto_setup.copy()
+        setup_copy = DBHandler._auto_setup.copy() + PGHandler._auto_setup.copy()
         for instance in setup_copy:
             if hasattr(instance, "setup") and callable(instance.setup):
                 await instance.setup()

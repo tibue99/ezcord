@@ -18,19 +18,31 @@ def _process_args(args) -> tuple:
     return args
 
 
+def _process_one_result(row, fill: int):
+    if fill != 0:
+        row = row or (None,) * fill
+
+    return row[0] if row is not None and len(row) == 1 else row
+
+
 class EzConnection(asyncpg.Connection):
     """A subclass of :class:`asyncpg.Connection` that adds aliases
     to be compatible with the sqlite handler.
     """
 
-    async def one(self, sql: str, *args, **kwargs) -> asyncpg.Record | None:
-        return await super().fetchrow(sql, *_process_args(args), **kwargs)
+    async def one(self, sql: str, *args, fill: int = 0, **kwargs):
+        row = await super().fetchrow(sql, *_process_args(args), **kwargs)
+        return _process_one_result(row, fill)
 
     async def all(self, sql: str, *args, **kwargs) -> list:
         return await super().fetch(sql, *_process_args(args), **kwargs)
 
     async def exec(self, sql: str, *args, **kwargs) -> str:
         return await super().execute(sql, *_process_args(args), **kwargs)
+
+    async def execute(self, *args, **kwargs) -> str:
+        """Alias for :meth:`exec`."""
+        return await self.exec(*args, **kwargs)
 
 
 class PGHandler:
@@ -69,13 +81,13 @@ class PGHandler:
         that pool will be returned instead.
         """
 
-        if self.pool is not None:
-            return self.pool
+        if PGHandler.pool is not None:
+            return PGHandler.pool
 
-        self.pool = await asyncpg.create_pool(connection_class=EzConnection, **self.kwargs)
-        return self.pool
+        PGHandler.pool = await asyncpg.create_pool(connection_class=EzConnection, **self.kwargs)
+        return PGHandler.pool
 
-    async def one(self, sql: str, *args, **kwargs) -> asyncpg.Record | None:
+    async def one(self, sql: str, *args, fill: int = 0, **kwargs):
         """Returns one result record. If no record is found, ``None`` is returned.
 
         Parameters
@@ -84,6 +96,9 @@ class PGHandler:
             The SQL query to execute.
         *args:
             Arguments for the query.
+        fill:
+            When the query returns no results, the number of columns to fill with ``None``.
+            Defaults to ``0`` (does not fill any columns).
 
         Returns
         -------
@@ -93,7 +108,9 @@ class PGHandler:
         pool = await self._check_pool()
 
         async with pool.acquire() as con:
-            return await con.fetchrow(sql, *args, **kwargs)
+            row = await con.fetchrow(sql, *args, **kwargs)
+
+        return _process_one_result(row, fill)
 
     async def all(self, sql: str, *args, **kwargs) -> list:
         """Returns all result records.

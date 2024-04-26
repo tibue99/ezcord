@@ -399,10 +399,15 @@ class Bot(_main_bot):  # type: ignore
     async def _db_setup():
         """Calls the setup method of all registered :class:`.DBHandler` instances."""
 
+        await PGHandler()._check_pool()  # make sure that the poll is created before running setup
         setup_copy = DBHandler._auto_setup.copy() + PGHandler._auto_setup.copy()
+
+        tasks = []
         for instance in setup_copy:
             if hasattr(instance, "setup") and callable(instance.setup):
-                await instance.setup()
+                tasks.append(instance.setup())
+
+        await asyncio.gather(*tasks)
 
     async def _check_cog_groups(self):
         """Checks if all cog groups are valid."""

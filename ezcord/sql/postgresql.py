@@ -18,10 +18,8 @@ def _process_args(args) -> tuple:
     return args
 
 
-def _process_one_result(row, fill: int):
-    if fill != 0:
-        row = row or (None,) * fill
-
+def _process_one_result(row, default):
+    row = row or default
     return row[0] if row is not None and len(row) == 1 else row
 
 
@@ -30,9 +28,9 @@ class EzConnection(asyncpg.Connection):
     to be compatible with the sqlite handler.
     """
 
-    async def one(self, sql: str, *args, fill: int = 0, **kwargs):
+    async def one(self, sql: str, *args, default=None, **kwargs):
         row = await super().fetchrow(sql, *_process_args(args), **kwargs)
-        return _process_one_result(row, fill)
+        return _process_one_result(row, default)
 
     async def all(self, sql: str, *args, **kwargs) -> list:
         return await super().fetch(sql, *_process_args(args), **kwargs)
@@ -87,7 +85,7 @@ class PGHandler:
         PGHandler.pool = await asyncpg.create_pool(connection_class=EzConnection, **self.kwargs)
         return PGHandler.pool
 
-    async def one(self, sql: str, *args, fill: int = 0, **kwargs):
+    async def one(self, sql: str, *args, default=None, **kwargs):
         """Returns one result record. If no record is found, ``None`` is returned.
 
         Parameters
@@ -96,9 +94,8 @@ class PGHandler:
             The SQL query to execute.
         *args:
             Arguments for the query.
-        fill:
-            When the query returns no results, the number of columns to fill with ``None``.
-            Defaults to ``0`` (does not fill any columns).
+        default:
+            When the query returns no results, this value will be returned instead of ``None``.
 
         Returns
         -------
@@ -110,7 +107,7 @@ class PGHandler:
         async with pool.acquire() as con:
             row = await con.fetchrow(sql, *args, **kwargs)
 
-        return _process_one_result(row, fill)
+        return _process_one_result(row, default)
 
     async def all(self, sql: str, *args, **kwargs) -> list:
         """Returns all result records.

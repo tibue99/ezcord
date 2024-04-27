@@ -163,4 +163,4 @@ class PGHandler:
         pool = await self._check_pool()
 
         async with pool.acquire() as con:
-            return await con.executemany(sql, *args, **kwargs)
+            return await con.executemany(sql, args, **kwargs)

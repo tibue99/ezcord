@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from dataclasses import dataclass
 from typing import Any
 
 import asyncpg
@@ -23,6 +24,32 @@ def _process_one_result(row, default):
     return row[0] if row is not None and len(row) == 1 else row
 
 
+def _process_exec_status(status: str) -> QueryStatus:
+    status_list = status.split(" ")
+    if len(status_list) > 1 and not status_list[1].isdigit():
+        status_list[0] += " " + status_list[1]
+        status_list.pop(1)
+
+    query_type = status_list[0]
+    if len(status_list) == 2:
+        return QueryStatus(type=query_type, rowcount=int(status_list[1]))
+    elif len(status_list) == 3:
+        return QueryStatus(
+            type=query_type, rowcount=int(status_list[1]), inserts=int(status_list[2])
+        )
+    else:
+        return QueryStatus(type=query_type)
+
+
+@dataclass
+class QueryStatus:
+    """A class to access the status of a :meth:`PGHandler.exec` call."""
+
+    type: str
+    rowcount: int = 0
+    inserts: int = 0
+
+
 class EzConnection(asyncpg.Connection):
     """A subclass of :class:`asyncpg.Connection` that adds aliases
     to be compatible with the sqlite handler.
@@ -35,10 +62,11 @@ class EzConnection(asyncpg.Connection):
     async def all(self, sql: str, *args, **kwargs) -> list:
         return await super().fetch(sql, *_process_args(args), **kwargs)
 
-    async def exec(self, sql: str, *args, **kwargs) -> str:
-        return await super().execute(sql, *_process_args(args), **kwargs)
+    async def exec(self, sql: str, *args, **kwargs) -> QueryStatus:
+        status = await super().execute(sql, *_process_args(args), **kwargs)
+        return _process_exec_status(status)
 
-    async def execute(self, *args, **kwargs) -> str:
+    async def execute(self, *args, **kwargs) -> QueryStatus:
         """Alias for :meth:`exec`."""
         return await self.exec(*args, **kwargs)
 
@@ -129,7 +157,7 @@ class PGHandler:
         async with pool.acquire() as con:
             return await con.fetch(sql, *args, **kwargs)
 
-    async def exec(self, sql: str, *args, **kwargs) -> str:
+    async def exec(self, sql: str, *args, **kwargs) -> QueryStatus:
         """Executes a SQL query.
 
         Parameters
@@ -145,7 +173,7 @@ class PGHandler:
         async with pool.acquire() as con:
             return await con.execute(sql, *args, **kwargs)
 
-    async def execute(self, sql: str, *args, **kwargs) -> str:
+    async def execute(self, sql: str, *args, **kwargs) -> QueryStatus:
         """Alias for :meth:`exec`."""
 
         return await self.exec(sql, *args, **kwargs)

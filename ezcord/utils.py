@@ -94,6 +94,40 @@ def create_html_file(html: str, filename: str = "data.html", **kwargs) -> discor
     """
     return create_text_file(html, filename, **kwargs)
 
+async def create_image_file(
+    image: discord.Asset | str,
+    filename: str = "image.png",
+    *,
+    spoiler: bool = False,
+    **kwargs,
+) -> discord.File:
+    """Create a :class:`discord.File` object from an image.
+
+    Parameters
+    ----------
+    image:
+        The image to convert to a file. This can be a URL, an :class:`discord.Asset`, or a path to a file.
+    filename:
+        The filename to use for the image file.
+    spoiler:
+        Whether the Discord file should be a spoiler.
+    **kwargs:
+        Keyword arguments for :class:`discord.File`.
+
+    Returns
+    -------
+    :class:`discord.File`
+    """
+    if isinstance(image, discord.Asset):
+        image = await image.read()
+
+    if isinstance(image, str) and image.startswith("http"):
+        async with discord.ClientSession() as session:
+            async with session.get(image) as resp:
+                image = await resp.read()
+
+    return discord.File(io.BytesIO(image), filename=filename, spoiler=spoiler, **kwargs)
+
 
 def random_avatar() -> str:
     """Returns the URL of a random default avatar."""

@@ -157,6 +157,30 @@ class PGHandler:
         async with pool.acquire() as con:
             return await con.fetch(sql, *args, **kwargs)
 
+    async def fetchval(self, sql: str, *args, default=None, **kwargs):
+        """Returns one value.
+
+        Parameters
+        ----------
+        sql:
+            The SQL query to execute.
+        *args:
+            Arguments for the query.
+        default:
+            When the query returns no results, this value will be returned instead of ``None``.
+
+        Returns
+        -------
+        The value or ``None``.
+        """
+        args = _process_args(args)
+        pool = await self._check_pool()
+
+        async with pool.acquire() as con:
+            value = await con.fetchval(sql, *args, **kwargs)
+
+        return value or default
+
     async def exec(self, sql: str, *args, **kwargs) -> QueryStatus:
         """Executes a SQL query.
 

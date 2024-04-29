@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
@@ -16,7 +17,8 @@ def _process_args(args) -> tuple:
         if isinstance(args[0], tuple):
             args = args[0]
 
-    return args
+    # convert dict to str
+    return tuple(json.dumps(arg) if isinstance(arg, dict) else arg for arg in args)
 
 
 def _process_one_result(row, default):
@@ -60,7 +62,10 @@ class EzConnection(asyncpg.Connection):
         return _process_one_result(row, default)
 
     async def all(self, sql: str, *args, **kwargs) -> list:
-        return await super().fetch(sql, *_process_args(args), **kwargs)
+        result = await super().fetch(sql, *_process_args(args), **kwargs)
+        if result and len(result[0]) == 1:
+            return [row[0] for row in result]
+        return result
 
     async def exec(self, sql: str, *args, **kwargs) -> QueryStatus:
         status = await super().execute(sql, *_process_args(args), **kwargs)

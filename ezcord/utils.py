@@ -94,6 +94,7 @@ def create_html_file(html: str, filename: str = "data.html", **kwargs) -> discor
     """
     return create_text_file(html, filename, **kwargs)
 
+
 async def create_image_file(
     image: discord.Asset | str,
     filename: str = "image.png",

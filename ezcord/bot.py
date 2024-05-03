@@ -399,7 +399,15 @@ class Bot(_main_bot):  # type: ignore
     async def _db_setup():
         """Calls the setup method of all registered :class:`.DBHandler` instances."""
 
-        await PGHandler()._check_pool()  # make sure that the poll is created before running setup
+        load_dotenv()
+        auto_setup = os.getenv("PGAUTOSETUP", "1") == "1"
+
+        if len(PGHandler._auto_setup) != 0:
+            await PGHandler()._check_pool()  # make sure that pool is created before setup
+
+        if not auto_setup:
+            return
+
         setup_copy = DBHandler._auto_setup.copy() + PGHandler._auto_setup.copy()
 
         tasks = []

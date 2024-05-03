@@ -75,6 +75,10 @@ class EzConnection(asyncpg.Connection):
         """Alias for :meth:`exec`."""
         return await self.exec(*args, **kwargs)
 
+    async def fetchval(self, sql: str, *args, default=None, **kwargs):
+        value = await super().fetchval(sql, *_process_args(args), **kwargs)
+        return value or default
+
 
 class PGHandler:
     """A class that provides helper methods for PostgreSQL databases.

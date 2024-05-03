@@ -21,9 +21,9 @@ def _process_args(args) -> tuple:
     return tuple(json.dumps(arg) if isinstance(arg, dict) else arg for arg in args)
 
 
-def _process_one_result(row, default):
-    row = row or default
-    return row[0] if row is not None and len(row) == 1 else row
+def _process_one_result(row: asyncpg.Record, default: Any):
+    row = row[0] if row is not None and len(row) == 1 else row
+    return row if row is not None else default
 
 
 def _process_exec_status(status: str) -> QueryStatus:

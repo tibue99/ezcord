@@ -404,6 +404,8 @@ class Bot(_main_bot):  # type: ignore
 
         if len(PGHandler._auto_setup) != 0:
             await PGHandler()._check_pool()  # make sure that pool is created before setup
+            for instance in PGHandler._auto_pool.copy():
+                await instance._check_pool()
 
         if not auto_setup:
             return

@@ -90,37 +90,64 @@ class PGHandler:
 
     Parameters
     ----------
+    custom_pool:
+        Override the default connection pool with a key. Each custom pool has a unique key.
+        Defaults to ``None``.
     auto_setup:
         Whether to call :meth:`setup` when the first instance of this class is created.
         Defaults to ``True``.
     **kwargs:
-        Keyword arguments for :func:`asyncpg.connect`.
+        Keyword arguments for :func:`asyncpg.create_pool`.
     """
 
     pool: asyncpg.Pool | None = None
+    _pools: dict[str, asyncpg.Pool | None] = {}
+
     _auto_setup: list[PGHandler] = []
+    _auto_pool: list[PGHandler] = []
 
     def __init__(
         self,
         *,
+        custom_pool: str | None = None,
         auto_setup: bool = True,
         **kwargs,
     ):
         self.kwargs = kwargs
+        self.custom_pool = custom_pool
 
         if auto_setup and self not in self._auto_setup:
             PGHandler._auto_setup.append(self)
 
+        if custom_pool:
+            if self not in self._auto_pool:
+                PGHandler._auto_pool.append(self)
+            if custom_pool not in PGHandler._pools:
+                PGHandler._pools[custom_pool] = None
+
     async def _check_pool(self) -> asyncpg.Pool:
-        """Create a new connection pool. If the class instance has an active connection pool,
-        that pool will be returned instead.
+        """Create a new connection pool or returns an existing one.
+
+        Custom pools are stored in :attr:`_pools`. If a custom pool for a specified key already
+        exists, it will be returned and set as the pool for the current class instance.
         """
 
-        if PGHandler.pool is not None:
+        if self.custom_pool:
+            if self._pools[self.custom_pool]:
+                self.pool = self._pools[self.custom_pool]
+                return self._pools[self.custom_pool]
+        elif PGHandler.pool is not None:
             return PGHandler.pool
 
-        PGHandler.pool = await asyncpg.create_pool(connection_class=EzConnection, **self.kwargs)
-        return PGHandler.pool
+        pool = await asyncpg.create_pool(connection_class=EzConnection, **self.kwargs)
+
+        if self.custom_pool:
+            PGHandler._pools[self.custom_pool] = pool
+            self.pool = pool
+            return self.pool
+        else:
+            PGHandler.pool = pool
+            return PGHandler.pool
 
     async def one(self, sql: str, *args, default=None, **kwargs):
         """Returns one result record. If no record is found, ``None`` is returned.

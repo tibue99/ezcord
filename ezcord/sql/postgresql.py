@@ -67,6 +67,10 @@ class EzConnection(asyncpg.Connection):
             return [row[0] for row in result]
         return result
 
+    async def fetchval(self, sql: str, *args, default=None, **kwargs):
+        value = await super().fetchval(sql, *_process_args(args), **kwargs)
+        return value or default
+
     async def exec(self, sql: str, *args, **kwargs) -> QueryStatus:
         status = await super().execute(sql, *_process_args(args), **kwargs)
         return _process_exec_status(status)
@@ -74,10 +78,6 @@ class EzConnection(asyncpg.Connection):
     async def execute(self, *args, **kwargs) -> QueryStatus:
         """Alias for :meth:`exec`."""
         return await self.exec(*args, **kwargs)
-
-    async def fetchval(self, sql: str, *args, default=None, **kwargs):
-        value = await super().fetchval(sql, *_process_args(args), **kwargs)
-        return value or default
 
 
 class PGHandler:
@@ -138,13 +138,10 @@ class PGHandler:
         -------
         The result record or ``None``.
         """
-        args = _process_args(args)
         pool = await self._check_pool()
 
         async with pool.acquire() as con:
-            row = await con.fetchrow(sql, *args, **kwargs)
-
-        return _process_one_result(row, default)
+            return await con.one(sql, *args, default=default, **kwargs)
 
     async def all(self, sql: str, *args, **kwargs) -> list:
         """Returns all result records.
@@ -160,11 +157,10 @@ class PGHandler:
         -------
         A list of result records.
         """
-        args = _process_args(args)
         pool = await self._check_pool()
 
         async with pool.acquire() as con:
-            return await con.fetch(sql, *args, **kwargs)
+            return await con.all(sql, *args, **kwargs)
 
     async def fetchval(self, sql: str, *args, default=None, **kwargs):
         """Returns one value.
@@ -182,13 +178,10 @@ class PGHandler:
         -------
         The value or ``None``.
         """
-        args = _process_args(args)
         pool = await self._check_pool()
 
         async with pool.acquire() as con:
-            value = await con.fetchval(sql, *args, **kwargs)
-
-        return value or default
+            return await con.fetchval(sql, *args, default=default, **kwargs)
 
     async def exec(self, sql: str, *args, **kwargs) -> QueryStatus:
         """Executes a SQL query.
@@ -200,11 +193,10 @@ class PGHandler:
         *args:
             Arguments for the query.
         """
-        args = _process_args(args)
         pool = await self._check_pool()
 
         async with pool.acquire() as con:
-            return await con.execute(sql, *args, **kwargs)
+            return await con.exec(sql, *args, **kwargs)
 
     async def execute(self, sql: str, *args, **kwargs) -> QueryStatus:
         """Alias for :meth:`exec`."""

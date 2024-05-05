@@ -171,6 +171,7 @@ def count_lines(
     directory: str | None = None,
     *,
     count_empty_lines: bool = True,
+    include_hidden: bool = False,
     ignored_dirs: list[str] | None = None,
     ignored_files: list[str] | None = None,
 ) -> int:
@@ -182,6 +183,8 @@ def count_lines(
         The directory to count the lines in. Defaults to the current working directory.
     count_empty_lines:
         Whether to count empty lines. Defaults to ``True``.
+    include_hidden:
+        Whether to include directories starting with a dot. Defaults to ``False``.
     ignored_dirs:
         A list of directories to ignore. By default, venv folders and folders starting with a dot
         are ignored.
@@ -197,6 +200,8 @@ def count_lines(
 
     total_lines = 0
     for root, _, files in os.walk(directory):
+        if not include_hidden and Path(root).parts[-1].startswith("."):
+            ignored_dirs.append(root)
         if "pyvenv.cfg" in files:  # ignore venv folders
             ignored_dirs.append(root)
 

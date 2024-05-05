@@ -85,8 +85,9 @@ class PGHandler:
 
     .. note::
 
-            It's recommended to set the database connection parameters in the.env file.
-            Reference: https://www.postgresql.org/docs/current/libpq-envars.html
+            It's recommended to set the database connection parameters in the ``.env`` file.
+
+            - Reference: https://www.postgresql.org/docs/current/libpq-envars.html
 
     Parameters
     ----------

@@ -123,7 +123,7 @@ def replace_values(
         replace["server_icon"] = interaction.client.user.display_avatar.url
 
     for key, value in replace.items():
-        s = s.replace("{" + key + "}", value)
+        s = s.replace("{" + key + "}", str(value))
 
     return s
 

@@ -1,6 +1,6 @@
-AioSQLite
+SQLite
 =======================
-Some simple helper functions for ``aiosqlite``.
+Some helper functions for ``aiosqlite``.
 
 .. autoclass:: ezcord.sql.DBHandler
    :members:

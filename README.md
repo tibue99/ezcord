@@ -13,7 +13,7 @@ and [Pycord](https://github.com/Pycord-Development/pycord) with some utility fun
 - Easy cog management
 - Embed templates
 - Datetime and file utilities
-- Wrapper for [aiosqlite](https://github.com/omnilib/aiosqlite)
+- Wrapper for [aiosqlite](https://github.com/omnilib/aiosqlite) and [asyncpg](https://github.com/MagicStack/asyncpg)
 
 ### ✨ Error handling
 - Automatic error handling for slash commands

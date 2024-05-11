@@ -212,10 +212,7 @@ class _DiscordHandler(logging.Handler):
 
         if self.webhook_url:
             loop = asyncio.get_event_loop()
-            if loop.is_running():
-                loop.create_task(_send_discord_log(self.webhook_url, record, msg))
-            else:
-                loop.run_until_complete(_send_discord_log(self.webhook_url, record, msg))
+            loop.create_task(_send_discord_log(self.webhook_url, record, msg))
 
 
 async def _send_discord_log(webhook_url: str, record: logging.LogRecord, msg):

@@ -27,7 +27,16 @@ from .internal import (
     tr,
 )
 from .internal.config import Blacklist
-from .internal.dc import DPY, PYCORD, CogMeta, bridge, checks, commands, discord
+from .internal.dc import (
+    DPY,
+    PYCORD,
+    AutoShardedBot,
+    CogMeta,
+    bridge,
+    checks,
+    commands,
+    discord,
+)
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .sql import DBHandler, PGHandler
 from .times import dc_timestamp
@@ -945,6 +954,16 @@ class BridgeBot(Bot, bridge.Bot):
 
     This class can be used if you want to use EzCord with bridge commands.
     This is only needed for Pycord.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class AutoShardedBot(Bot, AutoShardedBot):  # type: ignore
+    """A subclass of :class:`discord.AutoShardedBot` that implements the :class:`Bot` class.
+
+    This class can be used if you want to use EzCord with an auto-sharded bot.
     """
 
     def __init__(self, *args, **kwargs):

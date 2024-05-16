@@ -32,7 +32,7 @@ except ImportError:
 
 
 if discord.__title__ == "pycord":
-    from discord import CogMeta
+    from discord import AutoShardedBot, CogMeta
     from discord.ext import bridge
 
     slash_command = discord.slash_command
@@ -40,6 +40,7 @@ if discord.__title__ == "pycord":
 
 else:
     CogMeta = commands.CogMeta
+    AutoShardedBot = commands.AutoShardedBot
     bridge = commands
 
     if discord.__title__ == "discord":

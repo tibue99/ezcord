@@ -10,7 +10,16 @@ class FakeDiscord:
     CogMeta = type
 
     def __getattr__(self, name):
-        if name in ("Embed", "View", "Modal", "ApplicationContext", "Interaction", "Bot", "Cog"):
+        if name in (
+            "ApplicationContext",
+            "AutoShardedBot",
+            "Bot",
+            "Cog",
+            "Embed",
+            "Interaction",
+            "Modal",
+            "View",
+        ):
             return NoDiscordLibFound
 
         return FakeDiscord()
@@ -32,7 +41,7 @@ except ImportError:
 
 
 if discord.__title__ == "pycord":
-    from discord import CogMeta
+    from discord import AutoShardedBot, CogMeta
     from discord.ext import bridge
 
     slash_command = discord.slash_command
@@ -40,6 +49,7 @@ if discord.__title__ == "pycord":
 
 else:
     CogMeta = commands.CogMeta
+    AutoShardedBot = commands.AutoShardedBot
     bridge = commands
 
     if discord.__title__ == "discord":

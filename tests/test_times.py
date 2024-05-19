@@ -7,13 +7,17 @@ from ezcord import ConvertTimeError
 
 
 def test_convert_time():
+    assert isinstance(ezcord.convert_time(5), str)
+
+
+def test_convert_dt():
     dt = datetime.now(tz=timezone.utc)
 
     assert isinstance(ezcord.convert_dt(dt), str)
     assert isinstance(ezcord.convert_dt(timedelta(seconds=5)), str)
-    assert isinstance(ezcord.convert_time(5), str)
 
 
+@pytest.mark.dc
 def test_dc_timestamp():
     result = ezcord.dc_timestamp(0)
     assert result.startswith("<t:") and result.endswith(":R>")

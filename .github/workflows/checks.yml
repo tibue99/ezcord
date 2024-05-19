@@ -23,9 +23,13 @@ jobs:
           pip install pytest
           pip install pytest-asyncio
 
+      - name: Test Ezcord without Discord libraries
+        run: |
+          pytest -m "not dc"
+
       - name: Test Pycord
         run: |
-          pip install git+https://github.com/Pycord-Development/pycord
+          pip install py-cord
           pytest
 
       - name: Test Discord.py

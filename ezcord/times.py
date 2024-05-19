@@ -101,7 +101,7 @@ def convert_dt(
             dt = dt.astimezone()
 
         return convert_time(
-            abs((dt - discord.utils.utcnow()).total_seconds()), relative, use_locale=use_locale
+            abs((dt - datetime.now(timezone.utc)).total_seconds()), relative, use_locale=use_locale
         )
 
 

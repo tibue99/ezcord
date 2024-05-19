@@ -10,7 +10,6 @@ def test_convert_time():
     assert isinstance(ezcord.convert_time(5), str)
 
 
-@pytest.mark.dc
 def test_convert_dt():
     dt = datetime.now(tz=timezone.utc)
 

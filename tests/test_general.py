@@ -34,6 +34,7 @@ class UserDB(ezcord.DBHandler):
         return await self.one("SELECT coins FROM users WHERE user_id = ?", (user_id,))
 
 
+@pytest.mark.dc
 def test_libs():
     """Test compatibility with different Discord libraries."""
 
@@ -52,7 +53,6 @@ async def test_db():
 
     with tempfile.NamedTemporaryFile(delete=False) as db_file:
         db = UserDB(db_file.name)
-        print(db_file.name)
 
         await db.setup()
         await db.add_coins(12345, 100)

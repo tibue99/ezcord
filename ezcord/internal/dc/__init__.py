@@ -10,7 +10,16 @@ class FakeDiscord:
     CogMeta = type
 
     def __getattr__(self, name):
-        if name in ("Embed", "View", "Modal", "ApplicationContext", "Interaction", "Bot", "Cog"):
+        if name in (
+            "Embed",
+            "View",
+            "Modal",
+            "ApplicationContext",
+            "Interaction",
+            "Bot",
+            "Cog",
+            "AutoShardedBot",
+        ):
             return NoDiscordLibFound
 
         return FakeDiscord()

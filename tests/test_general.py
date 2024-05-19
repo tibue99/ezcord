@@ -34,6 +34,7 @@ class UserDB(ezcord.DBHandler):
         return await self.one("SELECT coins FROM users WHERE user_id = ?", (user_id,))
 
 
+@pytest.mark.dc
 def test_libs():
     """Test compatibility with different Discord libraries."""
 

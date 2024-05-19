@@ -25,7 +25,7 @@ jobs:
 
       - name: Test Ezcord without Discord libraries
         run: |
-          pytest -k "not test_libs"
+          pytest -m "not dc"
 
       - name: Test Pycord
         run: |

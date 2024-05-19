@@ -11,14 +11,14 @@ class FakeDiscord:
 
     def __getattr__(self, name):
         if name in (
-            "Embed",
-            "View",
-            "Modal",
             "ApplicationContext",
-            "Interaction",
+            "AutoShardedBot",
             "Bot",
             "Cog",
-            "AutoShardedBot",
+            "Embed",
+            "Interaction",
+            "Modal",
+            "View",
         ):
             return NoDiscordLibFound
 

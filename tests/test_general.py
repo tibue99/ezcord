@@ -52,7 +52,6 @@ async def test_db():
 
     with tempfile.NamedTemporaryFile(delete=False) as db_file:
         db = UserDB(db_file.name)
-        print(db_file.name)
 
         await db.setup()
         await db.add_coins(12345, 100)

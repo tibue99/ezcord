@@ -1,14 +1,11 @@
 try:
     from .postgresql import PGHandler
 except ImportError:
-
-    class PGHandler:  # type: ignore
-        _auto_setup: list = []
-
-        def __init__(self, *args, **kwargs):
-            raise ModuleNotFoundError(
-                "Please install the 'asyncpg' package to use the PostgreSQL handler."
-            )
-
+    # Import fake class that throws an error on initialization if asyncpg is not installed.
+    try:
+        from .fake_pg import PGHandler  # type: ignore
+    except ImportError:
+        # This will never be executed, but is needed for type hints, TYPE_CHECKING failed me.
+        from .postgresql import PGHandler
 
 from .sqlite import DBHandler

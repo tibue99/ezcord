@@ -9,6 +9,8 @@ However, if you want to manage the blacklist in your own code, you can use these
 
 from __future__ import annotations
 
+from aiocache import cached
+
 from .internal import EzConfig
 from .sql import DBHandler
 
@@ -36,9 +38,11 @@ class _BanDB(DBHandler):
         result = await self.exec(f"DELETE FROM {self.db_name} WHERE user_id = ?", (user_id,))
         return result.rowcount
 
+    @cached(ttl=60)
     async def get_bans(self):
         return await self.all(f"SELECT user_id FROM {self.db_name}")
 
+    @cached(ttl=60)
     async def get_full_bans(self):
         return await self.all(
             f"SELECT user_id, reason, dt FROM {self.db_name} ORDER BY dt DESC",

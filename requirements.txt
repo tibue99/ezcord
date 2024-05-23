@@ -1,6 +1,5 @@
 aiocache
 aiohttp
 aiosqlite
-asyncpg
 colorama
 python-dotenv

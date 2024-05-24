@@ -163,10 +163,15 @@ class Bot(_main_bot):  # type: ignore
     def cmd_count(self) -> int:
         """The number of loaded application commands, including subcommands."""
         if PYCORD:
+            ignored_cmds = []
+            for cog in self.cogs.values():
+                if hasattr(cog, "hidden") and cog.hidden:
+                    ignored_cmds.extend(list(cog.walk_commands()))
+
             cmds = [
                 cmd
                 for cmd in self.walk_application_commands()
-                if type(cmd) is not discord.SlashCommandGroup
+                if type(cmd) is not discord.SlashCommandGroup and cmd not in ignored_cmds
             ]
         else:
             cmds = []

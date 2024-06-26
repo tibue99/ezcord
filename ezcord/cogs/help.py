@@ -104,7 +104,13 @@ async def pass_checks(command: discord.SlashCommand, ctx) -> bool:
 class Help(Cog, hidden=True):
     def __init__(self, bot: Bot):
         super().__init__(bot)
-        self.help.guild_only = bot.help.guild_only
+        if PYCORD:
+            if bot.help.contexts:
+                self.help.contexts = bot.help.contexts
+            if bot.help.integration_types:
+                self.help.integration_types = bot.help.integration_types
+        else:
+            self.help.guild_only = bot.help.guild_only
 
     @slash_command(name=tr("cmd_name"), description=tr("cmd_description"))
     async def help(self, ctx):

@@ -8,6 +8,7 @@ from .bot import *
 from .components import *
 from .emb import *
 from .enums import *
+from .errors import *
 from .i18n import *
 from .logs import *
 from .sql import *

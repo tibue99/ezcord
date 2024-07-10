@@ -28,11 +28,13 @@ In any other case, the interaction must be passes to the template method.
 from __future__ import annotations
 
 import copy
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from .i18n import I18N, t
 from .internal import load_embed, replace_dict, save_embeds
 from .internal.dc import PYCORD, discord
+from .times import convert_dt, convert_time
 
 if PYCORD:
     _INTERACTION = (discord.Interaction, discord.ApplicationContext)
@@ -352,3 +354,9 @@ class EzContext(_ctx_type):  # type: ignore
 
     def t(self, key: str, count: int | None = None, **kwargs):
         return t(self.interaction, key, count, **kwargs)
+
+    def convert_time(self, seconds: int | float, relative: bool = True):
+        return convert_time(seconds, relative, use_locale=self)
+
+    def convert_dt(self, dt: datetime | timedelta, relative: bool = True):
+        return convert_dt(dt, relative, use_locale=self)

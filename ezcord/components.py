@@ -1,19 +1,9 @@
 """Classes that are adding some functionality for default components.
 
-.. note::
+.. hint::
 
-        If you want to register global checks and error handlers, all Views must
-        inherit from :class:`~EzView` instead of :class:`discord.ui.View`.
-
-        .. code-block:: python
-
-            from ezcord import View
-
-            class MyView(View):  # right
-                ...
-
-            class MyView(discord.ui.View):  # wrong
-                ...
+        Components in your code are automatically replaced with the ones from this module.
+        You don't need to change any code.
 """
 
 from __future__ import annotations
@@ -208,5 +198,10 @@ class Modal(discord.ui.Modal):
             await error_coro(error, interaction)
 
 
+# aliases
 EzModal = Modal
 EzView = View
+
+# enable error handling for default components
+discord.ui.View = View
+discord.ui.Modal = Modal

@@ -317,13 +317,14 @@ def format_number(number: int) -> str:
     '1M'
     """
 
-    txt = ""
-    if number >= 1_000_000_000:
+    if number >= 1_000_000_000 or number <= -1_000_000_000:
         txt = f"{number / 1_000_000_000:.1f}B"
-    elif number >= 1_000_000:
+    elif number >= 1_000_000 or number <= -1_000_000:
         txt = f"{number / 1_000_000:.1f}M"
-    elif number >= 1_000:
-        txt = f"{number / 1_000:.1f}k"
+    elif number >= 100 or number <= -100:
+        txt = f"{number / 1_000:.1f}K"
+    else:
+        txt = str(number)
 
     return str(txt).replace(".0", "")
 

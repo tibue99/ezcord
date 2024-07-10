@@ -19,6 +19,7 @@ from .errors import ErrorMessageSent
 from .internal import get_error_text
 from .internal.dc import PYCORD, discord
 from .logs import log
+from .utils import warn_deprecated
 
 _view_error_handlers: list[Callable] = []
 _view_checks: list[Callable] = []
@@ -198,10 +199,20 @@ class Modal(discord.ui.Modal):
             await error_coro(error, interaction)
 
 
-# aliases
-EzModal = Modal
-EzView = View
+class EzView(View):
+    """Alias for :class:`View`."""
 
-# enable error handling for default components
+    def __init_subclass__(cls, **kwargs):
+        warn_deprecated("ezcord.EzView", "discord.ui.View", "2.6")
+
+
+class EzModal(Modal):
+    """Alias for :class:`Modal`."""
+
+    def __init_subclass__(cls, **kwargs):
+        warn_deprecated("ezcord.EzModal", "discord.ui.Modal", "2.6")
+
+
+# replace all default components with Ezcord components
 discord.ui.View = View
 discord.ui.Modal = Modal

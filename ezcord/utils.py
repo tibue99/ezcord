@@ -298,13 +298,17 @@ async def load_message(
     return message
 
 
-def format_number(number: int) -> str:
+def format_number(number: int, *, decimal_places: int = 1, trailing_zero: bool = False) -> str:
     """Format a big number to short and readable format.
 
     Parameters
     ----------
     number:
         The number to format.
+    decimal_places:
+        The amount of decimal places to display. Defaults to ``1``.
+    trailing_zero:
+        Whether to show trailing zeros. Defaults to ``False``.
 
     Returns
     -------
@@ -315,18 +319,29 @@ def format_number(number: int) -> str:
     -------
     >>> format_number(1_000_000)
     '1M'
+    >>> format_number(1_550, decimal_places=2)
+    '1.55K'
+    >>> format_number(1_000, trailing_zero=True)
+    '1.0K'
     """
 
+    suffix = ""
     if number >= 1_000_000_000 or number <= -1_000_000_000:
-        txt = f"{number / 1_000_000_000:.1f}B"
+        txt = f"{number / 1_000_000_000:.{decimal_places}f}"
+        suffix = "B"
     elif number >= 1_000_000 or number <= -1_000_000:
-        txt = f"{number / 1_000_000:.1f}M"
+        txt = f"{number / 1_000_000:.{decimal_places}f}"
+        suffix = "M"
     elif number >= 100 or number <= -100:
-        txt = f"{number / 1_000:.1f}K"
+        txt = f"{number / 1_000:.{decimal_places}f}"
+        suffix = "K"
     else:
         txt = str(number)
 
-    return str(txt).replace(".0", "")
+    if not trailing_zero:
+        txt = txt.rstrip("0").rstrip(".")
+
+    return txt + suffix
 
 
 def warn_deprecated(

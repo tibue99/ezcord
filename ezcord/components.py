@@ -26,7 +26,7 @@ _view_checks: list[Callable] = []
 _view_check_failures: list[Callable] = []
 _modal_error_handlers: list[Callable] = []
 
-__all__ = ("event", "Modal", "View")
+__all__ = ("event", "Modal", "View", "EzView", "EzModal")
 
 
 def _check_coro(func):

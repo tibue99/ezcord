@@ -1,19 +1,9 @@
 """Classes that are adding some functionality for default components.
 
-.. note::
+.. hint::
 
-        If you want to register global checks and error handlers, all Views must
-        inherit from :class:`~EzView` instead of :class:`discord.ui.View`.
-
-        .. code-block:: python
-
-            from ezcord import View
-
-            class MyView(View):  # right
-                ...
-
-            class MyView(discord.ui.View):  # wrong
-                ...
+        Components in your code are automatically replaced with the ones from this module.
+        You can use `discord.ui.View` instead of `ezcord.View`.
 """
 
 from __future__ import annotations
@@ -29,13 +19,14 @@ from .errors import ErrorMessageSent
 from .internal import get_error_text
 from .internal.dc import PYCORD, discord
 from .logs import log
+from .utils import warn_deprecated
 
 _view_error_handlers: list[Callable] = []
 _view_checks: list[Callable] = []
 _view_check_failures: list[Callable] = []
 _modal_error_handlers: list[Callable] = []
 
-__all__ = ("event", "Modal", "View")
+__all__ = ("event", "Modal", "View", "EzView", "EzModal")
 
 
 def _check_coro(func):
@@ -210,5 +201,20 @@ class Modal(discord.ui.Modal):
             await error_coro(error, interaction)
 
 
-EzModal = Modal
-EzView = View
+class EzView(View):
+    """Alias for :class:`View`."""
+
+    def __init_subclass__(cls, **kwargs):
+        warn_deprecated("ezcord.EzView", "discord.ui.View", "2.6")
+
+
+class EzModal(Modal):
+    """Alias for :class:`Modal`."""
+
+    def __init_subclass__(cls, **kwargs):
+        warn_deprecated("ezcord.EzModal", "discord.ui.Modal", "2.6")
+
+
+# replace all default components with Ezcord components
+discord.ui.View = View
+discord.ui.Modal = Modal

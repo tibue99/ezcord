@@ -65,7 +65,7 @@ def t(obj: LOCALE_OBJECT, key: str, count: int | None = None, **variables):
         The count for pluralization. Defaults to ``None``.
     """
     locale = I18N.get_locale(obj)
-    return I18N.load_text(key, locale, count, **variables)
+    return I18N.load_text(key, locale, count, **{**variables, "count": count})
 
 
 class TEmbed(discord.Embed):
@@ -115,7 +115,7 @@ def _check_embed(locale: str, count: int | None, variables: dict, **kwargs):
 
     if embed:
         if "count" in variables:
-            count = variables.pop("count")
+            count = variables["count"]
         new_embed_dict = I18N.load_lang_keys(
             embed.to_dict(), locale, count, add_locations, **variables
         )
@@ -140,7 +140,7 @@ def _check_embeds(locale: str, count: int | None, variables: dict, **kwargs):
             embed = I18N.load_embed(embed, locale)
 
         if "count" in variables:
-            count = variables.pop("count")
+            count = variables["count"]
         new_embed_dict = I18N.load_lang_keys(
             embed.to_dict(), locale, count, add_locations, **variables
         )
@@ -218,6 +218,8 @@ def _localize_send(send_func):
 
         locale = I18N.get_locale(use_locale or self)
         variables, kwargs = _extract_parameters(send_func, **kwargs)
+        if count:
+            variables = {**variables, "count": count}
 
         # Check content
         content = I18N.load_text(content, locale, count, **variables)
@@ -248,6 +250,8 @@ def _localize_edit(edit_func):
         """
         locale = I18N.get_locale(use_locale or self)
         variables, kwargs = _extract_parameters(edit_func, **kwargs)
+        if count:
+            variables = {**variables, "count": count}
 
         # Check content (must be a kwarg)
         content = kwargs.get("content")
@@ -276,6 +280,8 @@ async def _localize_modal(
 ):
     locale = I18N.get_locale(self)
     variables, kwargs = _extract_parameters(INTERACTION_MODAL, **kwargs)
+    if count:
+        variables = {**variables, "count": count}
     modal_name = modal.__class__.__name__
 
     modal.title = I18N.load_text(modal.title, locale, count, modal_name, **variables)

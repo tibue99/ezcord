@@ -297,6 +297,36 @@ async def load_message(
     return message
 
 
+def format_number(number: int) -> str:
+    """Format a big number to short and readable format.
+
+    Parameters
+    ----------
+    number:
+        The number to format.
+
+    Returns
+    -------
+    :class:`str`
+        The formatted number.
+
+    Example
+    -------
+    >>> format_number(1_000_000)
+    '1M'
+    """
+
+    txt = ""
+    if number >= 1_000_000_000:
+        txt = f"{number / 1_000_000_000:.1f}B"
+    elif number >= 1_000_000:
+        txt = f"{number / 1_000_000:.1f}M"
+    elif number >= 1_000:
+        txt = f"{number / 1_000:.1f}k"
+
+    return str(txt).replace(".0", "")
+
+
 def warn_deprecated(
     name: str,
     instead: str | None = None,

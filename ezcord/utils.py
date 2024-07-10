@@ -27,6 +27,7 @@ __all__ = (
     "ez_autocomplete",
     "count_lines",
     "load_message",
+    "format_number",
     "warn_deprecated",
 )
 

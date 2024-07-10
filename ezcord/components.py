@@ -3,7 +3,7 @@
 .. hint::
 
         Components in your code are automatically replaced with the ones from this module.
-        You don't need to change any code.
+        You can use `discord.ui.View` instead of `ezcord.View`.
 """
 
 from __future__ import annotations

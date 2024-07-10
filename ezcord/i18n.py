@@ -49,6 +49,8 @@ if TYPE_CHECKING:
         discord.Member,
     ]
 
+__all__ = ("t", "TEmbed", "I18N")
+
 
 def t(obj: LOCALE_OBJECT, key: str, count: int | None = None, **variables):
     """Get the localized string for the given key and insert all variables.

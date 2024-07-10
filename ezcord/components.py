@@ -35,6 +35,8 @@ _view_checks: list[Callable] = []
 _view_check_failures: list[Callable] = []
 _modal_error_handlers: list[Callable] = []
 
+__all__ = ("event", "Modal", "View")
+
 
 def _check_coro(func):
     if not asyncio.iscoroutinefunction(func):

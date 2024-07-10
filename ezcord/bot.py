@@ -55,6 +55,8 @@ if TYPE_CHECKING:
     else:
         _main_bot = commands.Bot
 
+__all__ = ("Bot", "PrefixBot", "BridgeBot", "AutoShardedBot", "Cog")
+
 
 class Bot(_main_bot):  # type: ignore
     """The EzCord bot class. This is a subclass of :class:`discord.Bot` if you use Pycord.

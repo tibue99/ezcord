@@ -205,6 +205,7 @@ class EzView(View):
     """Alias for :class:`View`."""
 
     def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
         warn_deprecated("ezcord.EzView", "discord.ui.View", "2.6")
 
 
@@ -212,6 +213,7 @@ class EzModal(Modal):
     """Alias for :class:`Modal`."""
 
     def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
         warn_deprecated("ezcord.EzModal", "discord.ui.Modal", "2.6")
 
 

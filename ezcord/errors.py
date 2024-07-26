@@ -46,5 +46,9 @@ class ChannelNotFound(EzcordException):
     """Raised when a channel is not found."""
 
 
+class GuildMismatch(MessageNotFound):
+    """Raised when a message does not belong to the specified guild."""
+
+
 class MissingPermission(EzcordException):
     """Raised when the bot does not have permission to access a certain object."""

@@ -14,7 +14,13 @@ import warnings
 from pathlib import Path
 from typing import Any
 
-from .errors import ChannelNotFound, InvalidFormat, MessageNotFound, MissingPermission
+from .errors import (
+    ChannelNotFound,
+    GuildMismatch,
+    InvalidFormat,
+    MessageNotFound,
+    MissingPermission,
+)
 from .internal import get_locale
 from .internal.dc import discord
 
@@ -264,6 +270,8 @@ async def load_message(
         The channel was not found.
     MessageNotFound
         The message couldn't be found in the given channel, perhaps it was deleted.
+    GuildMismatch
+        The message does not belong to the given guild.
     """
     pattern = r"channels\/(\d+)\/(\d+)\/(\d+)"  # /channels/guild_id/channel_id/message_id
     matches = re.search(pattern, message_url)
@@ -284,6 +292,10 @@ async def load_message(
     except discord.NotFound:
         if error:
             raise ChannelNotFound("The channel was not found.")
+        return None
+    except discord.InvalidData:
+        if error:
+            raise GuildMismatch("The message does not belong to the given guild.")
         return None
 
     try:

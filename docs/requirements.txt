@@ -1,4 +1,5 @@
 py-cord
+asyncpg
 sphinx
 furo
 sphinx-autodoc-typehints

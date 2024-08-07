@@ -222,7 +222,7 @@ def _localize_send(send_func):
             variables = {**variables, "count": count}
 
         # Check content
-        content = I18N.load_text(content, locale, count, **variables)
+        content = I18N.load_text(content, locale, **variables)
 
         kwargs = _check_embed(locale, count, variables, **kwargs)
         kwargs = _check_embeds(locale, count, variables, **kwargs)
@@ -632,6 +632,10 @@ class I18N:
             return None
 
         string = I18N._get_text(key, locale, count, called_class, add_locations)
+
+        if count:
+            variables = {**variables, "count": count}
+
         return I18N._replace_variables(string, locale, **variables)
 
     @staticmethod

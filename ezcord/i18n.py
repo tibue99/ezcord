@@ -631,6 +631,14 @@ class I18N:
         if key is None:
             return None
 
+        def replace_keys(m: re.Match):
+            k = m.group(1)
+            return I18N._get_text(k, locale, count, called_class, add_locations)
+
+        # check if key contains other keys
+        if "{" in key and "}" in key:
+            key = re.sub(r"{(.*?)}", replace_keys, key)
+
         string = I18N._get_text(key, locale, count, called_class, add_locations)
 
         if count:

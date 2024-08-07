@@ -5,7 +5,7 @@ import random
 import re
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Union, overload
+from typing import TYPE_CHECKING, Callable, Literal, Union, overload
 
 from .internal.dc import PYCORD, discord
 from .logs import log
@@ -336,6 +336,9 @@ class I18N:
         The log level in :meth:`ezcord.logs.set_log` must be set to ``DEBUG`` for this to work.
     debug:
         Whether to send debug messages and warnings. Defaults to ``True``.
+    language_settings:
+        A function to set custom language settings. The function must return a dictionary
+        with user/guild IDs as keys and the locale as values. Defaults to ``None``.
     variables:
         Additional variables to replace in the language file. This is useful for
         values that are the same in all languages.
@@ -353,6 +356,8 @@ class I18N:
 
     cmd_localizations: dict[str, dict] = {}  # set through bot.localize_commands
     initialized: bool = False
+
+    _custom_language_settings: Callable
 
     def __init__(
         self,
@@ -380,6 +385,7 @@ class I18N:
             | None
         ) = None,
         debug: bool = True,
+        language_settings=None,
         **variables,
     ):
         I18N.initialized = True
@@ -403,6 +409,7 @@ class I18N:
         if not exclude_methods:
             exclude_methods = []
         I18N.exclude_methods = exclude_methods
+        I18N._custom_language_settings = language_settings
 
         if not disable_translations:
             disable_translations = []
@@ -458,6 +465,9 @@ class I18N:
                 return I18N.fallback_locale
             return obj
 
+        guild_id, user_id = None, None
+
+        # determine interaction
         interaction, locale = None, None
         if isinstance(obj, discord.Interaction):
             interaction = obj
@@ -466,12 +476,17 @@ class I18N:
         elif isinstance(obj, discord.ApplicationContext):
             interaction = obj.interaction
 
+        # determine locale
         elif isinstance(obj, discord.Webhook) and obj.guild:
             locale = obj.guild.preferred_locale
+            guild_id = obj.guild.id
         elif isinstance(obj, discord.Member):
             locale = obj.guild.preferred_locale
+            guild_id = obj.guild.id
+            user_id = obj.id
         elif isinstance(obj, discord.Guild):
             locale = obj.preferred_locale
+            guild_id = obj.id
 
         elif (
             isinstance(obj, discord.abc.Messageable | discord.Message)
@@ -479,16 +494,31 @@ class I18N:
             and obj.guild
         ):
             locale = obj.guild.preferred_locale
+            guild_id = obj.guild.id
 
         elif isinstance(obj, discord.User):
+            # It's not possible to determine the user locale without an interaction
             locale = I18N.fallback_locale
+            user_id = obj.id
 
         if interaction:
             if interaction.guild and not I18N.prefer_user_locale:
                 locale = interaction.guild_locale
+                guild_id = interaction.guild.id
             else:
                 locale = interaction.locale
+                user_id = interaction.user.id
 
+        # check custom language settings
+        if I18N._custom_language_settings:
+            if guild_id:
+                custom_locale = I18N._custom_language_settings(guild_id)
+                locale = custom_locale or locale
+            if user_id:
+                custom_locale = I18N._custom_language_settings(user_id)
+                locale = custom_locale or locale
+
+        # check if the locale is available. if not, use the fallback locale
         if hasattr(I18N, "localizations"):
             if locale not in I18N.localizations:
                 return I18N.fallback_locale

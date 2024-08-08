@@ -387,7 +387,7 @@ def convert_color(color: str, strict_hex: bool = True, hex_hash: bool = False) -
         "grey": "dark_grey",
     }
     if PYCORD:
-        additional_colors["nitro_pink"] = "pink"
+        additional_colors["pink"] = "nitro_pink"
 
     for key, value in additional_colors.items():
         if color == key:

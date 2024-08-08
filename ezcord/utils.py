@@ -412,7 +412,7 @@ def convert_color(color: str, strict_hex: bool = True, hex_hash: bool = False) -
         raise commands.BadColourArgument(color)
 
     maybe_hex = color.lstrip("#")
-    if (strict_hex and len(maybe_hex) != 6) or any(c not in "0123456789ABCDEF" for c in maybe_hex):
+    if (strict_hex and len(maybe_hex) != 6) or any(c not in "0123456789abcdef" for c in maybe_hex):
         raise commands.BadColourArgument(color)
 
     return conv.parse_hex_number(color.lstrip("#"))

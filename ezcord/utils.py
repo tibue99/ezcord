@@ -393,7 +393,10 @@ def convert_color(color: str, strict_hex: bool = True, hex_hash: bool = False) -
         if color == key:
             color = value
 
-    conv = commands.ColorConverter()
+    if DPY:
+        conv = discord.colour
+    else:
+        conv = commands.ColorConverter()
 
     if color[0:2] == "0x":
         rest = color[2:]

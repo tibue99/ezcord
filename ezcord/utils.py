@@ -372,8 +372,10 @@ def convert_color(color: str):
             color = value
 
     con = commands.ColorConverter()
-    if color[0] == "#":
+    try:
         return con.parse_hex_number(color[1:])
+    except commands.BadColourArgument:
+        pass
 
     if color[0:2] == "0x":
         rest = color[2:]

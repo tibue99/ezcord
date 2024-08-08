@@ -358,8 +358,28 @@ def format_number(number: int, *, decimal_places: int = 1, trailing_zero: bool =
     return txt + suffix
 
 
-def convert_color(color: str):
-    """Convert a color string to a :class:`discord.Color`."""
+def convert_color(color: str, strict_hex: bool = True, hex_hash: bool = False) -> discord.Colour:
+    """Convert a color string to a :class:`discord.Color`.
+
+    Parameters
+    ----------
+    color:
+        The color to convert. This can be a hex code, a color name, or an RGB value.
+    strict_hex:
+        Whether hex codes must have a length of 6. Defaults to ``True``.
+    hex_hash:
+        Whether a hex code must start with a hash. Defaults to ``False``.
+
+    Returns
+    -------
+    :class:`discord.Color`
+        The converted color.
+
+    Raises
+    ------
+    :exc:`commands.BadColourArgument`
+        The color could not be converted.
+    """
 
     additional_colors = {
         "white": "#FFFFFF",
@@ -371,27 +391,31 @@ def convert_color(color: str):
         if color == key:
             color = value
 
-    con = commands.ColorConverter()
-    try:
-        return con.parse_hex_number(color[1:])
-    except commands.BadColourArgument:
-        pass
+    conv = commands.ColorConverter()
 
     if color[0:2] == "0x":
         rest = color[2:]
         if rest.startswith("#"):
-            return con.parse_hex_number(rest[1:])
-        return con.parse_hex_number(rest)
+            return conv.parse_hex_number(rest[1:])
+        return conv.parse_hex_number(rest)
 
     arg = color.lower()
     if arg[0:3] == "rgb":
-        return con.parse_rgb(arg)
+        return conv.parse_rgb(arg)
 
     arg = arg.replace(" ", "_")
     method = getattr(discord.Colour, arg, None)
-    if arg.startswith("from_") or method is None or not inspect.ismethod(method):
-        raise commands.BadColourArgument(arg)
-    return method()
+    if not (arg.startswith("from_") or method is None or not inspect.ismethod(method)):
+        return method()
+
+    if hex_hash and not color.startswith("#"):
+        raise commands.BadColourArgument(color)
+
+    maybe_hex = color.lstrip("#")
+    if (strict_hex and len(maybe_hex) != 6) or any(c not in "0123456789ABCDEF" for c in maybe_hex):
+        raise commands.BadColourArgument(color)
+
+    return conv.parse_hex_number(color.lstrip("#"))
 
 
 def warn_deprecated(

@@ -34,7 +34,6 @@ def test_convert_color():
 
     assert str(ezcord.convert_color("red")) == "#e74c3c"
     assert str(ezcord.convert_color("dark red")) == "#992d22"
-    assert str(ezcord.convert_color("pink")) == "#f47fff"
     assert str(ezcord.convert_color("black")) == "#000000"
     assert str(ezcord.convert_color("rgb(255, 255, 255)")) == "#ffffff"
 

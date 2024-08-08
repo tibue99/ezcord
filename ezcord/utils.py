@@ -23,7 +23,7 @@ from .errors import (
     MissingPermission,
 )
 from .internal import get_locale
-from .internal.dc import PYCORD, commands, discord
+from .internal.dc import DPY, commands, discord
 
 __all__ = (
     "create_json_file",
@@ -386,8 +386,8 @@ def convert_color(color: str, strict_hex: bool = True, hex_hash: bool = False) -
         "black": "#000000",
         "grey": "dark_grey",
     }
-    if PYCORD:
-        additional_colors["pink"] = "nitro_pink"
+    if not DPY:
+        additional_colors["pink"] = "#eb459f"  # Pycord only has 'nitro_pink'
 
     for key, value in additional_colors.items():
         if color == key:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import fnmatch
+import inspect
 import io
 import itertools
 import json
@@ -22,7 +23,7 @@ from .errors import (
     MissingPermission,
 )
 from .internal import get_locale
-from .internal.dc import discord
+from .internal.dc import DPY, commands, discord
 
 __all__ = (
     "create_json_file",
@@ -34,6 +35,7 @@ __all__ = (
     "count_lines",
     "load_message",
     "format_number",
+    "convert_color",
     "warn_deprecated",
 )
 
@@ -354,6 +356,71 @@ def format_number(number: int, *, decimal_places: int = 1, trailing_zero: bool =
         txt = txt.rstrip("0").rstrip(".")
 
     return txt + suffix
+
+
+def convert_color(color: str, strict_hex: bool = True, hex_hash: bool = False) -> discord.Colour:
+    """Convert a color string to a :class:`discord.Color`.
+
+    Parameters
+    ----------
+    color:
+        The color to convert. This can be a hex code, a color name, or an RGB value.
+    strict_hex:
+        Whether hex codes must have a length of 6. Defaults to ``True``.
+    hex_hash:
+        Whether a hex code must start with a hash. Defaults to ``False``.
+
+    Returns
+    -------
+    :class:`discord.Color`
+        The converted color.
+
+    Raises
+    ------
+    :exc:`commands.BadColourArgument`
+        The color could not be converted.
+    """
+
+    additional_colors = {
+        "white": "#FFFFFF",
+        "black": "#000000",
+        "grey": "dark_grey",
+    }
+    if not DPY:
+        additional_colors["pink"] = "#eb459f"  # Pycord only has 'nitro_pink'
+
+    for key, value in additional_colors.items():
+        if color == key:
+            color = value
+
+    if DPY:
+        conv = discord.colour
+    else:
+        conv = commands.ColorConverter()
+
+    if color[0:2] == "0x":
+        rest = color[2:]
+        if rest.startswith("#"):
+            return conv.parse_hex_number(rest[1:])
+        return conv.parse_hex_number(rest)
+
+    arg = color.lower()
+    if arg[0:3] == "rgb":
+        return conv.parse_rgb(arg)
+
+    arg = arg.replace(" ", "_")
+    method = getattr(discord.Colour, arg, None)
+    if not (arg.startswith("from_") or method is None or not inspect.ismethod(method)):
+        return method()
+
+    if hex_hash and not color.startswith("#"):
+        raise commands.BadColourArgument(color)
+
+    maybe_hex = color.lstrip("#")
+    if (strict_hex and len(maybe_hex) != 6) or any(c not in "0123456789abcdef" for c in maybe_hex):
+        raise commands.BadColourArgument(color)
+
+    return conv.parse_hex_number(color.lstrip("#"))
 
 
 def warn_deprecated(

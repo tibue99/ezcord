@@ -19,6 +19,7 @@ class FakeDiscord:
             "Interaction",
             "Modal",
             "View",
+            "BadColourArgument",
         ):
             return NoDiscordLibFound
 

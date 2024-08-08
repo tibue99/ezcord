@@ -1,7 +1,7 @@
 import pytest
 
 import ezcord
-from ezcord.internal.dc import commands
+from ezcord.internal.dc import FakeDiscord, commands, discord
 
 
 def test_big_numbers():
@@ -29,6 +29,9 @@ def test_big_numbers():
 
 
 def test_convert_color():
+    if isinstance(discord.lib, FakeDiscord):
+        return
+
     assert str(ezcord.convert_color("red")) == "#e74c3c"
     assert str(ezcord.convert_color("dark red")) == "#992d22"
     assert str(ezcord.convert_color("pink")) == "#f47fff"

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import fnmatch
+import inspect
 import io
 import itertools
 import json
@@ -22,7 +23,7 @@ from .errors import (
     MissingPermission,
 )
 from .internal import get_locale
-from .internal.dc import discord
+from .internal.dc import commands, discord
 
 __all__ = (
     "create_json_file",
@@ -34,6 +35,7 @@ __all__ = (
     "count_lines",
     "load_message",
     "format_number",
+    "convert_color",
     "warn_deprecated",
 )
 
@@ -354,6 +356,40 @@ def format_number(number: int, *, decimal_places: int = 1, trailing_zero: bool =
         txt = txt.rstrip("0").rstrip(".")
 
     return txt + suffix
+
+
+def convert_color(color: str):
+    """Convert a color string to a :class:`discord.Color`."""
+
+    additional_colors = {
+        "white": "#FFFFFF",
+        "black": "#000000",
+        "pink": "nitro_pink",
+        "grey": "dark_grey",
+    }
+    for key, value in additional_colors.items():
+        if color == key:
+            color = value
+
+    con = commands.ColorConverter()
+    if color[0] == "#":
+        return con.parse_hex_number(color[1:])
+
+    if color[0:2] == "0x":
+        rest = color[2:]
+        if rest.startswith("#"):
+            return con.parse_hex_number(rest[1:])
+        return con.parse_hex_number(rest)
+
+    arg = color.lower()
+    if arg[0:3] == "rgb":
+        return con.parse_rgb(arg)
+
+    arg = arg.replace(" ", "_")
+    method = getattr(discord.Colour, arg, None)
+    if arg.startswith("from_") or method is None or not inspect.ismethod(method):
+        raise commands.BadColourArgument(arg)
+    return method()
 
 
 def warn_deprecated(

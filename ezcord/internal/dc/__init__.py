@@ -18,8 +18,8 @@ class FakeDiscord:
             "Embed",
             "Interaction",
             "Modal",
-            "View",
             "Select",
+            "View",
         ):
             return NoDiscordLibFound
 

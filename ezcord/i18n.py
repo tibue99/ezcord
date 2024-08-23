@@ -11,6 +11,7 @@ from .internal.dc import PYCORD, discord
 from .logs import log
 
 MESSAGE_SEND = discord.abc.Messageable.send
+MESSAGE_REPLY = discord.Message.reply
 MESSAGE_EDIT = discord.Message.edit
 
 INTERACTION_SEND = discord.InteractionResponse.send_message
@@ -374,6 +375,7 @@ class I18N:
                 Literal[
                     "send",
                     "edit",
+                    "reply",
                     "send_message",
                     "send_modal",
                     "edit_message",
@@ -421,6 +423,8 @@ class I18N:
             setattr(discord.abc.Messageable, "send", _localize_send(MESSAGE_SEND))
         if "edit" not in disable_translations:
             setattr(discord.Message, "edit", _localize_edit(MESSAGE_EDIT))
+        if "reply" not in disable_translations:
+            setattr(discord.Message, "reply", _localize_send(MESSAGE_REPLY))
 
         if "send_message" not in disable_translations:
             setattr(discord.InteractionResponse, "send_message", _localize_send(INTERACTION_SEND))

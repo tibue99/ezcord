@@ -26,7 +26,7 @@ _view_checks: list[Callable] = []
 _view_check_failures: list[Callable] = []
 _modal_error_handlers: list[Callable] = []
 
-__all__ = ("event", "Modal", "View", "EzView", "EzModal")
+__all__ = ("event", "Modal", "View", "EzView", "EzModal", "DropdownPaginator")
 
 
 def _check_coro(func):
@@ -220,3 +220,80 @@ class EzModal(Modal):
 # replace all default components with Ezcord components
 discord.ui.View = View
 discord.ui.Modal = Modal
+
+
+class DropdownPaginator(discord.ui.Select):
+    """A dropdown paginator that can be used to paginate through a list of options.
+
+    Parameters
+    ----------
+    options
+        The options that will be displayed in the dropdown.
+    page: int
+        The current page of the dropdown.
+    """
+
+    def __init__(
+        self,
+        options: list[discord.SelectOption],
+        next_page_label: str = "Next page",
+        next_page_emoji: str = "➡️",
+        page: int = 0,
+        **kwargs,
+    ):
+        self.page = page
+
+        self.next_page_label = next_page_label
+        self.next_page_emoji = next_page_emoji
+
+        self.total_options = options
+        self.current_options = self.load_options(options, self.page)
+        self.kwargs = kwargs
+
+        super().__init__(options=self.current_options, **kwargs)
+
+    async def callback(self, interaction: discord.Interaction):
+
+        def kek(x):
+            if isinstance(x, DropdownPaginator):
+                self.options = self.current_options
+                return self
+            else:
+                return x
+
+        if self.check_next_page():
+            test = map(kek, self.view.children)
+
+            self.view.children = list(test)
+            await interaction.response.edit_message(view=self.view)
+            return
+
+    def check_next_page(self) -> bool:
+        """Returns True if the user clicked on the next page button.
+        In this case, the dropdown menu will be edited.
+        """
+        if "ez_next" in self.values:
+            self.page += 1
+            self.current_options = self.load_options(self.total_options, self.page)
+            return True
+        return False
+
+    def load_options(
+        self, options: list[discord.SelectOption], chunk: int = 0
+    ) -> list[discord.SelectOption]:
+
+        if len(options) > 24:
+            # split list into chunks of 24
+            x = [options[option : option + 24] for option in range(0, len(options), 24)]
+
+            new_options = x[chunk]
+            if len(new_options) == 24:
+                new_options.append(
+                    discord.SelectOption(
+                        label=self.next_page_label, value="ez_next", emoji=self.next_page_emoji
+                    )
+                )
+        else:
+            new_options = options
+
+        return new_options

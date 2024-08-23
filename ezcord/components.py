@@ -227,10 +227,20 @@ class DropdownPaginator(discord.ui.Select):
 
     Parameters
     ----------
-    options
+    options:
         The options that will be displayed in the dropdown.
-    page: int
+    next_page_label:
+        The label of the next page button.
+    previous_page_label:
+        The label of the previous page button.
+    next_page_emoji:
+        The emoji of the next page button.
+    previous_page_emoji:
+        The emoji of the previous page button.
+    page:
         The current page of the dropdown.
+    **kwargs:
+        Additional keyword arguments that are passed to :class:`discord.ui.Select`.
     """
 
     def __init__(
@@ -238,8 +248,8 @@ class DropdownPaginator(discord.ui.Select):
         options: list[discord.SelectOption],
         next_page_label: str = "Next page",
         previous_page_label: str = "Previous page",
-        next_page_emoji: str = "➡️",
-        previous_page_emoji: str = "⬅️",
+        next_page_emoji: str = "⬇️",
+        previous_page_emoji: str = "⬆️",
         page: int = 0,
         **kwargs,
     ):
@@ -258,7 +268,7 @@ class DropdownPaginator(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
 
-        def kek(x):
+        def set_current_options(x):
             if isinstance(x, DropdownPaginator):
                 self.options = self.current_options
                 return self
@@ -266,16 +276,16 @@ class DropdownPaginator(discord.ui.Select):
                 return x
 
         if self.check_next_page():
-            test = map(kek, self.view.children)
+            new_children = map(set_current_options, self.view.children)
 
-            self.view.children = list(test)
+            self.view.children = list(new_children)
             await interaction.response.edit_message(view=self.view)
             return
 
         elif self.check_previous_page():
-            test = map(kek, self.view.children)
+            new_children = map(set_current_options, self.view.children)
 
-            self.view.children = list(test)
+            self.view.children = list(new_children)
             await interaction.response.edit_message(view=self.view)
             return
 
@@ -299,9 +309,10 @@ class DropdownPaginator(discord.ui.Select):
     def load_options(
         self, options: list[discord.SelectOption], chunk: int = 0
     ) -> list[discord.SelectOption]:
+        """Split the options into chunks and append options for next/previous pages."""
+
         chunk_size = 23
         if len(options) > chunk_size:
-            # split list into chunks
             x = [
                 options[option : option + chunk_size]
                 for option in range(0, len(options), chunk_size)

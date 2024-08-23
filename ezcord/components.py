@@ -237,14 +237,18 @@ class DropdownPaginator(discord.ui.Select):
         self,
         options: list[discord.SelectOption],
         next_page_label: str = "Next page",
+        previous_page_label: str = "Previous page",
         next_page_emoji: str = "➡️",
+        previous_page_emoji: str = "⬅️",
         page: int = 0,
         **kwargs,
     ):
         self.page = page
 
         self.next_page_label = next_page_label
+        self.previous_page_label = previous_page_label
         self.next_page_emoji = next_page_emoji
+        self.previous_page_emoji = previous_page_emoji
 
         self.total_options = options
         self.current_options = self.load_options(options, self.page)
@@ -268,6 +272,13 @@ class DropdownPaginator(discord.ui.Select):
             await interaction.response.edit_message(view=self.view)
             return
 
+        elif self.check_previous_page():
+            test = map(kek, self.view.children)
+
+            self.view.children = list(test)
+            await interaction.response.edit_message(view=self.view)
+            return
+
     def check_next_page(self) -> bool:
         """Returns True if the user clicked on the next page button.
         In this case, the dropdown menu will be edited.
@@ -278,20 +289,40 @@ class DropdownPaginator(discord.ui.Select):
             return True
         return False
 
+    def check_previous_page(self) -> bool:
+        if "ez_previous" in self.values:
+            self.page -= 1
+            self.current_options = self.load_options(self.total_options, self.page)
+            return True
+        return False
+
     def load_options(
         self, options: list[discord.SelectOption], chunk: int = 0
     ) -> list[discord.SelectOption]:
-
-        if len(options) > 24:
-            # split list into chunks of 24
-            x = [options[option : option + 24] for option in range(0, len(options), 24)]
+        chunk_size = 23
+        if len(options) > chunk_size:
+            # split list into chunks
+            x = [
+                options[option : option + chunk_size]
+                for option in range(0, len(options), chunk_size)
+            ]
 
             new_options = x[chunk]
-            if len(new_options) == 24:
+            if len(new_options) == chunk_size:
                 new_options.append(
                     discord.SelectOption(
                         label=self.next_page_label, value="ez_next", emoji=self.next_page_emoji
                     )
+                )
+
+            if chunk > 0:
+                new_options.insert(
+                    0,
+                    discord.SelectOption(
+                        label=self.previous_page_label,
+                        value="ez_previous",
+                        emoji=self.previous_page_emoji,
+                    ),
                 )
         else:
             new_options = options

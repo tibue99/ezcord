@@ -664,7 +664,8 @@ class I18N:
 
         def replace_keys(m: re.Match):
             k = m.group(1)
-            return I18N._get_text(k, locale, count, called_class, add_locations)
+            check_key = I18N._get_text(k, locale, count, called_class, add_locations)
+            return check_key if check_key != k else m.group()
 
         # check if key contains other keys
         if "{" in key and "}" in key:

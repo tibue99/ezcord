@@ -352,7 +352,7 @@ def format_number(number: int, *, decimal_places: int = 1, trailing_zero: bool =
     else:
         txt = str(number)
 
-    if not trailing_zero:
+    if not trailing_zero and "." in txt:
         txt = txt.rstrip("0").rstrip(".")
 
     return txt + suffix

@@ -29,6 +29,7 @@ __all__ = (
     "create_json_file",
     "create_text_file",
     "create_html_file",
+    "avatar",
     "random_avatar",
     "codeblock",
     "ez_autocomplete",
@@ -115,6 +116,17 @@ def create_html_file(html: str, filename: str = "data.html", **kwargs) -> discor
     :class:`discord.File`
     """
     return create_text_file(html, filename, **kwargs)
+
+
+def avatar(user_id: int) -> str:
+    """Returns a permanent URL of a user's avatar.
+
+    Parameters
+    ----------
+    user_id:
+        The ID of the user.
+    """
+    return f"https://api.cookieapp.me/avatar/{user_id}"
 
 
 def random_avatar() -> str:

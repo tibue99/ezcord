@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import random
+import discord
 from copy import deepcopy
 
 from .. import emb
@@ -104,7 +105,13 @@ async def pass_checks(command: discord.SlashCommand, ctx) -> bool:
 class Help(Cog, hidden=True):
     def __init__(self, bot: Bot):
         super().__init__(bot)
-        self.help.guild_only = bot.help.guild_only
+        if PYCORD:
+            if bot.help.contexts:
+                self.help.contexts = bot.help.contexts
+            if bot.help.integration_types:
+                self.help.integration_types = bot.help.integration_types
+        else:
+            self.help.guild_only = bot.help.guild_only
 
     @slash_command(name=tr("cmd_name"), description=tr("cmd_description"))
     async def help(self, ctx):
@@ -243,7 +250,10 @@ class Help(Cog, hidden=True):
         view = CategoryView(sorted_options, self.bot, ctx.user, commands, ctx)
         for button in self.bot.help.buttons:
             view.add_item(deepcopy(button))
-        await ctx.response.send_message(view=view, embed=embed, ephemeral=self.bot.help.ephemeral)
+        try:
+            await ctx.response.send_message(view=view, embed=embed, ephemeral=self.bot.help.ephemeral)
+        except discord.errors.NotFound:
+            log.error("Help command failed: Interaction not found.")
 
 
 class CategorySelect(discord.ui.Select):

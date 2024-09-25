@@ -188,7 +188,14 @@ class Help(Cog, hidden=True):
                     cmd
                     for cmd in cog.walk_commands()
                     if type(cmd)
-                    not in [discord.MessageCommand, discord.UserCommand, discord.SlashCommandGroup]
+                    not in [
+                        discord.MessageCommand,
+                        discord.UserCommand,
+                        discord.SlashCommandGroup,
+                        discord.ext.bridge.BridgeExtCommand,
+                        discord.ext.bridge.BridgeExtGroup,
+                        discord.ext.bridge.BridgeSlashGroup,
+                    ]
                 ]
             else:
                 cog_cmds = cog.walk_app_commands()

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import inspect
 import random
-import discord
 from copy import deepcopy
+
+import discord
 
 from .. import emb
 from ..bot import Bot, Cog
@@ -251,7 +252,9 @@ class Help(Cog, hidden=True):
         for button in self.bot.help.buttons:
             view.add_item(deepcopy(button))
         try:
-            await ctx.response.send_message(view=view, embed=embed, ephemeral=self.bot.help.ephemeral)
+            await ctx.response.send_message(
+                view=view, embed=embed, ephemeral=self.bot.help.ephemeral
+            )
         except discord.errors.NotFound:
             log.error("Help command failed: Interaction not found.")
 

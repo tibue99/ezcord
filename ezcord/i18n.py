@@ -550,7 +550,8 @@ class I18N:
         inspect_stack = inspect.stack()
 
         # Ignore the following internal sources to determine the origin method
-        methods = ["respond"] + I18N.exclude_methods
+        # "sub" is used for regex substitution when searching for keys within other keys.
+        methods = ["respond", "sub"] + I18N.exclude_methods
         files = ["i18n", "emb", "interactions"]
 
         file, method, class_ = None, None, None

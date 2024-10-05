@@ -225,6 +225,8 @@ discord.ui.Modal = Modal
 class DropdownPaginator(discord.ui.Select):
     """A dropdown paginator that can be used to paginate through a list of options.
 
+    This is useful when we have more options than Discord allows in a single dropdown menu.
+
     Parameters
     ----------
     options:
@@ -266,7 +268,16 @@ class DropdownPaginator(discord.ui.Select):
 
         super().__init__(options=self.current_options, **kwargs)
 
+    @property
+    def item_selected(self):
+        """Returns ``True`` if the user selected an item from the dropdown.
+        If the user clicked on the next or previous page button, this will return ``False``.
+        """
+
+        return "ez_next" not in self.values and "ez_previous" not in self.values
+
     async def callback(self, interaction: discord.Interaction):
+        """Edit the dropdown menu if the user selects a page option."""
 
         def set_current_options(x):
             if isinstance(x, DropdownPaginator):
@@ -300,6 +311,9 @@ class DropdownPaginator(discord.ui.Select):
         return False
 
     def check_previous_page(self) -> bool:
+        """Returns True if the user clicked on the previous page button.
+        In this case, the dropdown menu will be edited.
+        """
         if "ez_previous" in self.values:
             self.page -= 1
             self.current_options = self.load_options(self.total_options, self.page)

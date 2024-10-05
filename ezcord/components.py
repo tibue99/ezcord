@@ -169,6 +169,11 @@ class View(discord.ui.View):
             return await super().on_timeout()
         except discord.NotFound:
             return
+        except discord.HTTPException as e:
+            log.exception(
+                f"Error in View **{type(self).__name__}** ({type(self).__module__}) ```{e}```",
+                exc_info=e,
+            )
 
 
 class Modal(discord.ui.Modal):

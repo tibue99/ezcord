@@ -18,6 +18,7 @@ class FakeDiscord:
             "Embed",
             "Interaction",
             "Modal",
+            "Select",
             "View",
             "BadColourArgument",
         ):

@@ -26,7 +26,7 @@ _view_checks: list[Callable] = []
 _view_check_failures: list[Callable] = []
 _modal_error_handlers: list[Callable] = []
 
-__all__ = ("event", "Modal", "View", "EzView", "EzModal")
+__all__ = ("event", "Modal", "View", "EzView", "EzModal", "DropdownPaginator")
 
 
 def _check_coro(func):
@@ -220,3 +220,136 @@ class EzModal(Modal):
 # replace all default components with Ezcord components
 discord.ui.View = View
 discord.ui.Modal = Modal
+
+
+class DropdownPaginator(discord.ui.Select):
+    """A dropdown paginator that can be used to paginate through a list of options.
+
+    This is useful when we have more options than Discord allows in a single dropdown menu.
+
+    Parameters
+    ----------
+    options:
+        The options that will be displayed in the dropdown.
+    next_page_label:
+        The label of the next page button.
+    previous_page_label:
+        The label of the previous page button.
+    next_page_emoji:
+        The emoji of the next page button.
+    previous_page_emoji:
+        The emoji of the previous page button.
+    page:
+        The current page of the dropdown.
+    **kwargs:
+        Additional keyword arguments that are passed to :class:`discord.ui.Select`.
+    """
+
+    def __init__(
+        self,
+        options: list[discord.SelectOption],
+        next_page_label: str = "Next page",
+        previous_page_label: str = "Previous page",
+        next_page_emoji: str = "⬇️",
+        previous_page_emoji: str = "⬆️",
+        page: int = 0,
+        **kwargs,
+    ):
+        self.page = page
+
+        self.next_page_label = next_page_label
+        self.previous_page_label = previous_page_label
+        self.next_page_emoji = next_page_emoji
+        self.previous_page_emoji = previous_page_emoji
+
+        self.total_options = options
+        self.current_options = self.load_options(options, self.page)
+        self.kwargs = kwargs
+
+        super().__init__(options=self.current_options, **kwargs)
+
+    @property
+    def item_selected(self):
+        """Returns ``True`` if the user selected an item from the dropdown.
+        If the user clicked on the next or previous page button, this will return ``False``.
+        """
+
+        return "ez_next" not in self.values and "ez_previous" not in self.values
+
+    async def callback(self, interaction: discord.Interaction):
+        """Edit the dropdown menu if the user selects a page option."""
+
+        def set_current_options(x):
+            if isinstance(x, DropdownPaginator):
+                self.options = self.current_options
+                return self
+            else:
+                return x
+
+        if self.check_next_page():
+            new_children = map(set_current_options, self.view.children)
+
+            self.view.children = list(new_children)
+            await interaction.response.edit_message(view=self.view)
+            return
+
+        elif self.check_previous_page():
+            new_children = map(set_current_options, self.view.children)
+
+            self.view.children = list(new_children)
+            await interaction.response.edit_message(view=self.view)
+            return
+
+    def check_next_page(self) -> bool:
+        """Returns True if the user clicked on the next page button.
+        In this case, the dropdown menu will be edited.
+        """
+        if "ez_next" in self.values:
+            self.page += 1
+            self.current_options = self.load_options(self.total_options, self.page)
+            return True
+        return False
+
+    def check_previous_page(self) -> bool:
+        """Returns True if the user clicked on the previous page button.
+        In this case, the dropdown menu will be edited.
+        """
+        if "ez_previous" in self.values:
+            self.page -= 1
+            self.current_options = self.load_options(self.total_options, self.page)
+            return True
+        return False
+
+    def load_options(
+        self, options: list[discord.SelectOption], chunk: int = 0
+    ) -> list[discord.SelectOption]:
+        """Split the options into chunks and append options for next/previous pages."""
+
+        chunk_size = 23
+        if len(options) > chunk_size:
+            x = [
+                options[option : option + chunk_size]
+                for option in range(0, len(options), chunk_size)
+            ]
+
+            new_options = x[chunk]
+            if len(new_options) == chunk_size:
+                new_options.append(
+                    discord.SelectOption(
+                        label=self.next_page_label, value="ez_next", emoji=self.next_page_emoji
+                    )
+                )
+
+            if chunk > 0:
+                new_options.insert(
+                    0,
+                    discord.SelectOption(
+                        label=self.previous_page_label,
+                        value="ez_previous",
+                        emoji=self.previous_page_emoji,
+                    ),
+                )
+        else:
+            new_options = options
+
+        return new_options

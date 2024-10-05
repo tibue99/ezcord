@@ -5,12 +5,13 @@ import random
 import re
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Union, overload
+from typing import TYPE_CHECKING, Callable, Literal, Union, overload
 
 from .internal.dc import PYCORD, discord
 from .logs import log
 
 MESSAGE_SEND = discord.abc.Messageable.send
+MESSAGE_REPLY = discord.Message.reply
 MESSAGE_EDIT = discord.Message.edit
 
 INTERACTION_SEND = discord.InteractionResponse.send_message
@@ -115,7 +116,7 @@ def _check_embed(locale: str, count: int | None, variables: dict, **kwargs):
 
     if embed:
         if "count" in variables:
-            count = variables.pop("count")
+            count = variables["count"]
         new_embed_dict = I18N.load_lang_keys(
             embed.to_dict(), locale, count, add_locations, **variables
         )
@@ -140,7 +141,7 @@ def _check_embeds(locale: str, count: int | None, variables: dict, **kwargs):
             embed = I18N.load_embed(embed, locale)
 
         if "count" in variables:
-            count = variables.pop("count")
+            count = variables["count"]
         new_embed_dict = I18N.load_lang_keys(
             embed.to_dict(), locale, count, add_locations, **variables
         )
@@ -152,6 +153,9 @@ def _check_embeds(locale: str, count: int | None, variables: dict, **kwargs):
 
 def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
     """Load all keys inside the view from the language file."""
+
+    if "count" in variables:
+        count = variables["count"]
 
     view = kwargs.get("view")
     if view:
@@ -220,7 +224,7 @@ def _localize_send(send_func):
         variables, kwargs = _extract_parameters(send_func, **kwargs)
 
         # Check content
-        content = I18N.load_text(content, locale, count, **variables)
+        content = I18N.load_text(content, locale, **variables)
 
         kwargs = _check_embed(locale, count, variables, **kwargs)
         kwargs = _check_embeds(locale, count, variables, **kwargs)
@@ -330,6 +334,9 @@ class I18N:
         The log level in :meth:`ezcord.logs.set_log` must be set to ``DEBUG`` for this to work.
     debug:
         Whether to send debug messages and warnings. Defaults to ``True``.
+    language_settings:
+        A function to set custom language settings. The function must return a dictionary
+        with user/guild IDs as keys and the locale as values. Defaults to ``None``.
     variables:
         Additional variables to replace in the language file. This is useful for
         values that are the same in all languages.
@@ -348,6 +355,8 @@ class I18N:
     cmd_localizations: dict[str, dict] = {}  # set through bot.localize_commands
     initialized: bool = False
 
+    _custom_language_settings: Callable
+
     def __init__(
         self,
         localizations: dict[str, dict],
@@ -363,6 +372,7 @@ class I18N:
                 Literal[
                     "send",
                     "edit",
+                    "reply",
                     "send_message",
                     "send_modal",
                     "edit_message",
@@ -374,6 +384,7 @@ class I18N:
             | None
         ) = None,
         debug: bool = True,
+        language_settings=None,
         **variables,
     ):
         I18N.initialized = True
@@ -397,6 +408,7 @@ class I18N:
         if not exclude_methods:
             exclude_methods = []
         I18N.exclude_methods = exclude_methods
+        I18N._custom_language_settings = language_settings
 
         if not disable_translations:
             disable_translations = []
@@ -408,6 +420,8 @@ class I18N:
             setattr(discord.abc.Messageable, "send", _localize_send(MESSAGE_SEND))
         if "edit" not in disable_translations:
             setattr(discord.Message, "edit", _localize_edit(MESSAGE_EDIT))
+        if "reply" not in disable_translations:
+            setattr(discord.Message, "reply", _localize_send(MESSAGE_REPLY))
 
         if "send_message" not in disable_translations:
             setattr(discord.InteractionResponse, "send_message", _localize_send(INTERACTION_SEND))
@@ -452,6 +466,9 @@ class I18N:
                 return I18N.fallback_locale
             return obj
 
+        guild_id, user_id = None, None
+
+        # determine interaction
         interaction, locale = None, None
         if isinstance(obj, discord.Interaction):
             interaction = obj
@@ -460,12 +477,17 @@ class I18N:
         elif isinstance(obj, discord.ApplicationContext):
             interaction = obj.interaction
 
+        # determine locale
         elif isinstance(obj, discord.Webhook) and obj.guild:
             locale = obj.guild.preferred_locale
+            guild_id = obj.guild.id
         elif isinstance(obj, discord.Member):
             locale = obj.guild.preferred_locale
+            guild_id = obj.guild.id
+            user_id = obj.id
         elif isinstance(obj, discord.Guild):
             locale = obj.preferred_locale
+            guild_id = obj.id
 
         elif (
             isinstance(obj, discord.abc.Messageable | discord.Message)
@@ -473,16 +495,31 @@ class I18N:
             and obj.guild
         ):
             locale = obj.guild.preferred_locale
+            guild_id = obj.guild.id
 
         elif isinstance(obj, discord.User):
+            # It's not possible to determine the user locale without an interaction
             locale = I18N.fallback_locale
+            user_id = obj.id
 
         if interaction:
             if interaction.guild and not I18N.prefer_user_locale:
                 locale = interaction.guild_locale
+                guild_id = interaction.guild.id
             else:
                 locale = interaction.locale
+                user_id = interaction.user.id
 
+        # check custom language settings
+        if I18N._custom_language_settings:
+            if guild_id:
+                custom_locale = I18N._custom_language_settings(guild_id)
+                locale = custom_locale or locale
+            if user_id:
+                custom_locale = I18N._custom_language_settings(user_id)
+                locale = custom_locale or locale
+
+        # check if the locale is available. if not, use the fallback locale
         if hasattr(I18N, "localizations"):
             if locale not in I18N.localizations:
                 return I18N.fallback_locale
@@ -513,7 +550,8 @@ class I18N:
         inspect_stack = inspect.stack()
 
         # Ignore the following internal sources to determine the origin method
-        methods = ["respond"] + I18N.exclude_methods
+        # "sub" is used for regex substitution when searching for keys within other keys.
+        methods = ["respond", "sub"] + I18N.exclude_methods
         files = ["i18n", "emb", "interactions"]
 
         file, method, class_ = None, None, None
@@ -625,7 +663,20 @@ class I18N:
         if key is None:
             return None
 
+        def replace_keys(m: re.Match):
+            k = m.group(1)
+            check_key = I18N._get_text(k, locale, count, called_class, add_locations)
+            return check_key if check_key != k else m.group()
+
+        # check if key contains other keys
+        if "{" in key and "}" in key:
+            key = re.sub(r"{(.*?)}", replace_keys, key)
+
         string = I18N._get_text(key, locale, count, called_class, add_locations)
+
+        if count:
+            variables = {**variables, "count": count}
+
         return I18N._replace_variables(string, locale, **variables)
 
     @staticmethod

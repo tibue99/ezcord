@@ -663,19 +663,20 @@ class I18N:
         if key is None:
             return None
 
+        string = I18N._get_text(key, locale, count, called_class, add_locations)
+
+        if count:
+            variables = {**variables, "count": count}
+        string = I18N._replace_variables(string, locale, **variables)
+
         def replace_keys(m: re.Match):
             k = m.group(1)
             check_key = I18N._get_text(k, locale, count, called_class, add_locations)
             return check_key if check_key != k else m.group()
 
         # check if key contains other keys
-        if "{" in key and "}" in key:
-            key = re.sub(r"{(.*?)}", replace_keys, key)
-
-        string = I18N._get_text(key, locale, count, called_class, add_locations)
-
-        if count:
-            variables = {**variables, "count": count}
+        if "{" in string and "}" in string:
+            string = re.sub(r"{(.*?)}", replace_keys, string)
 
         return I18N._replace_variables(string, locale, **variables)
 

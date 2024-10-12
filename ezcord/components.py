@@ -131,11 +131,16 @@ class View(discord.ui.View):
 
         Executes all registered error handlers with the ``@ezcord.event`` decorator.
         """
+        if not PYCORD:
+            error, item, interaction = item, interaction, error
+
         if type(error) is ErrorMessageSent:
             return
 
-        if not PYCORD:
-            error, item, interaction = item, interaction, error
+        if isinstance(error, discord.HTTPException):
+            if error.code == 200000:
+                log.warning(f"View **{type(self).__name__}** was blocked by AutoMod")
+                return
 
         description = get_error_text(interaction, error, item)
         webhook_sent = await _send_error_webhook(interaction, description)
@@ -182,11 +187,11 @@ class Modal(discord.ui.Modal):
 
         Executes all registered error handlers with the ``@ezcord.event`` decorator.
         """
-        if type(error) is ErrorMessageSent:
-            return
-
         if not PYCORD:
             error, interaction = interaction, error
+
+        if type(error) is ErrorMessageSent:
+            return
 
         description = get_error_text(interaction, error, self)
         webhook_sent = await _send_error_webhook(interaction, description)

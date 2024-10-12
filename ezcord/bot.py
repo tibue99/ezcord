@@ -489,8 +489,17 @@ class Bot(_main_bot):  # type: ignore
                 await error_emb(ctx, tr("no_user_perms", use_locale=ctx))
 
         else:
+            automod = False
             if "original" in error.__dict__ and not self.full_error_traceback:
                 original_error = error.__dict__["original"]
+
+                if isinstance(original_error, discord.HTTPException):
+                    if original_error.code == 200000:
+                        automod = True
+                        self.logger.warning(
+                            f"**/{ctx.command.qualified_name}** was blocked by AutoMod"
+                        )
+
                 error_msg = f"{original_error.__class__.__name__}: {error.__cause__}"
                 error = original_error
             else:
@@ -504,6 +513,10 @@ class Bot(_main_bot):  # type: ignore
                     # ignore invalid interaction error, probably took too long to respond
                     if e.code != 10062:
                         self.logger.error("Could not send error message to user", exc_info=e)
+
+            if automod:
+                # Don't log AutoMod errors
+                return
 
             webhook_sent = False
             if self.error_webhook_url:

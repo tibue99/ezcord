@@ -121,7 +121,13 @@ async def _send_error_webhook(interaction, description) -> bool:
 class View(discord.ui.View):
     ignore_timeout_errors: bool = False
 
-    """This class extends from :class:`discord.ui.View` and adds some functionality."""
+    """This class extends from :class:`discord.ui.View` and adds some functionality.
+
+    Parameters
+    ----------
+    ignore_timeout_error:
+        If ``True``, views will not raise an exception if an error occurs during the timeout event.
+    """
 
     def __init__(self, *args, ignore_timeout_error: bool = False, **kwargs):
         self.ignore_timeout_error = ignore_timeout_error

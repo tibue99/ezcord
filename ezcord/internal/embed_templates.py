@@ -81,7 +81,11 @@ def get_error_text(
     else:
         location = f"- **Command:** /{ctx.command.qualified_name}"
 
-    guild_txt = f"\n- **Guild:** {ctx.guild.name} - `{ctx.guild.id}`" if ctx.guild else ""
+    guild_txt = (
+        f"\n- **Guild:** {ctx.guild.name or 'Unknown (User App)'} - `{ctx.guild.id}`"
+        if ctx.guild
+        else ""
+    )
     user_txt = f"\n- **User:** {ctx.user} - `{ctx.user.id}`" if ctx.user else ""
 
     description = location + guild_txt + user_txt + format_error(error)

@@ -121,7 +121,13 @@ async def _send_error_webhook(interaction, description) -> bool:
 class View(discord.ui.View):
     ignore_timeout_errors: bool = False
 
-    """This class extends from :class:`discord.ui.View` and adds some functionality."""
+    """This class extends from :class:`discord.ui.View` and adds some functionality.
+
+    Parameters
+    ----------
+    ignore_timeout_error:
+        If ``True``, views will not raise an exception if an error occurs during the timeout event.
+    """
 
     def __init__(self, *args, ignore_timeout_error: bool = False, **kwargs):
         self.ignore_timeout_error = ignore_timeout_error
@@ -134,17 +140,29 @@ class View(discord.ui.View):
 
         Executes all registered error handlers with the ``@ezcord.event`` decorator.
         """
+        if not PYCORD:
+            error, item, interaction = item, interaction, error
+
         if type(error) is ErrorMessageSent:
             return
 
-        if not PYCORD:
-            error, item, interaction = item, interaction, error
+        view_name = type(self).__name__
+        view_module = type(self).__module__
+
+        if isinstance(error, discord.HTTPException):
+            if error.code == 200000:
+                guild_id = interaction.guild.id if interaction.guild else "None"
+                log.warning(
+                    f"View **{view_name}** ({view_module}) was blocked by AutoMod "
+                    f"(Guild {guild_id})"
+                )
+                return
 
         description = get_error_text(interaction, error, item)
         webhook_sent = await _send_error_webhook(interaction, description)
 
         log.exception(
-            f"Error in View **{type(item.view).__name__}** ```{error}```",
+            f"Error in View **{view_name}** ({view_module}) ```{error}```",
             exc_info=error,
             extra={"webhook_sent": webhook_sent},
         )
@@ -192,17 +210,17 @@ class Modal(discord.ui.Modal):
 
         Executes all registered error handlers with the ``@ezcord.event`` decorator.
         """
-        if type(error) is ErrorMessageSent:
-            return
-
         if not PYCORD:
             error, interaction = interaction, error
+
+        if type(error) is ErrorMessageSent:
+            return
 
         description = get_error_text(interaction, error, self)
         webhook_sent = await _send_error_webhook(interaction, description)
 
         log.exception(
-            f"Error in Modal **{type(self).__name__}**",
+            f"Error in Modal **{type(self).__name__}** ({type(self).__module__})",
             exc_info=error,
             extra={"webhook_sent": webhook_sent},
         )

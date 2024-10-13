@@ -139,7 +139,10 @@ class View(discord.ui.View):
 
         if isinstance(error, discord.HTTPException):
             if error.code == 200000:
-                log.warning(f"View **{type(self).__name__}** was blocked by AutoMod")
+                guild_id = interaction.guild.id if interaction.guild else "None"
+                log.warning(
+                    f"View **{type(self).__name__}** was blocked by AutoMod (Guild {guild_id})"
+                )
                 return
 
         description = get_error_text(interaction, error, item)

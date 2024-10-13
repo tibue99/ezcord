@@ -496,8 +496,9 @@ class Bot(_main_bot):  # type: ignore
                 if isinstance(original_error, discord.HTTPException):
                     if original_error.code == 200000:
                         automod = True
+                        guild_id = ctx.guild.id if ctx.guild else "None"
                         self.logger.warning(
-                            f"**/{ctx.command.qualified_name}** was blocked by AutoMod"
+                            f"**/{ctx.command.qualified_name}** was blocked by AutoMod (Guild {guild_id})"
                         )
 
                 error_msg = f"{original_error.__class__.__name__}: {error.__cause__}"

@@ -137,11 +137,15 @@ class View(discord.ui.View):
         if type(error) is ErrorMessageSent:
             return
 
+        view_name = type(self).__name__
+        view_module = type(self).__module__
+
         if isinstance(error, discord.HTTPException):
             if error.code == 200000:
                 guild_id = interaction.guild.id if interaction.guild else "None"
                 log.warning(
-                    f"View **{type(self).__name__}** was blocked by AutoMod (Guild {guild_id})"
+                    f"View **{view_name}** ({view_module}) was blocked by AutoMod "
+                    f"(Guild {guild_id})"
                 )
                 return
 
@@ -149,7 +153,7 @@ class View(discord.ui.View):
         webhook_sent = await _send_error_webhook(interaction, description)
 
         log.exception(
-            f"Error in View **{type(item.view).__name__}** ```{error}```",
+            f"Error in View **{view_name}** ({view_module}) ```{error}```",
             exc_info=error,
             extra={"webhook_sent": webhook_sent},
         )
@@ -200,7 +204,7 @@ class Modal(discord.ui.Modal):
         webhook_sent = await _send_error_webhook(interaction, description)
 
         log.exception(
-            f"Error in Modal **{type(self).__name__}**",
+            f"Error in Modal **{type(self).__name__}** ({type(self).__module__})",
             exc_info=error,
             extra={"webhook_sent": webhook_sent},
         )

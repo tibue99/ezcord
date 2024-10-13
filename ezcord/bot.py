@@ -515,8 +515,7 @@ class Bot(_main_bot):  # type: ignore
                         self.logger.error("Could not send error message to user", exc_info=e)
 
             if automod:
-                # Don't log AutoMod errors
-                return
+                return  # Don't log AutoMod errors
 
             webhook_sent = False
             if self.error_webhook_url:

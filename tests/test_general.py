@@ -66,6 +66,7 @@ async def test_db():
         os.remove(db_file.name)
 
 
+@pytest.mark.dc
 def test_i18n():
     class InvalidType:
         pass

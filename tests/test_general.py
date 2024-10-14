@@ -73,8 +73,9 @@ def test_i18n():
 
     invalid_type = InvalidType()
 
-    assert ezcord.I18N.get_locale("en") == "en"
-    assert ezcord.I18N.get_locale("en-US") == "en-US"
-    assert ezcord.I18N.get_locale(invalid_type) is None
+    if discord.__name__ == "pycord":  # Only Pycord is supported by i18n
+        assert ezcord.I18N.get_locale("en") == "en"
+        assert ezcord.I18N.get_locale("en-US") == "en-US"
+        assert ezcord.I18N.get_locale(invalid_type) is None
 
-    assert ezcord.I18N.get_clean_locale("en-US") == "en"
+        assert ezcord.I18N.get_clean_locale("en-US") == "en"

@@ -530,7 +530,7 @@ class I18N:
         return locale  # I18N class is not in use
 
     @staticmethod
-    def get_clean_locale(obj: LOCALE_OBJECT):
+    def get_clean_locale(obj: LOCALE_OBJECT | str) -> str:
         """Get the clean locale from the given object. This is the locale without the region,
         e.g. ``en`` instead of ``en-US``.
 

@@ -64,3 +64,16 @@ async def test_db():
 
     if db_file.name:
         os.remove(db_file.name)
+
+
+def test_i18n():
+    class InvalidType:
+        pass
+
+    invalid_type = InvalidType()
+
+    assert ezcord.I18N.get_locale("en") == "en"
+    assert ezcord.I18N.get_locale("en-US") == "en-US"
+    assert ezcord.I18N.get_locale(invalid_type) is None
+
+    assert ezcord.I18N.get_clean_locale("en-US") == "en"

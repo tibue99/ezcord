@@ -455,6 +455,8 @@ class I18N:
     def get_locale(obj):
         """Get the locale from the given object. By default, this is the guild's locale.
 
+        This method can be called even if the I18N class has not been initialized.
+
         Parameters
         ----------
         obj:
@@ -511,7 +513,7 @@ class I18N:
                 user_id = interaction.user.id
 
         # check custom language settings
-        if I18N._custom_language_settings:
+        if hasattr(I18N, "_custom_language_settings") and I18N._custom_language_settings:
             if guild_id:
                 custom_locale = I18N._custom_language_settings(guild_id)
                 locale = custom_locale or locale

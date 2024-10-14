@@ -53,7 +53,7 @@ if TYPE_CHECKING:
 __all__ = ("t", "TEmbed", "I18N")
 
 
-def t(obj: LOCALE_OBJECT, key: str, count: int | None = None, **variables):
+def t(obj: LOCALE_OBJECT | str, key: str, count: int | None = None, **variables):
     """Get the localized string for the given key and insert all variables.
 
     Parameters
@@ -197,7 +197,7 @@ def _localize_send(send_func):
         content=None,
         *,
         count: int | None = None,
-        use_locale: LOCALE_OBJECT | None = None,
+        use_locale: LOCALE_OBJECT | str | None = None,
         **kwargs,
     ):
         """Wrapper to localize the content and the embed of a message.
@@ -241,7 +241,7 @@ def _localize_edit(edit_func):
         message_id: int | None = None,
         *,
         count: int | None = None,
-        use_locale: LOCALE_OBJECT | None = None,
+        use_locale: LOCALE_OBJECT | str | None = None,
         **kwargs,
     ):
         """The message_id is only needed for followup.edit_message, because it's a positional

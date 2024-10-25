@@ -45,7 +45,7 @@ def load_lang(language: str) -> dict[str, dict[str, str]]:
                         lang[category][value] = values[value]
 
     if EzConfig.lang != "auto" and lang == {}:
-        log.warn(f"Language file for language '{language}' not found. Falling back to 'en'.")
+        log.warning(f"Language file for language '{language}' not found. Falling back to 'en'.")
 
     return lang
 

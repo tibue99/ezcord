@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 dynamic = ["dependencies", "optional-dependencies", "version"]
 
@@ -29,6 +30,12 @@ version = {attr = "ezcord.__version__"}
 
 [tool.setuptools.dynamic.optional-dependencies]
 docs = {file = "docs/requirements.txt"}
+dev = {file = "dev-requirements.txt"}
+
+[tool.pytest.ini_options]
+markers = [
+    "dc: Marker for Discord-related tests"
+]
 
 [project.urls]
 GitHub = "https://github.com/tibue99/ezcord"

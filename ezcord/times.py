@@ -131,7 +131,7 @@ def dc_timestamp(
     :class:`str`
         A Discord timestamp.
     """
-    dt = discord.utils.utcnow() + timedelta(seconds=seconds)
+    dt = datetime.now(tz=timezone.utc) + timedelta(seconds=seconds)
     return discord.utils.format_dt(dt, style)
 
 

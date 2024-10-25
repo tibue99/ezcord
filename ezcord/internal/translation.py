@@ -191,5 +191,5 @@ def tr(key: str, *args: str, use_locale: LOCALE_OBJECT | None = None) -> str:
         # fallback to english if the key is not in the custom language file
         # provided by the user
         if lang != "auto":
-            log.warn(f"Key '{key}' not found in language file '{lang}'. Falling back to 'en'.")
+            log.warning(f"Key '{key}' not found in language file '{lang}'. Falling back to 'en'.")
         return load_lang("en")[origin_file][key].format(*args)

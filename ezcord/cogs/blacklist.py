@@ -217,6 +217,8 @@ class Blacklist(Cog, hidden=True):
             desc += f" - {guild.id}"
             if guild.owner:
                 desc += f" - {guild.owner} ({guild.owner.id})"
+            elif guild.owner_id:
+                desc += f" - {guild.owner_id}"
             desc += "\n"
 
         file = create_text_file(desc, "guilds.txt")

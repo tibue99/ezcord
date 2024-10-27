@@ -15,6 +15,8 @@ import warnings
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 from .errors import (
     ChannelNotFound,
     GuildMismatch,
@@ -29,6 +31,7 @@ __all__ = (
     "create_json_file",
     "create_text_file",
     "create_html_file",
+    "create_yaml_file",
     "avatar",
     "random_avatar",
     "codeblock",
@@ -39,6 +42,22 @@ __all__ = (
     "convert_color",
     "warn_deprecated",
 )
+
+
+def clean_data(data):
+    """Recursively clean data to remove non-serializable objects."""
+    if isinstance(data, dict):
+        return {k: clean_data(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [clean_data(item) for item in data]
+    elif isinstance(data, tuple):
+        return tuple(clean_data(item) for item in data)
+    elif isinstance(data, set):
+        return {clean_data(item) for item in data}
+    elif isinstance(data, (int, float, str, bool, type(None))):
+        return data
+    else:
+        return str(data)
 
 
 def create_json_file(
@@ -116,6 +135,27 @@ def create_html_file(html: str, filename: str = "data.html", **kwargs) -> discor
     :class:`discord.File`
     """
     return create_text_file(html, filename, **kwargs)
+
+
+def create_yaml_file(data: list, filename: str = "data.yaml", **kwargs) -> discord.File:
+    """Create a :class:`discord.File` object from a YAML string.
+
+    Parameters
+    ----------
+    data:
+        The YAML list to convert to a YAML file.
+    filename:
+        The filename to use for the YAML file.
+    **kwargs:
+        Keyword arguments for :class:`discord.File`.
+
+    Returns
+    -------
+    :class:`discord.File`
+    """
+    cleaned_data = clean_data(data)
+    yaml_string = yaml.dump(cleaned_data)
+    return discord.File(io.BytesIO(yaml_string.encode()), filename=filename, **kwargs)
 
 
 def avatar(user_id: int) -> str:

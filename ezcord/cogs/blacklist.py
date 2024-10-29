@@ -221,7 +221,7 @@ class Blacklist(Cog, hidden=True):
             for guild in self.bot.guilds
         ]
 
-        file = create_yaml_file(desc, "guilds.yaml")
+        file = create_yaml_file(desc, "guilds.yaml", sort_keys=False)
         await ctx.followup.send(file=file, ephemeral=True)
 
     @check_command(leave.command(name="server", description="Make the bot leave a server"))

@@ -211,12 +211,12 @@ class Blacklist(Cog, hidden=True):
 
         desc = [
             {
-                "guild_name": guild.name,
+                "name": guild.name,
                 "member_count": guild.member_count,
-                "guild_id": guild.id,
-                "owner": guild.owner if guild.owner else guild.owner_id,
+                "id": guild.id,
+                "owner": f"{guild.owner} - {guild.owner.id}" if guild.owner else guild.owner_id,
                 "created_at": guild.created_at,
-                "icon_url": guild.icon_url if guild.icon else None,
+                "icon": guild.icon.url if guild.icon else None,
             }
             for guild in self.bot.guilds
         ]

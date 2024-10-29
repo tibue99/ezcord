@@ -44,22 +44,6 @@ __all__ = (
 )
 
 
-def clean_data(data):
-    """Recursively clean data to remove non-serializable objects."""
-    if isinstance(data, dict):
-        return {k: clean_data(v) for k, v in data.items()}
-    elif isinstance(data, list):
-        return [clean_data(item) for item in data]
-    elif isinstance(data, tuple):
-        return tuple(clean_data(item) for item in data)
-    elif isinstance(data, set):
-        return {clean_data(item) for item in data}
-    elif isinstance(data, (int, float, str, bool, type(None))):
-        return data
-    else:
-        return str(data)
-
-
 def create_json_file(
     dictionary: dict,
     filename: str = "data.json",
@@ -137,7 +121,7 @@ def create_html_file(html: str, filename: str = "data.html", **kwargs) -> discor
     return create_text_file(html, filename, **kwargs)
 
 
-def create_yaml_file(data: list, filename: str = "data.yaml", **kwargs) -> discord.File:
+def create_yaml_file(data: dict | list, filename: str = "data.yaml", **kwargs) -> discord.File:
     """Create a :class:`discord.File` object from a YAML string.
 
     Parameters
@@ -153,8 +137,8 @@ def create_yaml_file(data: list, filename: str = "data.yaml", **kwargs) -> disco
     -------
     :class:`discord.File`
     """
-    cleaned_data = clean_data(data)
-    yaml_string = yaml.dump(cleaned_data)
+
+    yaml_string = yaml.dump(data)
     return discord.File(io.BytesIO(yaml_string.encode()), filename=filename, **kwargs)
 
 

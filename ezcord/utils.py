@@ -15,6 +15,8 @@ import warnings
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 from .errors import (
     ChannelNotFound,
     GuildMismatch,
@@ -29,6 +31,7 @@ __all__ = (
     "create_json_file",
     "create_text_file",
     "create_html_file",
+    "create_yaml_file",
     "avatar",
     "random_avatar",
     "codeblock",
@@ -116,6 +119,46 @@ def create_html_file(html: str, filename: str = "data.html", **kwargs) -> discor
     :class:`discord.File`
     """
     return create_text_file(html, filename, **kwargs)
+
+
+def create_yaml_file(
+    data: dict | list,
+    filename: str = "data.yaml",
+    *,
+    indent: int = 2,
+    description: str | None = None,
+    spoiler: bool = False,
+    **kwargs,
+) -> discord.File:
+    """Create a :class:`discord.File` object from a YAML string.
+
+    Parameters
+    ----------
+    data:
+        The data to convert to a YAML file.
+    filename:
+        The filename to use for the YAML file.
+    indent:
+        The indent to use for the YAML file.
+    description:
+        The description to use for the discord file.
+    spoiler:
+        Whether the Discord file should be a spoiler.
+    **kwargs:
+        Keyword arguments for :meth:`yaml.dump`.
+
+    Returns
+    -------
+    :class:`discord.File`
+    """
+
+    yaml_string = yaml.dump(data, indent=indent, **kwargs)
+    return discord.File(
+        io.BytesIO(yaml_string.encode()),
+        filename=filename,
+        description=description,
+        spoiler=spoiler,
+    )
 
 
 def avatar(user_id: int) -> str:

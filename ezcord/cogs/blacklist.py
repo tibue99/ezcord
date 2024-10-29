@@ -15,7 +15,7 @@ from ..errors import Blacklisted, ErrorMessageSent
 from ..internal import EzConfig, tr
 from ..internal.dc import DPY, PYCORD, commands, discord
 from ..logs import log
-from ..utils import create_text_file
+from ..utils import create_text_file, create_yaml_file
 
 _db = _BanDB()
 
@@ -208,20 +208,20 @@ class Blacklist(Cog, hidden=True):
             return
 
         await ctx.response.defer(ephemeral=True)
-        longest_name = max([guild.name for guild in self.bot.guilds], key=len)
-        sep = f"<{len(longest_name)}"
 
-        desc = ""
-        for guild in self.bot.guilds:
-            desc += f"{guild.name:{sep}} - {guild.member_count:<6,}"
-            desc += f" - {guild.id}"
-            if guild.owner:
-                desc += f" - {guild.owner} ({guild.owner.id})"
-            elif guild.owner_id:
-                desc += f" - {guild.owner_id}"
-            desc += "\n"
+        desc = [
+            {
+                "name": guild.name,
+                "member_count": guild.member_count,
+                "id": guild.id,
+                "owner": f"{guild.owner} - {guild.owner.id}" if guild.owner else guild.owner_id,
+                "created_at": guild.created_at,
+                "icon": guild.icon.url if guild.icon else None,
+            }
+            for guild in self.bot.guilds
+        ]
 
-        file = create_text_file(desc, "guilds.txt")
+        file = create_yaml_file(desc, "guilds.yaml", sort_keys=False)
         await ctx.followup.send(file=file, ephemeral=True)
 
     @check_command(leave.command(name="server", description="Make the bot leave a server"))

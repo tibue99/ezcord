@@ -3,4 +3,5 @@ aiohttp
 aiosqlite
 colorama
 python-dotenv
+PyYAML
 audioop-lts; python_version>='3.13'

@@ -573,7 +573,7 @@ class Bot(_main_bot):  # type: ignore
             cmd = self.get_application_command(name)
             if cmd is None:
                 return default
-            return cmd.mention
+            return f"**{cmd.mention}**" if bold else cmd.mention
 
         else:
             if not self.all_dpy_commands:

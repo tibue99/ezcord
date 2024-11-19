@@ -739,6 +739,9 @@ class I18N:
 
         for key, value in content.items():
             if isinstance(value, str):
+                if key in ["color", "colour", "type", "url", "timestamp", "image", "thumbnail"]:
+                    continue
+
                 content[key] = I18N.load_text(
                     value, locale, count, add_locations=add_locations, **variables
                 )

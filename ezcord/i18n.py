@@ -601,25 +601,30 @@ class I18N:
         """Looks for the specified key in different locations of the language file."""
 
         file_name, method_name, class_name = I18N.get_location()
-        lookups: list[list | tuple] = [
-            (file_name, method_name, key),
-            (file_name, called_class, key),
-            (file_name, class_name, key),
-            (file_name, "general", key),
-            ("general", key),
-        ]
-        for location in add_locations:
-            lookups.append((file_name, location, key))
+
+        lookups: list[list | tuple]
         if "." in key:
-            lookups.append([file_name] + key.split("."))
-            lookups.append(key.split("."))
+            lookups = [[file_name] + key.split("."), key.split(".")]
+        else:
+            lookups = [
+                (file_name, method_name, key),
+                (file_name, called_class, key),
+                (file_name, class_name, key),
+                (file_name, "general", key),
+                ("general", key),
+            ]
+            for location in add_locations:
+                lookups.append((file_name, location, key))
 
         localizations = I18N.localizations[locale]
 
         for lookup in lookups:
             current_section = localizations.copy()
             for location in lookup:
-                current_section = current_section.get(location, {})
+                try:
+                    current_section = current_section.get(location, {})
+                except AttributeError:
+                    return key
 
             txt = current_section
             if isinstance(txt, str):

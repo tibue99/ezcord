@@ -5,7 +5,7 @@ import random
 import re
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Literal, Union, overload
+from typing import TYPE_CHECKING, Callable, Literal, Type, Union
 
 from .internal.dc import PYCORD, discord
 from .logs import log
@@ -22,6 +22,7 @@ WEBHOOK_SEND = discord.Webhook.send
 WEBHOOK_EDIT_MESSAGE = discord.Webhook.edit_message
 WEBHOOK_EDIT = discord.WebhookMessage.edit
 
+LOCALE = Union[str]
 
 if PYCORD:
     INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_response
@@ -41,19 +42,20 @@ else:
 if TYPE_CHECKING:
     import discord  # type: ignore
 
-    LOCALE_OBJECT = Union[
+    LOCALE = Union[  # type: ignore
         discord.Interaction,
         discord.ApplicationContext,
         discord.InteractionResponse,
         discord.Webhook,
         discord.Guild,
         discord.Member,
+        str,
     ]
 
-__all__ = ("t", "TEmbed", "I18N")
+__all__ = ("t", "TEmbed", "I18N", "LOCALE")
 
 
-def t(obj: LOCALE_OBJECT | str, key: str, count: int | None = None, **variables):
+def t(obj: LOCALE | str, key: str, count: int | None = None, **variables):
     """Get the localized string for the given key and insert all variables.
 
     Parameters
@@ -197,7 +199,7 @@ def _localize_send(send_func):
         content=None,
         *,
         count: int | None = None,
-        use_locale: LOCALE_OBJECT | str | None = None,
+        use_locale: LOCALE | None = None,
         **kwargs,
     ):
         """Wrapper to localize the content and the embed of a message.
@@ -241,7 +243,7 @@ def _localize_edit(edit_func):
         message_id: int | None = None,
         *,
         count: int | None = None,
-        use_locale: LOCALE_OBJECT | str | None = None,
+        use_locale: LOCALE | None = None,
         **kwargs,
     ):
         """The message_id is only needed for followup.edit_message, because it's a positional
@@ -444,15 +446,7 @@ class I18N:
             setattr(discord.WebhookMessage, "edit_message", _localize_edit(WEBHOOK_EDIT))
 
     @staticmethod
-    @overload
-    def get_locale(obj: str) -> str: ...
-
-    @staticmethod
-    @overload
-    def get_locale(obj: LOCALE_OBJECT) -> str: ...
-
-    @staticmethod
-    def get_locale(obj):
+    def get_locale(obj: LOCALE) -> str:
         """Get the locale from the given object. By default, this is the guild's locale.
 
         This method can be called even if the I18N class has not been initialized.
@@ -530,7 +524,7 @@ class I18N:
         return locale  # I18N class is not in use
 
     @staticmethod
-    def get_clean_locale(obj: LOCALE_OBJECT | str) -> str:
+    def get_clean_locale(obj: LOCALE) -> str:
         """Get the clean locale from the given object. This is the locale without the region,
         e.g. ``en`` instead of ``en-US``.
 

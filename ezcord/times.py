@@ -9,7 +9,7 @@ from .internal import tp
 from .internal.dc import discord
 
 if TYPE_CHECKING:
-    from .i18n import LOCALE_OBJECT
+    from .i18n import LOCALE
 
 __all__ = (
     "set_utc",
@@ -36,7 +36,7 @@ def set_utc(dt: datetime) -> datetime:
 
 
 def convert_time(
-    seconds: int | float, relative: bool = True, *, use_locale: LOCALE_OBJECT | None = None
+    seconds: int | float, relative: bool = True, *, use_locale: LOCALE | None = None
 ) -> str:
     """Convert seconds to a human-readable time.
 
@@ -80,7 +80,7 @@ def convert_dt(
     dt: datetime | timedelta,
     relative: bool = True,
     *,
-    use_locale: LOCALE_OBJECT | None = None,
+    use_locale: LOCALE | None = None,
 ) -> str:
     """Convert :class:`datetime` or :class:`timedelta` to a human-readable time.
 

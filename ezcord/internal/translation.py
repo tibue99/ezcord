@@ -12,7 +12,7 @@ from .config import EzConfig
 from .language.languages import load_lang
 
 if TYPE_CHECKING:
-    from ..i18n import LOCALE_OBJECT
+    from ..i18n import LOCALE
 
 
 def plural_de(amount: int, word: str, relative: bool = True) -> str:
@@ -121,7 +121,7 @@ def tp(
     amount: int,
     *args: str,
     relative: bool = True,
-    use_locale: LOCALE_OBJECT | None = None,
+    use_locale: LOCALE | None = None,
 ) -> str:
     """Load a string in the selected language and pluralize it.
 
@@ -161,7 +161,7 @@ def get_locale(obj) -> str:
         return EzConfig.lang
 
 
-def tr(key: str, *args: str, use_locale: LOCALE_OBJECT | None = None) -> str:
+def tr(key: str, *args: str, use_locale: LOCALE | None = None) -> str:
     """Load a string in the selected language.
 
     Parameters

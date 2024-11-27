@@ -692,21 +692,23 @@ class I18N:
     def load_embed(embed: TEmbed, locale: str) -> discord.Embed:
         """Loads an embed from the language file."""
 
-        file_name, cmd_name, class_name = I18N.get_location()
+        file_name, method_name, class_name = I18N.get_location()
 
         # search not only the location of the embed usage,
         # but also the location of the embed creation
         original_method, original_class = embed.method_name, embed.class_name
 
-        lookups: list[list | tuple] = [
-            (file_name, cmd_name, embed.key),
-            (file_name, original_method, embed.key),
-            (file_name, original_class, embed.key),
-            (file_name, class_name, embed.key),
-        ]
+        lookups: list[list | tuple]
         if "." in embed.key:
-            lookups.append([file_name] + embed.key.split("."))
-            lookups.append(embed.key.split("."))
+            lookups = [embed.key.split("."), [file_name] + embed.key.split(".")]
+        else:
+            lookups = [
+                (file_name, method_name, embed.key),
+                (file_name, original_method, embed.key),
+                (file_name, original_class, embed.key),
+                (file_name, class_name, embed.key),
+                (file_name, embed.key),
+            ]
 
         localizations = I18N.localizations[locale]
 

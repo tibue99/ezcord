@@ -5,7 +5,7 @@ import random
 import re
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Literal, Type, Union
+from typing import TYPE_CHECKING, Callable, Literal, Union
 
 from .internal.dc import PYCORD, discord
 from .logs import log

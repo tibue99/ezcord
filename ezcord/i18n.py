@@ -604,15 +604,15 @@ class I18N:
 
         lookups: list[list | tuple]
         if "." in key:
-            lookups = [[file_name] + key.split("."), key.split(".")]
+            lookups = [key.split("."), [file_name] + key.split(".")]
         else:
             lookups = [
                 (file_name, method_name, key),
                 (file_name, called_class, key),
                 (file_name, class_name, key),
-                (file_name, key),
                 (file_name, "general", key),
                 ("general", key),
+                (file_name, key),
             ]
             for location in add_locations:
                 lookups.append((file_name, location, key))

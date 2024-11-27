@@ -610,6 +610,7 @@ class I18N:
                 (file_name, method_name, key),
                 (file_name, called_class, key),
                 (file_name, class_name, key),
+                (file_name, key),
                 (file_name, "general", key),
                 ("general", key),
             ]

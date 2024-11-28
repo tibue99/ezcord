@@ -5,7 +5,7 @@ import random
 import re
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Literal, Union, overload
+from typing import TYPE_CHECKING, Callable, Literal, Union
 
 from .internal.dc import PYCORD, discord
 from .logs import log
@@ -22,6 +22,7 @@ WEBHOOK_SEND = discord.Webhook.send
 WEBHOOK_EDIT_MESSAGE = discord.Webhook.edit_message
 WEBHOOK_EDIT = discord.WebhookMessage.edit
 
+LOCALE = Union[str]
 
 if PYCORD:
     INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_response
@@ -41,19 +42,20 @@ else:
 if TYPE_CHECKING:
     import discord  # type: ignore
 
-    LOCALE_OBJECT = Union[
+    LOCALE = Union[  # type: ignore
         discord.Interaction,
         discord.ApplicationContext,
         discord.InteractionResponse,
         discord.Webhook,
         discord.Guild,
         discord.Member,
+        str,
     ]
 
-__all__ = ("t", "TEmbed", "I18N")
+__all__ = ("t", "TEmbed", "I18N", "LOCALE")
 
 
-def t(obj: LOCALE_OBJECT | str, key: str, count: int | None = None, **variables):
+def t(obj: LOCALE | str, key: str, count: int | None = None, **variables):
     """Get the localized string for the given key and insert all variables.
 
     Parameters
@@ -197,7 +199,7 @@ def _localize_send(send_func):
         content=None,
         *,
         count: int | None = None,
-        use_locale: LOCALE_OBJECT | str | None = None,
+        use_locale: LOCALE | None = None,
         **kwargs,
     ):
         """Wrapper to localize the content and the embed of a message.
@@ -241,7 +243,7 @@ def _localize_edit(edit_func):
         message_id: int | None = None,
         *,
         count: int | None = None,
-        use_locale: LOCALE_OBJECT | str | None = None,
+        use_locale: LOCALE | None = None,
         **kwargs,
     ):
         """The message_id is only needed for followup.edit_message, because it's a positional
@@ -444,15 +446,7 @@ class I18N:
             setattr(discord.WebhookMessage, "edit_message", _localize_edit(WEBHOOK_EDIT))
 
     @staticmethod
-    @overload
-    def get_locale(obj: str) -> str: ...
-
-    @staticmethod
-    @overload
-    def get_locale(obj: LOCALE_OBJECT) -> str: ...
-
-    @staticmethod
-    def get_locale(obj):
+    def get_locale(obj: LOCALE) -> str:
         """Get the locale from the given object. By default, this is the guild's locale.
 
         This method can be called even if the I18N class has not been initialized.
@@ -530,7 +524,7 @@ class I18N:
         return locale  # I18N class is not in use
 
     @staticmethod
-    def get_clean_locale(obj: LOCALE_OBJECT | str) -> str:
+    def get_clean_locale(obj: LOCALE) -> str:
         """Get the clean locale from the given object. This is the locale without the region,
         e.g. ``en`` instead of ``en-US``.
 
@@ -601,25 +595,31 @@ class I18N:
         """Looks for the specified key in different locations of the language file."""
 
         file_name, method_name, class_name = I18N.get_location()
-        lookups: list[list | tuple] = [
-            (file_name, method_name, key),
-            (file_name, called_class, key),
-            (file_name, class_name, key),
-            (file_name, "general", key),
-            ("general", key),
-        ]
-        for location in add_locations:
-            lookups.append((file_name, location, key))
+
+        lookups: list[list | tuple]
         if "." in key:
-            lookups.append([file_name] + key.split("."))
-            lookups.append(key.split("."))
+            lookups = [key.split("."), [file_name] + key.split(".")]
+        else:
+            lookups = [
+                (file_name, method_name, key),
+                (file_name, called_class, key),
+                (file_name, class_name, key),
+                (file_name, "general", key),
+                ("general", key),
+                (file_name, key),
+            ]
+            for location in add_locations:
+                lookups.append((file_name, location, key))
 
         localizations = I18N.localizations[locale]
 
         for lookup in lookups:
             current_section = localizations.copy()
             for location in lookup:
-                current_section = current_section.get(location, {})
+                try:
+                    current_section = current_section.get(location, {})
+                except AttributeError:
+                    return key
 
             txt = current_section
             if isinstance(txt, str):
@@ -686,21 +686,23 @@ class I18N:
     def load_embed(embed: TEmbed, locale: str) -> discord.Embed:
         """Loads an embed from the language file."""
 
-        file_name, cmd_name, class_name = I18N.get_location()
+        file_name, method_name, class_name = I18N.get_location()
 
         # search not only the location of the embed usage,
         # but also the location of the embed creation
         original_method, original_class = embed.method_name, embed.class_name
 
-        lookups: list[list | tuple] = [
-            (file_name, cmd_name, embed.key),
-            (file_name, original_method, embed.key),
-            (file_name, original_class, embed.key),
-            (file_name, class_name, embed.key),
-        ]
+        lookups: list[list | tuple]
         if "." in embed.key:
-            lookups.append([file_name] + embed.key.split("."))
-            lookups.append(embed.key.split("."))
+            lookups = [embed.key.split("."), [file_name] + embed.key.split(".")]
+        else:
+            lookups = [
+                (file_name, method_name, embed.key),
+                (file_name, original_method, embed.key),
+                (file_name, original_class, embed.key),
+                (file_name, class_name, embed.key),
+                (file_name, embed.key),
+            ]
 
         localizations = I18N.localizations[locale]
 
@@ -739,6 +741,9 @@ class I18N:
 
         for key, value in content.items():
             if isinstance(value, str):
+                if key in ["color", "colour", "type", "url", "timestamp", "image", "thumbnail"]:
+                    continue
+
                 content[key] = I18N.load_text(
                     value, locale, count, add_locations=add_locations, **variables
                 )

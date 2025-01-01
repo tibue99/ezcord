@@ -39,6 +39,7 @@ jobs:
           pytest
 
       - name: Test Nextcord
+        if: ${{ matrix.python-version == '3.12' || matrix.python-version == '3.13' }}
         run: |
           pip uninstall -y discord.py
           pip install git+https://github.com/nextcord/nextcord

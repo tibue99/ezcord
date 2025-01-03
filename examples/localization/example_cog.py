@@ -10,8 +10,8 @@ class ExampleCog(ezcord.Cog):
 
     @slash_command()
     async def command1(self, ctx: ezcord.EzContext):
-        embed = ezcord.TEmbed("embed1", color=discord.Color.blurple())
-        await ctx.respond("welcome", embed=embed, user=ctx.user.mention)
+        embed = ezcord.TEmbed("command1.embed1", color=discord.Color.blurple())
+        await ctx.respond("command1.welcome", embed=embed, user=ctx.user.mention)
 
 
 def setup(bot):

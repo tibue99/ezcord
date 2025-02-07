@@ -9,9 +9,28 @@ class ExampleCog(ezcord.Cog):
         self.bot = bot
 
     @slash_command()
-    async def command1(self, ctx: ezcord.EzContext):
-        embed = ezcord.TEmbed("command1.embed1", color=discord.Color.blurple())
-        await ctx.respond("command1.welcome", embed=embed, user=ctx.user.mention)
+    async def example_cmd(self, ctx: ezcord.EzContext):
+        # Keys from the language file will be auto-translated.
+        await ctx.respond("example.command1.welcome", user=ctx.user.mention)
+
+        # You can use multiple keys and other values in the same string.
+        await ctx.respond("🍪 {example.command1.welcome}", user=ctx.user.mention)
+
+        # Strings can also be loaded directly.
+        text = ctx.t("example.command1.welcome", user=ctx.user.mention)
+        await ctx.respond(text)
+
+        # If ctx is not available, you can use other types to determine the language.
+        text = ezcord.t(ctx.interaction, "example.command1.welcome", user=ctx.user.mention)
+        await ctx.respond(text)
+
+        # The count variable is used for pluralization.
+        await ctx.respond("🍪 {example.command1.welcome_cookie}", count=1)
+
+        # Keys can be used in other places as well.
+        embed = discord.Embed(title="example.command1.welcome")
+        view = discord.ui.View(discord.ui.Button(label="example.command1.welcome"))
+        await ctx.respond(embed=embed, view=view)
 
 
 def setup(bot):

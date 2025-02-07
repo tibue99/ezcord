@@ -1,29 +1,21 @@
 general:
-  # General values can be accessed from anywhere
-  accept: Accept
-  decline: Decline
-  cookie:
-    one: Cookie
-    many: Cookies  # Specify the plural form
+  # General values can be used anywhere in the language file with curly braces
+  # and will be replaced when the language file is loaded.
+  COOKIE: Cookie
 
-example_cog:
-  general:
-    example: example
-
+example:
   command1:
     welcome:
-      # Use lists to select a random message from the list
+      # Use lists to select a random message from the list.
+      # The user variable can be set in the Discord bot code.
       - Hey {user}
       - Hi {user}
 
-    embed1:
-      # Use general variables (global or from the current cog)
-      # In comparison to dynamic variables like {user},
-      #   general variables are inserted when the language file is loaded
-      title: "{accept} the cookie?"
-      description: This is an {.example} text!
+    welcome_cookie:
+      one: This greeting comes with a {COOKIE}.
+      many: These greetings come with many {COOKIE}s.  # Specify plural form
 
-# You can also localize the embed for the Ezcord help command
+# You can also localize the embed for the Ezcord help command.
 help:
   embed:
     title: Localized Help Command

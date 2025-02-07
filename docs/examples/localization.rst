@@ -24,7 +24,7 @@ and group that you want to localize. The key is the name of the command or group
    :language: yaml
    :caption: commands.yaml
 
-.. literalinclude:: ../../examples/localization/localization.py
+.. literalinclude:: ../../examples/localization/main.py
    :language: python
    :caption: main.py
 

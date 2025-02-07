@@ -20,9 +20,9 @@ de:
         description: Der User, den du begrüßen möchtest.
 
   example_group:
-      group_greet:
-        name: gruppen_begrüßung
-        description: Begrüßung mit einer SlashCommandGroup
+    group_greet:
+      name: gruppen_begrüßung
+      description: Begrüßung mit einer SlashCommandGroup
 
   cogs:
     # Cogs names and descriptions can be localized as well

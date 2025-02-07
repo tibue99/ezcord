@@ -328,6 +328,8 @@ class I18N:
     ignore_discord_ids:
         Whether to not localize numbers that could be a Discord ID. Default to  ``True``.
         This only has an effect if ``localize_numbers`` is set to ``True``.
+    do_not_localize:
+        If a key starts with this string, it will not be localized. Defaults to ``".."``.
     exclude_methods:
         Method names to exclude from the search of keys in the language file.
     disable_translations:
@@ -349,6 +351,7 @@ class I18N:
     prefer_user_locale: bool = False
     localize_numbers: bool
     ignore_discord_ids: bool
+    do_not_localize: str = ".."
     exclude_methods: list[str] | None
 
     _general_values: dict = {}  # general values for the current localization
@@ -368,6 +371,7 @@ class I18N:
         prefer_user_locale: bool = False,
         localize_numbers: bool = True,
         ignore_discord_ids: bool = True,
+        do_not_localize: str = "..",
         exclude_methods: list[str] | None = None,
         disable_translations: (
             list[
@@ -410,6 +414,7 @@ class I18N:
         if not exclude_methods:
             exclude_methods = []
         I18N.exclude_methods = exclude_methods
+        I18N.do_not_localize = do_not_localize
         I18N._custom_language_settings = language_settings
 
         if not disable_translations:
@@ -593,6 +598,9 @@ class I18N:
         key: str, locale: str, count: int | None, called_class: str | None, add_locations: tuple
     ) -> str:
         """Looks for the specified key in different locations of the language file."""
+
+        if key.startswith(I18N.do_not_localize):
+            return key.replace(I18N.do_not_localize, "", 1)
 
         file_name, method_name, class_name = I18N.get_location()
 

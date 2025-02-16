@@ -605,7 +605,8 @@ class Bot(_main_bot):  # type: ignore
         permission_check: bool = False,
         **kwargs: Callable | str,
     ):
-        """Add a help command that uses a select menu to group commands by cogs.
+        """Add a help command that uses a select menu to group commands by cogs. Note that this
+        will only include application commands.
 
         If you use :class:`Cog`, you can pass in emojis to use for the select menu.
 
@@ -652,7 +653,8 @@ class Bot(_main_bot):  # type: ignore
         description_format:
             The description format of each category.
         permission_check:
-            Whether to check for permissions before showing a command. Defaults to ``True``.
+            Whether to hide commands if a user does not have sufficient permissions to execute them.
+            Defaults to ``True``.
         **kwargs:
             Additional variables to use in the help command. This can either be a string value or
             a callable that returns a string value.

@@ -187,14 +187,12 @@ class Help(Cog, hidden=True):
                 cog_cmds = [
                     cmd
                     for cmd in cog.walk_commands()
-                    if type(cmd)
+                    if isinstance(cmd, discord.ApplicationCommand)
+                    and type(cmd)
                     not in [
                         discord.MessageCommand,
                         discord.UserCommand,
                         discord.SlashCommandGroup,
-                        discord.ext.bridge.BridgeExtCommand,
-                        discord.ext.bridge.BridgeExtGroup,
-                        discord.ext.bridge.BridgeSlashGroup,
                     ]
                 ]
             else:

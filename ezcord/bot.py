@@ -654,7 +654,7 @@ class Bot(_main_bot):  # type: ignore
             The description format of each category.
         permission_check:
             Whether to hide commands if a user does not have sufficient permissions to execute them.
-            Defaults to ``True``.
+            Defaults to ``False``.
         **kwargs:
             Additional variables to use in the help command. This can either be a string value or
             a callable that returns a string value.

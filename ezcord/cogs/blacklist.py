@@ -216,6 +216,8 @@ class Blacklist(Cog, hidden=True):
                 "id": guild.id,
                 "owner": f"{guild.owner} - {guild.owner.id}" if guild.owner else guild.owner_id,
                 "created_at": guild.created_at,
+                "joined_at": guild.me.joined_at,
+                "preferred_locale": guild.preferred_locale,
                 "icon": guild.icon.url if guild.icon else None,
             }
             for guild in self.bot.guilds

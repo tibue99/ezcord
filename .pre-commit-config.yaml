@@ -1,5 +1,6 @@
 ci:
-    autoupdate_schedule: quarterly
+  autoupdate_schedule: quarterly
+  autoupdate_commit_msg: "chore: pre-commit autoupdate"
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -19,19 +20,19 @@ repos:
         - --remove-unused-variables
 
   - repo: https://github.com/psf/black
-    rev: 24.10.0
+    rev: 25.1.0
     hooks:
       - id: black
         args: [--safe, --line-length=100]
 
   - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
+    rev: 6.0.1
     hooks:
       - id: isort
         args: ["--profile", "black"]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.14.1
+    rev: v1.15.0
     hooks:
       - id: mypy
         args: [--disable-error-code=name-defined, --disable-error-code=import]

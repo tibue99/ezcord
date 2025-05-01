@@ -153,6 +153,31 @@ def _check_embeds(locale: str, count: int | None, variables: dict, **kwargs):
     return kwargs
 
 
+def _check_components(component, locale: str, count: int | None, class_name: str, **variables):
+    """Recursively walks through components and loads language file keys."""
+
+    if isinstance(component, discord.ui.Container):
+        for item in component.items:
+            print(type(item), item)
+            _check_components(item, locale, count, class_name, **variables)
+
+    if isinstance(component, discord.ui.Section):
+        for item in component.items:
+            print(type(item), item)
+            _check_components(item, locale, count, class_name, **variables)
+
+        _check_components(component.accessory, locale, count, class_name, **variables)
+
+    # TextDisplay
+    if hasattr(component, "content"):
+        component.content = I18N.load_text(
+            component.content, locale, count, class_name, **variables
+        )
+
+    if isinstance(component, discord.ui.Button) and hasattr(component, "label"):
+        component.label = I18N.load_text(component.label, locale, count, class_name, **variables)
+
+
 def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
     """Load all keys inside the view from the language file."""
 
@@ -184,6 +209,9 @@ def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
                     option.description = I18N.load_text(
                         option.description, locale, count, class_name, **variables
                     )
+
+            if type(child) in [discord.ui.Section, discord.ui.Container]:
+                _check_components(child, locale, count, class_name, **variables)
 
     return kwargs
 

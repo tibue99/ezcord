@@ -158,12 +158,10 @@ def _check_components(component, locale: str, count: int | None, class_name: str
 
     if isinstance(component, discord.ui.Container):
         for item in component.items:
-            print(type(item), item)
             _check_components(item, locale, count, class_name, **variables)
 
     if isinstance(component, discord.ui.Section):
         for item in component.items:
-            print(type(item), item)
             _check_components(item, locale, count, class_name, **variables)
 
         _check_components(component.accessory, locale, count, class_name, **variables)

@@ -175,6 +175,18 @@ def _check_components(component, locale: str, count: int | None, class_name: str
     if isinstance(component, discord.ui.Button) and hasattr(component, "label"):
         component.label = I18N.load_text(component.label, locale, count, class_name, **variables)
 
+    if hasattr(component, "placeholder"):
+        component.placeholder = I18N.load_text(
+            component.placeholder, locale, count, class_name, **variables
+        )
+
+    if hasattr(component, "options"):
+        for option in component.options:
+            option.label = I18N.load_text(option.label, locale, count, class_name, **variables)
+            option.description = I18N.load_text(
+                option.description, locale, count, class_name, **variables
+            )
+
 
 def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
     """Load all keys inside the view from the language file."""
@@ -191,25 +203,7 @@ def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
                 # in the language file instead of the view name
                 class_name = child.__class__.__name__
 
-            if hasattr(child, "label"):
-                child.label = I18N.load_text(child.label, locale, count, class_name, **variables)
-
-            if hasattr(child, "placeholder"):
-                child.placeholder = I18N.load_text(
-                    child.placeholder, locale, count, class_name, **variables
-                )
-
-            if hasattr(child, "options"):
-                for option in child.options:
-                    option.label = I18N.load_text(
-                        option.label, locale, count, class_name, **variables
-                    )
-                    option.description = I18N.load_text(
-                        option.description, locale, count, class_name, **variables
-                    )
-
-            if type(child) in [discord.ui.Section, discord.ui.Container]:
-                _check_components(child, locale, count, class_name, **variables)
+            _check_components(child, locale, count, class_name, **variables)
 
     return kwargs
 

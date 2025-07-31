@@ -97,6 +97,9 @@ class Bot(_main_bot):  # type: ignore
     ready_event:
         The style for :meth:`on_ready_event`. Defaults to :attr:`.ReadyEvent.default`.
         If this is ``None``, the event will be disabled.
+    safe_loading:
+        Enable safe loading of cogs.
+        If this is ``True``, errors during cog loading will be caught and logged without interrupting execution.
     **kwargs:
         Additional keyword arguments for :class:`discord.Bot`.
     """
@@ -113,6 +116,7 @@ class Bot(_main_bot):  # type: ignore
         language: str = "auto",
         default_language: str = "en",
         ready_event: ReadyEvent | None = ReadyEvent.default,
+        safe_loading: bool = True,
         **kwargs,
     ):
         if PYCORD:
@@ -157,6 +161,8 @@ class Bot(_main_bot):  # type: ignore
 
         self.enabled_extensions: list[str] = []
         self.initial_cogs: list[str] = []
+
+        self.safe_loading = safe_loading
 
         # Needed for Discord.py command mentions
         self.all_dpy_commands = None
@@ -289,12 +295,24 @@ class Bot(_main_bot):  # type: ignore
         return cogs
 
     def _load_extension_save(self, name: str, **kwargs):
+        """Safely loads an extension and catches potential errors.
+
+        This method attempts to load a bot extension and logs any
+        occurring errors without interrupting the program flow.
+
+        Parameters
+        ----------
+        name:
+            The name of the extension to load.
+        **kwargs:
+            Additional parameters to pass to load_extension.
+        """
         try:
             self.load_extension(name, **kwargs)
         except Exception as e:
-            self.logger.error(
-                f"Failed to load extension '{name}' ({e})",
-            )
+            if not self.safe_loading:
+                raise
+            self.logger.error(f"Failed to load extension '{name}' ({e})")
 
     def load_cogs(
         self,

@@ -288,6 +288,14 @@ class Bot(_main_bot):  # type: ignore
         self._cog_count_log(custom_log_level, log, loaded_cogs, log_color)
         return cogs
 
+    def _load_extension_save(self, name: str, **kwargs):
+        try:
+            self.load_extension(name, **kwargs)
+        except Exception as e:
+            self.logger.error(
+                f"Failed to load extension '{name}' ({e})",
+            )
+
     def load_cogs(
         self,
         *directories: str,
@@ -331,7 +339,7 @@ class Bot(_main_bot):  # type: ignore
 
         if not DPY:
             for cog in cogs:
-                self.load_extension(cog)
+                self._load_extension_save(cog)
 
     def add_ready_info(
         self,
@@ -686,7 +694,7 @@ class Bot(_main_bot):  # type: ignore
         )
         self.enabled_extensions.append("help")
         if not DPY:
-            self.load_extension("ezcord.cogs.pyc.help_setup", package="ezcord")
+            self._load_extension_save("ezcord.cogs.pyc.help_setup", package="ezcord")
 
     def add_status_changer(
         self,
@@ -766,7 +774,7 @@ class Bot(_main_bot):  # type: ignore
         )
         self.enabled_extensions.append("status_changer")
         if not DPY:
-            self.load_extension("ezcord.cogs.pyc.status_changer_setup", package="ezcord")
+            self._load_extension_save("ezcord.cogs.pyc.status_changer_setup", package="ezcord")
 
     def add_blacklist(
         self,
@@ -832,7 +840,7 @@ class Bot(_main_bot):  # type: ignore
 
         self.enabled_extensions.append("blacklist")
         if not DPY:
-            self.load_extension("ezcord.cogs.pyc.blacklist_setup", package="ezcord")
+            self._load_extension_save("ezcord.cogs.pyc.blacklist_setup", package="ezcord")
 
     def localize_commands(
         self, languages: dict[str, dict], default: str = "en-US", cogs: bool = True
@@ -884,10 +892,10 @@ class Bot(_main_bot):  # type: ignore
         """This is used for Discord.py startup and should not be called manually."""
 
         for cog in self.initial_cogs:
-            await self.load_extension(cog)
+            await self._load_extension_save(cog)
 
         for ext in self.enabled_extensions:
-            await self.load_extension(f".cogs.dpy.{ext}_setup", package="ezcord")
+            await self._load_extension_save(f".cogs.dpy.{ext}_setup", package="ezcord")
 
     def _run_setup(
         self,

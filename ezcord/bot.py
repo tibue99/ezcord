@@ -116,7 +116,7 @@ class Bot(_main_bot):  # type: ignore
         language: str = "auto",
         default_language: str = "en",
         ready_event: ReadyEvent | None = ReadyEvent.default,
-        safe_loading: bool = True,
+        safe_loading: bool = False,
         **kwargs,
     ):
         if PYCORD:

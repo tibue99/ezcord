@@ -294,11 +294,11 @@ class Bot(_main_bot):  # type: ignore
         self._cog_count_log(custom_log_level, log, loaded_cogs, log_color)
         return cogs
 
-    def _load_extension_save(self, name: str, **kwargs):
-        """Safely loads an extension and catches potential errors.
+    def load_extension(self, name: str, **kwargs):
+        """Loads an extension with configurable error handling.
 
-        This method attempts to load a bot extension and logs any
-        occurring errors without interrupting the program flow.
+        This method attempts to load a bot extension. The behavior on error depends
+        on the `safe_loading` setting in the ``ezcord.Bot`` instance.
 
         Parameters
         ----------
@@ -308,7 +308,7 @@ class Bot(_main_bot):  # type: ignore
             Additional parameters to pass to load_extension.
         """
         try:
-            self.load_extension(name, **kwargs)
+            super().load_extension(name, **kwargs)
         except Exception as e:
             if not self.safe_loading:
                 raise
@@ -357,7 +357,7 @@ class Bot(_main_bot):  # type: ignore
 
         if not DPY:
             for cog in cogs:
-                self._load_extension_save(cog)
+                self.load_extension(cog)
 
     def add_ready_info(
         self,
@@ -712,7 +712,7 @@ class Bot(_main_bot):  # type: ignore
         )
         self.enabled_extensions.append("help")
         if not DPY:
-            self._load_extension_save("ezcord.cogs.pyc.help_setup", package="ezcord")
+            self.load_extension("ezcord.cogs.pyc.help_setup", package="ezcord")
 
     def add_status_changer(
         self,
@@ -792,7 +792,7 @@ class Bot(_main_bot):  # type: ignore
         )
         self.enabled_extensions.append("status_changer")
         if not DPY:
-            self._load_extension_save("ezcord.cogs.pyc.status_changer_setup", package="ezcord")
+            self.load_extension("ezcord.cogs.pyc.status_changer_setup", package="ezcord")
 
     def add_blacklist(
         self,
@@ -858,7 +858,7 @@ class Bot(_main_bot):  # type: ignore
 
         self.enabled_extensions.append("blacklist")
         if not DPY:
-            self._load_extension_save("ezcord.cogs.pyc.blacklist_setup", package="ezcord")
+            self.load_extension("ezcord.cogs.pyc.blacklist_setup", package="ezcord")
 
     def localize_commands(
         self, languages: dict[str, dict], default: str = "en-US", cogs: bool = True
@@ -910,10 +910,10 @@ class Bot(_main_bot):  # type: ignore
         """This is used for Discord.py startup and should not be called manually."""
 
         for cog in self.initial_cogs:
-            await self._load_extension_save(cog)
+            await self.load_extension(cog)
 
         for ext in self.enabled_extensions:
-            await self._load_extension_save(f".cogs.dpy.{ext}_setup", package="ezcord")
+            await self.load_extension(f".cogs.dpy.{ext}_setup", package="ezcord")
 
     def _run_setup(
         self,

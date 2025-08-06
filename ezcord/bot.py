@@ -312,7 +312,7 @@ class Bot(_main_bot):  # type: ignore
         except Exception as e:
             if not self.safe_loading:
                 raise
-            self.logger.error(f"Failed to load extension '{name}' ({e})")
+            self.logger.error(f"Failed to load extension '{name}'", exc_info=e.__cause__)
 
     def load_cogs(
         self,

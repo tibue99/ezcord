@@ -942,10 +942,10 @@ class Bot(_main_bot):  # type: ignore
         """This is used for Discord.py startup and should not be called manually."""
 
         for cog in self.initial_cogs:
-            await self.load_extension(cog)
+            await super().load_extension(cog)
 
         for ext in self.enabled_extensions:
-            await self.load_extension(f".cogs.dpy.{ext}_setup", package="ezcord")
+            await super().load_extension(f".cogs.dpy.{ext}_setup", package="ezcord")
 
     def _run_setup(
         self,

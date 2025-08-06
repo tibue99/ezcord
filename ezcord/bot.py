@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
 import aiohttp
+from colorama import Fore
 from dotenv import load_dotenv
 
 from .emb import EzContext
@@ -24,6 +25,7 @@ from .internal import (
     localize_command,
     print_custom_ready,
     print_ready,
+    tables,
     tr,
 )
 from .internal.config import Blacklist
@@ -254,6 +256,22 @@ class Bot(_main_bot):  # type: ignore
 
         self._send_cog_log(custom_log_level, log_format, color=color)
 
+    def _cog_log_table(self, cog_status: dict[str, bool]):
+        cog_log = []
+        color_log = []
+
+        for cog, success in cog_status.items():
+            self._cog_log(cog, "COG", CogLog.table, "", Fore.GREEN if success else Fore.RED)
+            cog_log.append([cog, "✓" if success else "✗"])
+            if success:
+                color_log.append([cog, Fore.GREEN + "✓" + Fore.RESET])
+            else:
+                color_log.append([cog, Fore.RED + "✗" + Fore.RESET])
+
+        status = f"{sum(cog_status.values())} / {len(cog_status)} cogs loaded"
+        table = tables(cog_log, color_log)
+        self.logger.info(status + f"\n{Fore.RESET}" + table)
+
     def _manage_cogs(
         self,
         *directories: str,
@@ -294,7 +312,7 @@ class Bot(_main_bot):  # type: ignore
         self._cog_count_log(custom_log_level, log, loaded_cogs, log_color)
         return cogs
 
-    def load_extension(self, name: str, **kwargs):
+    def load_extension(self, name: str, log_errors: bool = True, **kwargs) -> bool:
         """Loads an extension with configurable error handling.
 
         This method attempts to load a bot extension. The behavior on error depends
@@ -304,15 +322,20 @@ class Bot(_main_bot):  # type: ignore
         ----------
         name:
             The name of the extension to load.
+        log_errors:
+            Whether to log the errors that occur during loading. Defaults to ``True``.
         **kwargs:
             Additional parameters to pass to load_extension.
         """
         try:
             super().load_extension(name, **kwargs)
+            return True
         except Exception as e:
             if not self.safe_loading:
                 raise
-            self.logger.error(f"Failed to load extension '{name}'", exc_info=e.__cause__)
+            if log_errors:
+                self.logger.error(f"Failed to load extension '{name}'", exc_info=e.__cause__)
+            return False
 
     def load_cogs(
         self,
@@ -345,6 +368,11 @@ class Bot(_main_bot):  # type: ignore
             If this is ``None``, a default color will be used.
         """
 
+        table_log = log == CogLog.table
+
+        if table_log:
+            log = None
+
         cogs = self._manage_cogs(
             *directories,
             subdirectories=subdirectories,
@@ -356,8 +384,12 @@ class Bot(_main_bot):  # type: ignore
         self.initial_cogs = cogs
 
         if not DPY:
+            cog_status = {}
             for cog in cogs:
-                self.load_extension(cog)
+                success = self.load_extension(cog, log_errors=not table_log)
+                cog_status[cog] = success
+
+            self._cog_log_table(cog_status)
 
     def add_ready_info(
         self,

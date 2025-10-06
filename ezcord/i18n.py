@@ -160,11 +160,6 @@ def _check_components(component, locale: str, count: int | None, class_name: str
         for item in component.items:
             _check_components(item, locale, count, class_name, **variables)
 
-    if isinstance(component, discord.ui.ActionRow):
-        print(component)
-        for item in component.children:
-            _check_components(item, locale, count, class_name, **variables)
-
     if isinstance(component, discord.ui.Section):
         for item in component.items:
             _check_components(item, locale, count, class_name, **variables)
@@ -203,6 +198,13 @@ def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
     if view:
         class_name = view.__class__.__name__
         for child in view.children:
+            if isinstance(child, discord.ui.ActionRow):
+                # check each item inside the action row with the class name of that item
+                for item in child.children:
+                    class_name = item.__class__.__name__
+                    _check_components(item, locale, count, class_name, **variables)
+                continue
+
             if type(child) not in [discord.ui.Select, discord.ui.Button]:
                 # if a child element of the view has its own subclass, search for this class name
                 # in the language file instead of the view name

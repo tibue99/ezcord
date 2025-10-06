@@ -4,7 +4,7 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -19,20 +19,20 @@ repos:
         - --remove-all-unused-imports
         - --remove-unused-variables
 
-  - repo: https://github.com/psf/black
-    rev: 25.1.0
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 25.9.0
     hooks:
       - id: black
         args: [--safe, --line-length=100]
 
   - repo: https://github.com/PyCQA/isort
-    rev: 6.0.1
+    rev: 6.1.0
     hooks:
       - id: isort
         args: ["--profile", "black"]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.16.1
+    rev: v1.18.2
     hooks:
       - id: mypy
         args: [--disable-error-code=name-defined, --disable-error-code=import]
@@ -44,7 +44,7 @@ repos:
         args: [--py39-plus]
 
   - repo: https://github.com/DanielNoord/pydocstringformatter
-    rev: v0.7.3
+    rev: v0.7.5
     hooks:
       - id: pydocstringformatter
         args:

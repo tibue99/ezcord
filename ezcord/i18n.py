@@ -321,6 +321,14 @@ async def _localize_modal(
         if hasattr(child, "label"):
             child.label = I18N.load_text(child.label, locale, count, modal_name, **variables)
 
+        if hasattr(child, "description"):
+            child.description = I18N.load_text(
+                child.description, locale, count, modal_name, **variables
+            )
+
+        if hasattr(child, "content"):
+            child.content = I18N.load_text(child.content, locale, count, modal_name, **variables)
+
         if hasattr(child, "placeholder"):
             child.placeholder = I18N.load_text(
                 child.placeholder, locale, count, modal_name, **variables

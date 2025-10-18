@@ -317,24 +317,22 @@ async def _localize_modal(
 
     modal.title = I18N.load_text(modal.title, locale, count, modal_name, **variables)
 
+    def check_attribute(item, attribute: str):
+        if hasattr(item, attribute):
+            value = getattr(item, attribute)
+            localized_value = I18N.load_text(value, locale, count, modal_name, **variables)
+            setattr(item, attribute, localized_value)
+
     for child in modal.children:
-        if hasattr(child, "label"):
-            child.label = I18N.load_text(child.label, locale, count, modal_name, **variables)
+        check_attribute(child, "label")
+        check_attribute(child, "description")
+        check_attribute(child, "content")
+        check_attribute(child, "placeholder")
+        check_attribute(child, "value")
 
-        if hasattr(child, "description"):
-            child.description = I18N.load_text(
-                child.description, locale, count, modal_name, **variables
-            )
-
-        if hasattr(child, "content"):
-            child.content = I18N.load_text(child.content, locale, count, modal_name, **variables)
-
-        if hasattr(child, "placeholder"):
-            child.placeholder = I18N.load_text(
-                child.placeholder, locale, count, modal_name, **variables
-            )
-        if hasattr(child, "value"):
-            child.value = I18N.load_text(child.value, locale, count, modal_name, **variables)
+    for child in modal.children:
+        if hasattr(child, "item"):
+            check_attribute(child.item, "placeholder")
 
     return await INTERACTION_MODAL(self, modal)
 

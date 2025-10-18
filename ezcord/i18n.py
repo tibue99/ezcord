@@ -324,15 +324,14 @@ async def _localize_modal(
             setattr(item, attribute, localized_value)
 
     for child in modal.children:
+        if hasattr(child, "item"):
+            check_attribute(child.item, "placeholder")
+
         check_attribute(child, "label")
         check_attribute(child, "description")
         check_attribute(child, "content")
         check_attribute(child, "placeholder")
         check_attribute(child, "value")
-
-    for child in modal.children:
-        if hasattr(child, "item"):
-            check_attribute(child.item, "placeholder")
 
     return await INTERACTION_MODAL(self, modal)
 

@@ -4,7 +4,7 @@ import inspect
 import traceback
 from copy import deepcopy
 from functools import cache
-from typing import Callable
+from collections.abc import Callable
 
 from ..internal.dc import discord
 from .config import EzConfig

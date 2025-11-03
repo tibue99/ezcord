@@ -6,7 +6,8 @@ import os
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
+from collections.abc import Callable
 
 import aiohttp
 from dotenv import load_dotenv

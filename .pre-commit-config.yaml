@@ -26,7 +26,7 @@ repos:
         args: [--safe, --line-length=100]
 
   - repo: https://github.com/PyCQA/isort
-    rev: 6.1.0
+    rev: 7.0.0
     hooks:
       - id: isort
         args: ["--profile", "black"]
@@ -38,7 +38,7 @@ repos:
         args: [--disable-error-code=name-defined, --disable-error-code=import]
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.20.0
+    rev: v3.21.0
     hooks:
       - id: pyupgrade
         args: [--py39-plus]

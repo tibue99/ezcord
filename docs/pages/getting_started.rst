@@ -4,7 +4,7 @@ This page shows how to quickly get started with **EzCord**.
 
 Installing
 -----------
-Python 3.9 or higher is required.
+Python 3.10 or higher is required.
 ::
 
     pip install ezcord

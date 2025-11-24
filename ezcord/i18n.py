@@ -3,10 +3,10 @@ from __future__ import annotations
 import inspect
 import random
 import re
+from collections.abc import Callable
 from copy import deepcopy
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Union
-from collections.abc import Callable
 
 from .internal.dc import PYCORD, discord
 from .logs import log

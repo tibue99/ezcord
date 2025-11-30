@@ -324,6 +324,9 @@ async def _localize_modal(
             setattr(item, attribute, localized_value)
 
     for child in modal.children:
+        if isinstance(child, discord.ui.Label):  # DesignerModal
+            _check_components(child.item, locale, count, modal_name, **variables)
+
         if hasattr(child, "item"):
             check_attribute(child.item, "placeholder")
 

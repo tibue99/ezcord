@@ -161,6 +161,10 @@ def _check_components(component, locale: str, count: int | None, class_name: str
         for item in component.items:
             _check_components(item, locale, count, class_name, **variables)
 
+    if isinstance(component, discord.ui.ActionRow):
+        for item in component.children:
+            _check_components(item, locale, count, class_name, **variables)
+
     if isinstance(component, discord.ui.Section):
         for item in component.items:
             _check_components(item, locale, count, class_name, **variables)
@@ -199,6 +203,13 @@ def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
     if view:
         class_name = view.__class__.__name__
         for child in view.children:
+            if isinstance(child, discord.ui.ActionRow):
+                # check each item inside the action row with the class name of that item
+                for item in child.children:
+                    class_name = item.__class__.__name__
+                    _check_components(item, locale, count, class_name, **variables)
+                continue
+
             if type(child) not in [discord.ui.Select, discord.ui.Button]:
                 # if a child element of the view has its own subclass, search for this class name
                 # in the language file instead of the view name
@@ -307,15 +318,24 @@ async def _localize_modal(
 
     modal.title = I18N.load_text(modal.title, locale, count, modal_name, **variables)
 
-    for child in modal.children:
-        child.label = I18N.load_text(child.label, locale, count, modal_name, **variables)
+    def check_attribute(item, attribute: str):
+        if hasattr(item, attribute):
+            value = getattr(item, attribute)
+            localized_value = I18N.load_text(value, locale, count, modal_name, **variables)
+            setattr(item, attribute, localized_value)
 
-        if hasattr(child, "placeholder"):
-            child.placeholder = I18N.load_text(
-                child.placeholder, locale, count, modal_name, **variables
-            )
-        if hasattr(child, "value"):
-            child.value = I18N.load_text(child.value, locale, count, modal_name, **variables)
+    for child in modal.children:
+        if isinstance(child, discord.ui.Label):  # DesignerModal
+            _check_components(child.item, locale, count, modal_name, **variables)
+
+        if hasattr(child, "item"):
+            check_attribute(child.item, "placeholder")
+
+        check_attribute(child, "label")
+        check_attribute(child, "description")
+        check_attribute(child, "content")
+        check_attribute(child, "placeholder")
+        check_attribute(child, "value")
 
     return await INTERACTION_MODAL(self, modal)
 

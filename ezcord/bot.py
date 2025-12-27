@@ -314,6 +314,23 @@ class Bot(_main_bot):  # type: ignore
                 raise
             self.logger.error(f"Failed to load extension '{name}'", exc_info=e.__cause__)
 
+    async def load_extension_dpy(self, name: str, **kwargs):
+        """Loads an extension for discord.py.
+
+        Parameters
+        ----------
+        name:
+            The name of the extension to load.
+        **kwargs:
+            Additional parameters to pass to load_extension.
+        """
+        try:
+            await super().load_extension(name, **kwargs)
+        except Exception as e:
+            if not self.safe_loading:
+                raise
+            self.logger.error(f"Failed to load extension '{name}'", exc_info=e.__cause__)
+
     def load_cogs(
         self,
         *directories: str,
@@ -910,10 +927,10 @@ class Bot(_main_bot):  # type: ignore
         """This is used for Discord.py startup and should not be called manually."""
 
         for cog in self.initial_cogs:
-            await self.load_extension(cog)
+            await self.load_extension_dpy(cog)
 
         for ext in self.enabled_extensions:
-            await self.load_extension(f".cogs.dpy.{ext}_setup", package="ezcord")
+            await self.load_extension_dpy(f".cogs.dpy.{ext}_setup", package="ezcord")
 
     def _run_setup(
         self,

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import inspect
 import traceback
+from collections.abc import Callable
 from copy import deepcopy
 from functools import cache
-from typing import Callable
 
 from ..internal.dc import discord
 from .config import EzConfig

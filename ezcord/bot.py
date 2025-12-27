@@ -4,9 +4,10 @@ import asyncio
 import logging
 import os
 import traceback
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import aiohttp
 from dotenv import load_dotenv

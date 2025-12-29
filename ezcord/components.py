@@ -10,14 +10,9 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-import os
 from typing import Callable
 
-import aiohttp
-
-from .errors import ErrorMessageSent
-from .internal import get_error_text
-from .internal.dc import PYCORD, discord
+from .internal.dc import discord
 from .logs import log
 from .utils import warn_deprecated
 
@@ -87,37 +82,6 @@ def event(coro):
     log.debug(f"Registered event **{coro.__name__}**")
 
 
-async def _send_error_webhook(interaction, description) -> bool:
-    error_webhook_url = os.getenv("ERROR_WEBHOOK_URL")
-    if error_webhook_url is None:
-        return False
-
-    webhook_sent = False
-    async with aiohttp.ClientSession() as session:
-        webhook = discord.Webhook.from_url(error_webhook_url, session=session)
-
-        embed = discord.Embed(
-            title="Error Report",
-            description=description,
-            color=discord.Color.red(),
-        )
-        try:
-            await webhook.send(
-                embed=embed,
-                username=f"{interaction.client.user.name} Error Report",
-                avatar_url=interaction.client.user.display_avatar.url,
-            )
-        except discord.HTTPException:
-            log.error(
-                "Error while sending error report to webhook. "
-                "Please check if the URL is correct."
-            )
-        else:
-            webhook_sent = True
-
-    return webhook_sent
-
-
 class View(discord.ui.View):
     ignore_timeout_errors: bool = False
 
@@ -132,43 +96,6 @@ class View(discord.ui.View):
     def __init__(self, *args, ignore_timeout_error: bool = False, **kwargs):
         self.ignore_timeout_error = ignore_timeout_error
         super().__init__(*args, **kwargs)
-
-    async def on_error(
-        self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction
-    ) -> None:
-        """Sends an error message to a webhook, if the URL was passed in :class:`.Bot`.
-
-        Executes all registered error handlers with the ``@ezcord.event`` decorator.
-        """
-        if not PYCORD:
-            error, item, interaction = item, interaction, error
-
-        if type(error) is ErrorMessageSent:
-            return
-
-        view_name = type(self).__name__
-        view_module = type(self).__module__
-
-        if isinstance(error, discord.HTTPException):
-            if error.code == 200000:
-                guild_id = interaction.guild.id if interaction.guild else "None"
-                log.warning(
-                    f"View **{view_name}** ({view_module}) was blocked by AutoMod "
-                    f"(Guild {guild_id})"
-                )
-                return
-
-        description = get_error_text(interaction, error, item)
-        webhook_sent = await _send_error_webhook(interaction, description)
-
-        log.exception(
-            f"Error in View **{view_name}** ({view_module}) ```{error}```",
-            exc_info=error,
-            extra={"webhook_sent": webhook_sent},
-        )
-
-        for error_coro in _view_error_handlers:
-            await error_coro(error, item, interaction)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Returns ``True`` if all custom checks return ``True`` or if no custom checks are registered."""
@@ -204,29 +131,6 @@ class Modal(discord.ui.Modal):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-    async def on_error(self, error: Exception, interaction: discord.Interaction) -> None:
-        """Sends an error message to a webhook, if the webhook URL was passed into :class:`.Bot`.
-
-        Executes all registered error handlers with the ``@ezcord.event`` decorator.
-        """
-        if not PYCORD:
-            error, interaction = interaction, error
-
-        if type(error) is ErrorMessageSent:
-            return
-
-        description = get_error_text(interaction, error, self)
-        webhook_sent = await _send_error_webhook(interaction, description)
-
-        log.exception(
-            f"Error in Modal **{type(self).__name__}** ({type(self).__module__})",
-            exc_info=error,
-            extra={"webhook_sent": webhook_sent},
-        )
-
-        for error_coro in _modal_error_handlers:
-            await error_coro(error, interaction)
 
 
 class EzView(View):

@@ -572,7 +572,10 @@ class Bot(_main_bot):  # type: ignore
                 extra={"webhook_sent": webhook_sent},
             )
 
-    async def _send_error_webhook(self, description):
+    async def _send_error_webhook(self, description: str) -> bool:
+        if not self.error_webhook_url:
+            return False
+
         webhook_sent = False
         async with aiohttp.ClientSession() as session:
             webhook = discord.Webhook.from_url(
@@ -599,6 +602,50 @@ class Bot(_main_bot):  # type: ignore
                 webhook_sent = True
 
         return webhook_sent
+
+    async def on_view_error(
+        self, error: Exception, item: discord.ui.ViewItem, interaction: discord.Interaction
+    ):
+        """Handles all view errors in Pycord."""
+
+        if type(error) in self.ignored_errors + [ErrorMessageSent]:
+            return
+
+        view_name = type(self).__name__
+        view_module = type(self).__module__
+
+        if isinstance(error, discord.HTTPException):
+            if error.code == 200000:
+                guild_id = interaction.guild.id if interaction.guild else "None"
+                self.logger.warning(
+                    f"View **{view_name}** ({view_module}) was blocked by AutoMod "
+                    f"(Guild {guild_id})"
+                )
+                return
+
+        description = get_error_text(interaction, error, item)
+        webhook_sent = await self._send_error_webhook(description)
+
+        self.logger.exception(
+            f"Error in View **{view_name}** ({view_module}) ```{error}```",
+            exc_info=error,
+            extra={"webhook_sent": webhook_sent},
+        )
+
+    async def on_modal_error(self, error: Exception, interaction: discord.Interaction) -> None:
+        """Handles all modal errors in Pycord."""
+
+        if type(error) in self.ignored_errors + [ErrorMessageSent]:
+            return
+
+        description = get_error_text(interaction, error, interaction.modal)
+        webhook_sent = await self._send_error_webhook(description)
+
+        self.logger.exception(
+            f"Error in Modal **{type(interaction.modal).__name__}** ({type(interaction.modal).__module__})",
+            exc_info=error,
+            extra={"webhook_sent": webhook_sent},
+        )
 
     def get_cmd(self, name: str, bold: bool = True) -> str:
         """Helper method to get a command mention. Returns a string if the command was not found.

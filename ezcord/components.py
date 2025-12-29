@@ -234,7 +234,7 @@ class EzView(View):
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        warn_deprecated("ezcord.EzView", "discord.ui.View", "2.6")
+        warn_deprecated("ezcord.EzView", "discord.ui.View", "0.7", "0.8")
 
 
 class EzModal(Modal):
@@ -242,7 +242,7 @@ class EzModal(Modal):
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        warn_deprecated("ezcord.EzModal", "discord.ui.Modal", "2.6")
+        warn_deprecated("ezcord.EzModal", "discord.ui.Modal", "0.7", "0.8")
 
 
 # replace all default components with Ezcord components

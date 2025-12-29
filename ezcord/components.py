@@ -16,10 +16,8 @@ from .internal.dc import discord
 from .logs import log
 from .utils import warn_deprecated
 
-_view_error_handlers: list[Callable] = []
 _view_checks: list[Callable] = []
 _view_check_failures: list[Callable] = []
-_modal_error_handlers: list[Callable] = []
 
 __all__ = ("event", "Modal", "View", "EzView", "EzModal", "DropdownPaginator")
 
@@ -51,14 +49,6 @@ def event(coro):
         @ezcord.event
         async def on_view_check_failure(interaction):
             await interaction.response.send_message("You can't use this!")
-
-        @ezcord.event
-        async def on_view_error(error, item, interaction):
-            await interaction.response.send_message("Something went wrong!")
-
-        @ezcord.event
-        async def on_modal_error(error, interaction):
-            await interaction.response.send_message("Something went wrong!")
     """
     _check_coro(coro)
 
@@ -71,11 +61,15 @@ def event(coro):
         _check_params(coro, 1)
         _view_check_failures.append(coro)
     elif name == "on_view_error":
-        _check_params(coro, 3)
-        _view_error_handlers.append(coro)
+        raise ValueError(
+            f"This event was removed in version 0.7.5, use 'Bot.on_view_error' instead: "
+            f"https://docs.pycord.dev/en/master/api/clients.html#discord.Bot.on_modal_error"
+        )
     elif name == "on_modal_error":
-        _check_params(coro, 2)
-        _modal_error_handlers.append(coro)
+        raise ValueError(
+            f"This event was removed in version 0.7.5, use 'Bot.on_modal_error' instead: "
+            f"https://docs.pycord.dev/en/master/api/clients.html#discord.Bot.on_view_error"
+        )
     else:
         raise ValueError(f"Invalid event name: '{coro.__name__}'")
 
@@ -85,7 +79,7 @@ def event(coro):
 class View(discord.ui.View):
     ignore_timeout_errors: bool = False
 
-    """This class extends from :class:`discord.ui.View` and adds some functionality.
+    """Base class for all :class:`discord.ui.View` classes that adds some functionality.
 
     Parameters
     ----------
@@ -127,7 +121,7 @@ class View(discord.ui.View):
 
 
 class Modal(discord.ui.Modal):
-    """This class extends from :class:`discord.ui.Modal` and adds an error handler."""
+    """Base class for all :class:`discord.ui.Modal` classes."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

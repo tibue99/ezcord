@@ -611,8 +611,8 @@ class Bot(_main_bot):  # type: ignore
         if type(error) in self.ignored_errors + [ErrorMessageSent]:
             return
 
-        view_name = type(self).__name__
-        view_module = type(self).__module__
+        view_name = type(item).__name__
+        view_module = type(item).__module__
 
         if isinstance(error, discord.HTTPException):
             if error.code == 200000:

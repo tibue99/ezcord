@@ -970,6 +970,83 @@ class Bot(_main_bot):  # type: ignore
                 for cog_name, cog in self.cogs.items():
                     localize_cog(cog_name, cog, locale, localizations["cogs"])
 
+    def localize_app_commands(self, languages: dict[str, dict], default: str = "en-US"):
+        """
+        Localize app commands for discord.py. This should be called after commands
+        have been added to the bot, but before sync().
+
+        Parameters
+        ----------
+        languages:
+            A dictionary with command localizations. Example:
+            {
+                "de": {
+                    "hello": {
+                        "name": "hallo",  # Command names cannot be localized in slash commands!
+                        "description": "Sag Hallo"
+                    }
+                },
+                "fr": {
+                    "hello": {
+                        "description": "Dire bonjour"
+                    }
+                }
+            }
+        default:
+            The default language. Defaults to "en-US".
+        """
+        if not hasattr(self, "tree"):
+            raise AttributeError(
+                "Bot does not have a CommandTree. This method is for discord.py only."
+            )
+
+        if "en" in languages:
+            en = languages.pop("en")
+            languages["en-GB"] = en
+            languages["en-US"] = en
+
+        if default == "en":
+            default = "en-US"
+
+        # Get all commands from the tree
+        for command in self.tree.walk_commands():
+            # Skip if not an app_commands.Command
+            if not hasattr(command, "description"):
+                continue
+
+            # Check if this command has localizations
+            for locale_str, localizations in languages.items():
+                if command.name in localizations:
+                    cmd_loc = localizations[command.name]
+
+                    # Create Locale object
+                    try:
+                        from discord import Locale
+
+                        locale = Locale(locale_str)
+                    except (ImportError, ValueError):
+                        continue
+
+                    # Set description localization
+                    if "description" in cmd_loc:
+                        # Initialize description_localizations if it doesn't exist
+                        if (
+                            not hasattr(command, "description_localizations")
+                            or command.description_localizations is None
+                        ):
+                            command.description_localizations = {}
+                        command.description_localizations[locale] = cmd_loc["description"]
+
+                    # Set name localization
+                    if "name" in cmd_loc:
+                        # Initialize name_localizations if it doesn't exist
+                        if (
+                            not hasattr(command, "name_localizations")
+                            or command.name_localizations is None
+                        ):
+                            command.name_localizations = {}
+                        command.name_localizations[locale] = cmd_loc["name"]
+
     async def setup_hook(self):
         """This is used for Discord.py startup and should not be called manually."""
 

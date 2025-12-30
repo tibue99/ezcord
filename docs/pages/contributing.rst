@@ -7,7 +7,7 @@ I am always happy to receive contributions. Here is how to do it:
 
 ::
 
-   pip install -r requirements-dev.txt
+   pip install -r dev-requirements.txt
    pre-commit install
 
 3. Make your changes

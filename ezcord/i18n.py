@@ -32,11 +32,9 @@ if PYCORD:
     else:
         INTERACTION_RESPOND = None
 else:
+    # discord.py uses edit_original_response instead of edit_original_message
+    INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_response
     INTERACTION_RESPOND = None
-    if hasattr(discord.Interaction, "edit_original_message"):
-        INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_message
-    else:
-        INTERACTION_EDIT_ORIGINAL = None
 
 
 if TYPE_CHECKING:
@@ -484,7 +482,8 @@ class I18N:
             )
         if "webhook_send" not in disable_translations:
             setattr(discord.Webhook, "send", _localize_send(WEBHOOK_SEND))
-            setattr(discord.Interaction, "respond", _localize_send(INTERACTION_RESPOND))
+            if INTERACTION_RESPOND is not None:
+                setattr(discord.Interaction, "respond", _localize_send(INTERACTION_RESPOND))
         if "webhook_edit_message" not in disable_translations:
             setattr(discord.Webhook, "edit_message", _localize_edit(WEBHOOK_EDIT_MESSAGE))
         if "webhook_edit_message" not in disable_translations:
@@ -513,43 +512,65 @@ class I18N:
         interaction, locale = None, None
         if isinstance(obj, discord.Interaction):
             interaction = obj
+            # For discord.py: Extract locale directly from interaction
+            if hasattr(I18N, "prefer_user_locale") and (
+                I18N.prefer_user_locale or not interaction.guild
+            ):
+                locale = str(interaction.locale)  # Convert Locale enum to string
+                user_id = interaction.user.id
+            else:
+                locale = (
+                    str(interaction.guild_locale)
+                    if hasattr(interaction, "guild_locale")
+                    else I18N.fallback_locale
+                )
+                if interaction.guild:
+                    guild_id = interaction.guild.id
         elif isinstance(obj, discord.InteractionResponse):
             interaction = obj._parent
-        elif isinstance(obj, discord.ApplicationContext):
+            # For discord.py: Extract locale directly from interaction
+            if hasattr(I18N, "prefer_user_locale") and (
+                I18N.prefer_user_locale or not interaction.guild
+            ):
+                locale = str(interaction.locale)  # Convert Locale enum to string
+                user_id = interaction.user.id
+            else:
+                locale = (
+                    str(interaction.guild_locale)
+                    if hasattr(interaction, "guild_locale")
+                    else I18N.fallback_locale
+                )
+                if interaction.guild:
+                    guild_id = interaction.guild.id
+        elif hasattr(discord, "ApplicationContext") and isinstance(obj, discord.ApplicationContext):
+            # ApplicationContext only exists in py-cord, not in discord.py
             interaction = obj.interaction
 
-        # determine locale
-        elif isinstance(obj, discord.Webhook) and obj.guild:
-            locale = obj.guild.preferred_locale
-            guild_id = obj.guild.id
-        elif isinstance(obj, discord.Member):
-            locale = obj.guild.preferred_locale
-            guild_id = obj.guild.id
-            user_id = obj.id
-        elif isinstance(obj, discord.Guild):
-            locale = obj.preferred_locale
-            guild_id = obj.id
+        # determine locale from other objects (if not already set from interaction)
+        if locale is None:
+            if isinstance(obj, discord.Webhook) and obj.guild:
+                locale = obj.guild.preferred_locale
+                guild_id = obj.guild.id
+            elif isinstance(obj, discord.Member):
+                locale = obj.guild.preferred_locale
+                guild_id = obj.guild.id
+                user_id = obj.id
+            elif isinstance(obj, discord.Guild):
+                locale = obj.preferred_locale
+                guild_id = obj.id
 
-        elif (
-            isinstance(obj, discord.abc.Messageable | discord.Message)
-            and hasattr(obj, "guild")
-            and obj.guild
-        ):
-            locale = obj.guild.preferred_locale
-            guild_id = obj.guild.id
+            elif (
+                isinstance(obj, discord.abc.Messageable | discord.Message)
+                and hasattr(obj, "guild")
+                and obj.guild
+            ):
+                locale = obj.guild.preferred_locale
+                guild_id = obj.guild.id
 
-        elif isinstance(obj, discord.User):
-            # It's not possible to determine the user locale without an interaction
-            locale = I18N.fallback_locale
-            user_id = obj.id
-
-        if interaction:
-            if interaction.guild and not I18N.prefer_user_locale:
-                locale = interaction.guild_locale
-                guild_id = interaction.guild.id
-            else:
-                locale = interaction.locale
-                user_id = interaction.user.id
+            elif isinstance(obj, discord.User):
+                # It's not possible to determine the user locale without an interaction
+                locale = I18N.fallback_locale
+                user_id = obj.id
 
         # check custom language settings
         if hasattr(I18N, "_custom_language_settings") and I18N._custom_language_settings:

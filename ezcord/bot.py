@@ -164,11 +164,6 @@ class Bot(_main_bot):  # type: ignore
 
         self.safe_loading = safe_loading
 
-        # Track cog loading status
-        self.cog_load_status: dict[str, tuple[bool, str | None]] = (
-            {}
-        )  # {cog_name: (success, error_msg)}
-
         # Needed for Discord.py command mentions
         self.all_dpy_commands = None
 
@@ -314,10 +309,7 @@ class Bot(_main_bot):  # type: ignore
         """
         try:
             super().load_extension(name, **kwargs)
-            self.cog_load_status[name] = (True, None)
         except Exception as e:
-            error_msg = str(e.__cause__) if e.__cause__ else str(e)
-            self.cog_load_status[name] = (False, error_msg)
             if not self.safe_loading:
                 raise
             self.logger.error(f"Failed to load extension '{name}'", exc_info=e.__cause__)
@@ -334,10 +326,7 @@ class Bot(_main_bot):  # type: ignore
         """
         try:
             await super().load_extension(name, **kwargs)
-            self.cog_load_status[name] = (True, None)
         except Exception as e:
-            error_msg = str(e.__cause__) if e.__cause__ else str(e)
-            self.cog_load_status[name] = (False, error_msg)
             if not self.safe_loading:
                 raise
             self.logger.error(f"Failed to load extension '{name}'", exc_info=e.__cause__)
@@ -453,25 +442,14 @@ class Bot(_main_bot):  # type: ignore
             Colors can only be used with :attr:`.ReadyEvent.box_colorful` and all table styles.
         """
         modifications = self.ready_event_adds, self.ready_event_removes
-        print_custom_ready(
-            self,
-            title,
-            modifications,
-            style,
-            default_info,
-            new_info,
-            colors,
-            cog_status=self.cog_load_status,
-        )
+        print_custom_ready(self, title, modifications, style, default_info, new_info, colors)
 
     async def _ready_event(self):
         """Prints the bot's information when it's ready."""
         await asyncio.sleep(0.1)
 
         modifications = self.ready_event_adds, self.ready_event_removes
-        print_ready(
-            self, self.ready_event, modifications=modifications, cog_status=self.cog_load_status
-        )
+        print_ready(self, self.ready_event, modifications=modifications)
 
         if DPY:
             self.all_dpy_commands = await self.tree.fetch_commands()

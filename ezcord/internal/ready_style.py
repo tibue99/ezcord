@@ -95,7 +95,6 @@ def print_custom_ready(
     default_info: bool = True,
     new_info: dict | None = None,
     colors: list[str] | None = None,
-    cog_status: dict[str, tuple[bool, str | None]] | None = None,
 ):
     if not bot.user:
         return log.error("The ready function must be called within the on_ready event.")
@@ -111,7 +110,7 @@ def print_custom_ready(
         for key, value in new_info.items():
             infos.append((str(key), str(value)))
 
-    print_ready(bot, style, OrderedDict(infos), title, colors, cog_status=cog_status)
+    print_ready(bot, style, OrderedDict(infos), title, colors)
 
 
 def print_ready(
@@ -122,7 +121,6 @@ def print_ready(
     colors: list[str] | None = None,
     *,
     modifications: tuple | None = None,
-    cog_status: dict[str, tuple[bool, str | None]] | None = None,
 ):
     colors = colors or DEFAULT_COLORS
     infos = infos or OrderedDict(get_default_info(bot))
@@ -140,53 +138,25 @@ def print_ready(
     if "bold" in style.name:
         style_cls = Bold()
 
-    # Create cog status table if available
-    cog_table = ""
-    error_list = ""
-    if cog_status:
-        cog_table = create_cog_status_table(cog_status, style_cls)
-        error_list = create_error_list(cog_status, style_cls)
-
     txt = title
-
-    # Add cog status table before bot info
-    if cog_table:
-        txt += "\n" + cog_table
-
     if style in [ReadyEvent.box, ReadyEvent.box_bold, ReadyEvent.box_colorful]:
         txt += box(colon_infos, colors, style, style_cls)
-
-        # Add error list after bot info
-        if error_list:
-            txt += error_list
-
         log.info(txt)
     elif style == ReadyEvent.logs:
         log.info(txt)
         logs(colon_infos)
     else:
+        color_table = {
+            key: colors[i] + value + Fore.RESET for i, (key, value) in enumerate(infos.items())
+        }
         if style == ReadyEvent.table or style == ReadyEvent.table_bold:
-            # For table style: horizontal layout with 2 rows (keys and values)
             info_list = [list(infos.keys()), list(infos.values())]
-            # First row: keys (no color), second row: values (with colors)
-            colored_values = [
-                colors[i] + value + Fore.RESET for i, value in enumerate(infos.values())
-            ]
-            color_list = [list(infos.keys()), colored_values]
+            color_list = [list(color_table.keys()), list(color_table.values())]
         else:
-            # For other styles: vertical layout
-            color_table = {
-                key: colors[i] + value + Fore.RESET for i, (key, value) in enumerate(infos.items())
-            }
             info_list = [list(item) for item in infos.items()]
             color_list = [list(item) for item in color_table.items()]
 
         txt += f"\n{Fore.RESET}" + tables(info_list, color_list, style_cls)
-
-        # Add error list after bot info
-        if error_list:
-            txt += error_list
-
         log.info(txt)
 
 
@@ -214,172 +184,6 @@ def box(infos: dict[str, str], colors: list[str], box_style: ReadyEvent, s: Styl
 def logs(infos: dict[str, str]):
     for key, info in infos.items():
         log.info(f"{key} **{info}**")
-
-
-def create_cog_status_table(
-    cog_status: dict[str, tuple[bool, str | None]], s: Style = Style()
-) -> str:
-    """Create a table showing the loading status of all cogs.
-
-    Parameters
-    ----------
-    cog_status:
-        Dictionary mapping cog names to (success, error_message) tuples.
-    s:
-        The style of the table.
-
-    Returns
-    -------
-    str
-        The formatted cog status table.
-    """
-    if not cog_status:
-        return ""
-
-    # Create vertical table: each row = [cog_name, status]
-    rows = []
-    color_rows = []
-
-    for cog_name, (success, _) in cog_status.items():
-        # Extract the actual cog name from the full path (e.g., "cogs.example" -> "example")
-        display_name = cog_name.split(".")[-1] + ".py"
-
-        if success:
-            status_plain = "   ✓   "
-            status_colored = f"   {Fore.GREEN}✓{Fore.RESET}   "
-        else:
-            status_plain = "   ✗   "
-            status_colored = f"   {Fore.RED}✗{Fore.RESET}   "
-
-        rows.append([display_name, status_plain])
-        color_rows.append([display_name, status_colored])
-
-    # Add header row at the beginning
-    rows.insert(0, ["Cog", "Status"])
-    color_rows.insert(0, ["Cog", "Status"])
-
-    return tables_with_separators(rows, color_rows, s)
-
-
-def create_error_list(cog_status: dict[str, tuple[bool, str | None]], s: Style = Style()) -> str:
-    """Create a list of cogs that failed to load with their error messages.
-
-    Parameters
-    ----------
-    cog_status:
-        Dictionary mapping cog names to (success, error_message) tuples.
-    s:
-        The style of the table.
-
-    Returns
-    -------
-    str
-        The formatted error list.
-    """
-    errors = [
-        (name, error) for name, (success, error) in cog_status.items() if not success and error
-    ]
-
-    if not errors:
-        return ""
-
-    # Find the longest cog name and prepare error messages
-    max_name_len = max(len(name.split(".")[-1] + ".py") for name, _ in errors)
-    max_error_len = 60
-
-    # Calculate the box width based on content
-    box_width = max(max_name_len + 4, len("Cog Loading Errors") + 4, max_error_len + 4)
-
-    error_text = f"\n{s.TL}{s.H * box_width}{s.TR}\n"
-
-    # Title centered
-    title = "Cog Loading Errors"
-    padding_left = (box_width - len(title)) // 2
-    padding_right = box_width - len(title) - padding_left
-    error_text += (
-        f"{s.V}{' ' * padding_left}{Fore.RED}{title}{Fore.RESET}{' ' * padding_right}{s.V}\n"
-    )
-    error_text += f"{s.L}{s.H * box_width}{s.R}\n"
-
-    for cog_name, error_msg in errors:
-        display_name = cog_name.split(".")[-1] + ".py"
-
-        # Cog name line
-        cog_padding = box_width - len(display_name) - 2
-        error_text += f"{s.V} {Fore.YELLOW}{display_name}{Fore.RESET}{' ' * cog_padding} {s.V}\n"
-
-        # Split error message if it's too long
-        error_lines = []
-        words = error_msg.split()
-        current_line = ""
-
-        for word in words:
-            if len(current_line) + len(word) + 1 <= max_error_len:
-                current_line += word + " "
-            else:
-                if current_line:
-                    error_lines.append(current_line.strip())
-                current_line = word + " "
-
-        if current_line:
-            error_lines.append(current_line.strip())
-
-        # Error message lines
-        for line in error_lines:
-            line_padding = box_width - len(line) - 2
-            error_text += f"{s.V} {Fore.RED}{line}{Fore.RESET}{' ' * line_padding} {s.V}\n"
-
-        # Add separator between errors (except for last one)
-        if (cog_name, error_msg) != errors[-1]:
-            error_text += f"{s.L}{s.H * box_width}{s.R}\n"
-
-    error_text += f"{s.BL}{s.H * box_width}{s.BR}"
-
-    return error_text
-
-
-def tables_with_separators(
-    rows: list[list[str]], color_rows: list[list[str]] | None = None, s: Style = Style()
-):
-    """Create a table with separator lines between all rows (for cog status table).
-
-    Parameters
-    ----------
-    rows:
-        The rows of the table. This is used to calculate the length of each column.
-    color_rows:
-        The rows of the table with color. This is used as the actual content of the table.
-        If this is None, the content of the table will be taken from ``rows``.
-    s:
-        The style of the table.
-    """
-    if color_rows is None:
-        color_rows = rows
-
-    length = [max([len(value) for value in column]) for column in zip(*rows)]
-    table = ""
-    for index, (row, color_row) in enumerate(zip(rows, color_rows)):
-        table += s.V
-
-        middle_row = ""
-        for max_length, content, color_content in zip(length, row, color_row):
-            space_content = f" {content} "
-            color_space_content = f" {color_content} "
-            table += color_space_content + " " * (max_length - len(content)) + s.V
-            middle_row += s.H * (max_length - len(content) + len(space_content)) + s.M
-
-        middle_row = middle_row[:-1]
-        if index == 0:
-            top_row = middle_row.replace(s.M, s.T)
-            table = s.TL + top_row + s.TR + "\n" + table
-
-        if index != len(rows) - 1:
-            table += "\n" + s.L + middle_row + s.R + "\n"
-        else:
-            bottom_row = middle_row.replace(s.M, s.B)
-            table += "\n" + s.BL + bottom_row + s.BR
-
-    return table
 
 
 def tables(rows: list[list[str]], color_rows: list[list[str]] | None = None, s: Style = Style()):
@@ -414,9 +218,9 @@ def tables(rows: list[list[str]], color_rows: list[list[str]] | None = None, s: 
         if index == 0:
             top_row = middle_row.replace(s.M, s.T)
             table = s.TL + top_row + s.TR + "\n" + table
-            table += "\n" + s.L + middle_row + s.R + "\n"
-        elif index != len(rows) - 1:
-            table += "\n"
+
+        if index != len(rows) - 1:
+            table += "\n" + s.V + middle_row + s.V + "\n"
         else:
             bottom_row = middle_row.replace(s.M, s.B)
             table += "\n" + s.BL + bottom_row + s.BR

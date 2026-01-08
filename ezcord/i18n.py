@@ -580,7 +580,7 @@ class I18N:
             The object to get the locale from.
         """
         locale = I18N.get_locale(obj)
-        return locale.split("-")[0]
+        return str(locale).split("-")[0]
 
     @staticmethod
     def get_location():

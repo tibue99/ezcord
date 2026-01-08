@@ -315,6 +315,23 @@ class Bot(_main_bot):  # type: ignore
                 raise
             self.logger.error(f"Failed to load extension '{name}'", exc_info=e.__cause__)
 
+    async def load_extension_dpy(self, name: str, **kwargs):
+        """Loads an extension for discord.py.
+
+        Parameters
+        ----------
+        name:
+            The name of the extension to load.
+        **kwargs:
+            Additional parameters to pass to load_extension.
+        """
+        try:
+            await super().load_extension(name, **kwargs)
+        except Exception as e:
+            if not self.safe_loading:
+                raise
+            self.logger.error(f"Failed to load extension '{name}'", exc_info=e.__cause__)
+
     def load_cogs(
         self,
         *directories: str,
@@ -556,7 +573,10 @@ class Bot(_main_bot):  # type: ignore
                 extra={"webhook_sent": webhook_sent},
             )
 
-    async def _send_error_webhook(self, description):
+    async def _send_error_webhook(self, description: str) -> bool:
+        if not self.error_webhook_url:
+            return False
+
         webhook_sent = False
         async with aiohttp.ClientSession() as session:
             webhook = discord.Webhook.from_url(
@@ -583,6 +603,50 @@ class Bot(_main_bot):  # type: ignore
                 webhook_sent = True
 
         return webhook_sent
+
+    async def on_view_error(
+        self, error: Exception, item: discord.ui.ViewItem, interaction: discord.Interaction
+    ):
+        """Handles all view errors in Pycord."""
+
+        if type(error) in self.ignored_errors + [ErrorMessageSent]:
+            return
+
+        view_name = type(item).__name__
+        view_module = type(item).__module__
+
+        if isinstance(error, discord.HTTPException):
+            if error.code == 200000:
+                guild_id = interaction.guild.id if interaction.guild else "None"
+                self.logger.warning(
+                    f"View **{view_name}** ({view_module}) was blocked by AutoMod "
+                    f"(Guild {guild_id})"
+                )
+                return
+
+        description = get_error_text(interaction, error, item)
+        webhook_sent = await self._send_error_webhook(description)
+
+        self.logger.exception(
+            f"Error in View **{view_name}** ({view_module}) ```{error}```",
+            exc_info=error,
+            extra={"webhook_sent": webhook_sent},
+        )
+
+    async def on_modal_error(self, error: Exception, interaction: discord.Interaction) -> None:
+        """Handles all modal errors in Pycord."""
+
+        if type(error) in self.ignored_errors + [ErrorMessageSent]:
+            return
+
+        description = get_error_text(interaction, error, interaction.modal)
+        webhook_sent = await self._send_error_webhook(description)
+
+        self.logger.exception(
+            f"Error in Modal **{type(interaction.modal).__name__}** ({type(interaction.modal).__module__})",
+            exc_info=error,
+            extra={"webhook_sent": webhook_sent},
+        )
 
     def get_cmd(self, name: str, bold: bool = True) -> str:
         """Helper method to get a command mention. Returns a string if the command was not found.
@@ -911,10 +975,10 @@ class Bot(_main_bot):  # type: ignore
         """This is used for Discord.py startup and should not be called manually."""
 
         for cog in self.initial_cogs:
-            await self.load_extension(cog)
+            await self.load_extension_dpy(cog)
 
         for ext in self.enabled_extensions:
-            await self.load_extension(f".cogs.dpy.{ext}_setup", package="ezcord")
+            await self.load_extension_dpy(f".cogs.dpy.{ext}_setup", package="ezcord")
 
     def _run_setup(
         self,

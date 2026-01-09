@@ -899,6 +899,6 @@ class I18N:
         for locale, values in I18N.localizations.items():
             missing_keys = I18N._find_missing_keys(I18N.localizations[I18N.fallback_locale], values)
             if len(missing_keys) > 0:
-                log.warn(
+                log.warning(
                     f"Locale '{locale}' misses some keys from the fallback locale: {missing_keys}"
                 )

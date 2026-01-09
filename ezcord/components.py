@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-from typing import Callable
+from collections.abc import Callable
 
 from .internal.dc import discord
 from .logs import log

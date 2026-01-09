@@ -97,6 +97,14 @@ class Bot(_main_bot):  # type: ignore
     ready_event:
         The style for :meth:`on_ready_event`. Defaults to :attr:`.ReadyEvent.default`.
         If this is ``None``, the event will be disabled.
+    show_cog_status:
+        Whether to show the cog status table on startup. Defaults to ``False``.
+        Set to ``True`` to display a table showing which cogs loaded successfully.
+        This requires ``ready_event`` to be enabled.
+    show_cog_errors:
+        Whether to show the cog error list on startup. Defaults to ``False``.
+        Set to ``True`` to display detailed error messages for failed cogs.
+        This requires ``ready_event`` to be enabled.
     safe_loading:
         Enable safe loading of cogs.
         If this is ``True``, errors during cog loading will be caught and logged without interrupting execution.
@@ -116,6 +124,8 @@ class Bot(_main_bot):  # type: ignore
         language: str = "auto",
         default_language: str = "en",
         ready_event: ReadyEvent | None = ReadyEvent.default,
+        show_cog_status: bool = False,
+        show_cog_errors: bool = False,
         safe_loading: bool = False,
         **kwargs,
     ):
@@ -151,6 +161,8 @@ class Bot(_main_bot):  # type: ignore
                 self.add_listener(self._error_event, "on_application_command_error")
 
         self.ready_event = ready_event
+        self.show_cog_status = show_cog_status
+        self.show_cog_errors = show_cog_errors
         if ready_event:
             self.add_listener(self._ready_event, "on_ready")
         self.add_listener(self._check_cog_groups, "on_ready")
@@ -161,6 +173,7 @@ class Bot(_main_bot):  # type: ignore
 
         self.enabled_extensions: list[str] = []
         self.initial_cogs: list[str] = []
+        self.cog_status: dict[str, tuple[bool, str | None]] = {}
 
         self.safe_loading = safe_loading
 
@@ -309,7 +322,10 @@ class Bot(_main_bot):  # type: ignore
         """
         try:
             super().load_extension(name, **kwargs)
+            self.cog_status[name] = (True, None)
         except Exception as e:
+            error_msg = f"{type(e).__name__}: {str(e)}"
+            self.cog_status[name] = (False, error_msg)
             if not self.safe_loading:
                 raise
             self.logger.error(f"Failed to load extension '{name}'", exc_info=e.__cause__)
@@ -326,7 +342,10 @@ class Bot(_main_bot):  # type: ignore
         """
         try:
             await super().load_extension(name, **kwargs)
+            self.cog_status[name] = (True, None)
         except Exception as e:
+            error_msg = f"{type(e).__name__}: {str(e)}"
+            self.cog_status[name] = (False, error_msg)
             if not self.safe_loading:
                 raise
             self.logger.error(f"Failed to load extension '{name}'", exc_info=e.__cause__)
@@ -449,7 +468,14 @@ class Bot(_main_bot):  # type: ignore
         await asyncio.sleep(0.1)
 
         modifications = self.ready_event_adds, self.ready_event_removes
-        print_ready(self, self.ready_event, modifications=modifications)
+        print_ready(
+            self,
+            self.ready_event,
+            modifications=modifications,
+            cog_status=self.cog_status,
+            show_cog_status=self.show_cog_status,
+            show_cog_errors=self.show_cog_errors,
+        )
 
         if DPY:
             self.all_dpy_commands = await self.tree.fetch_commands()

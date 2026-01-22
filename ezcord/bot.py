@@ -37,7 +37,7 @@ from .internal.dc import (
     commands,
     discord,
 )
-from .logs import DEFAULT_LOG, custom_log, set_log
+from .logs import DEFAULT_LOG, custom_log, log, set_log
 from .sql import DBHandler, PGHandler
 from .times import dc_timestamp
 
@@ -116,6 +116,7 @@ class Bot(_main_bot):  # type: ignore
         language: str = "auto",
         default_language: str = "en",
         ready_event: ReadyEvent | None = ReadyEvent.default,
+        show_cogs_status: bool = False,
         safe_loading: bool = False,
         **kwargs,
     ):
@@ -151,6 +152,7 @@ class Bot(_main_bot):  # type: ignore
                 self.add_listener(self._error_event, "on_application_command_error")
 
         self.ready_event = ready_event
+        self.show_cogs_status = show_cogs_status
         if ready_event:
             self.add_listener(self._ready_event, "on_ready")
         self.add_listener(self._check_cog_groups, "on_ready")
@@ -447,6 +449,12 @@ class Bot(_main_bot):  # type: ignore
     async def _ready_event(self):
         """Prints the bot's information when it's ready."""
         await asyncio.sleep(0.1)
+
+        if self.show_cogs_status:
+            from .internal.ready_style import print_cog_table
+
+            print(print_cog_table(self, self.ready_event))
+        await asyncio.sleep(0.6)
 
         modifications = self.ready_event_adds, self.ready_event_removes
         print_ready(self, self.ready_event, modifications=modifications)

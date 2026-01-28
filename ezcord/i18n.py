@@ -55,6 +55,12 @@ if TYPE_CHECKING:
 __all__ = ("t", "TEmbed", "I18N", "LOCALE")
 
 
+def _no_lowercase(s: str) -> bool:
+    """Check if a string contains no lowercase letters."""
+
+    return not any(c.islower() for c in s)
+
+
 def t(obj: LOCALE | str, key: str, count: int | None = None, **variables):
     """Get the localized string for the given key and insert all variables.
 
@@ -824,8 +830,7 @@ class I18N:
         def replace_global(possible_match: re.Match) -> str:
             match = possible_match.group()
             clean_match = match.replace("{", "").replace("}", "")
-            if clean_match in I18N._general_values and not any(c.islower() for c in clean_match):
-                # only replace uppercase values to avoid conflicts with runtime variables
+            if clean_match in I18N._general_values and _no_lowercase(str(clean_match)):
                 if type(I18N._general_values[clean_match]) is str:
                     return I18N._general_values[clean_match]
 

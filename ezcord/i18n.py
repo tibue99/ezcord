@@ -824,7 +824,8 @@ class I18N:
         def replace_global(possible_match: re.Match) -> str:
             match = possible_match.group()
             clean_match = match.replace("{", "").replace("}", "")
-            if clean_match in I18N._general_values:
+            if clean_match in I18N._general_values and not any(c.islower() for c in clean_match):
+                # only replace uppercase values to avoid conflicts with runtime variables
                 if type(I18N._general_values[clean_match]) is str:
                     return I18N._general_values[clean_match]
 

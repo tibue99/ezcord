@@ -449,6 +449,10 @@ class I18N:
             fallback_locale = "en-US"
 
         if process_strings:
+            for var in variables.keys():
+                if not _no_lowercase(var):
+                    raise ValueError(f"Custom variable key '{var}' must be uppercase.")
+
             I18N.localizations = self._process_strings(localizations, **variables)
         else:
             I18N.localizations = localizations

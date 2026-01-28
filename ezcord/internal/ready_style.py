@@ -228,8 +228,19 @@ def tables(rows: list[list[str]], color_rows: list[list[str]] | None = None, s: 
     return table
 
 
-def print_cog_table(bot: Bot, ready_event: ReadyEvent = ReadyEvent.default, max_per_row: int = 8):
-    """Print cog table with the same style as the main ready table."""
+def print_cog_table(bot: Bot, ready_event: ReadyEvent = ReadyEvent.default):
+    """Print cog table with the same style as the main ready table.
+
+    Parameters
+    ----------
+    bot:
+        The bot instance.
+    ready_event:
+        The ready event style to use for the cog table.
+        Defaults to :attr:`.ReadyEvent.default`.
+    """
+
+    max_per_row = 8
 
     cog_infos = OrderedDict()
     for ext in sorted(bot.extensions):
@@ -253,9 +264,7 @@ def print_cog_table(bot: Bot, ready_event: ReadyEvent = ReadyEvent.default, max_
         return box(colon_infos, colors, ready_event, style_cls)
 
     elif ready_event == ReadyEvent.logs:
-        for key, value in cog_infos.items():
-            log.info(f"{key}: {value}")
-        return ""
+        return ", ".join(cog_infos.keys())
 
     else:
         color_table = {key: Fore.GREEN + value + Fore.RESET for key, value in cog_infos.items()}

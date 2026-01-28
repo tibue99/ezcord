@@ -37,6 +37,7 @@ from .internal.dc import (
     commands,
     discord,
 )
+from .internal.ready_style import print_cog_table
 from .logs import DEFAULT_LOG, custom_log, log, set_log
 from .sql import DBHandler, PGHandler
 from .times import dc_timestamp
@@ -116,7 +117,6 @@ class Bot(_main_bot):  # type: ignore
         language: str = "auto",
         default_language: str = "en",
         ready_event: ReadyEvent | None = ReadyEvent.default,
-        show_cogs_status: bool = False,
         safe_loading: bool = False,
         **kwargs,
     ):
@@ -152,7 +152,6 @@ class Bot(_main_bot):  # type: ignore
                 self.add_listener(self._error_event, "on_application_command_error")
 
         self.ready_event = ready_event
-        self.show_cogs_status = show_cogs_status
         if ready_event:
             self.add_listener(self._ready_event, "on_ready")
         self.add_listener(self._check_cog_groups, "on_ready")
@@ -165,6 +164,8 @@ class Bot(_main_bot):  # type: ignore
         self.initial_cogs: list[str] = []
 
         self.safe_loading = safe_loading
+
+        self.cog_log_style: CogLog | str | None = None
 
         # Needed for Discord.py command mentions
         self.all_dpy_commands = None
@@ -216,7 +217,7 @@ class Bot(_main_bot):  # type: ignore
     ):
         """Sends a log message for a loaded cog."""
 
-        if not log_format or "{sum}" in log_format:
+        if not log_format or "{sum}" in log_format or log_format == CogLog.table:
             return
 
         log_format = log_format.replace("{cog}", cog_name)
@@ -237,7 +238,12 @@ class Bot(_main_bot):  # type: ignore
     ):
         """Sends a log message for the number of loaded cogs in a directory or in total."""
 
-        if not log_format or "{cog}" in log_format or "{path}" in log_format:
+        if (
+            not log_format
+            or "{cog}" in log_format
+            or "{path}" in log_format
+            or log_format == CogLog.table
+        ):
             return
         if directory and "{directory}" not in log_format:
             return
@@ -357,12 +363,15 @@ class Bot(_main_bot):  # type: ignore
         log:
             The log format for cogs. Defaults to :attr:`.CogLog.default`.
             If this is ``None``, logs will be disabled.
+            When set to :attr:`.CogLog.table`, a cog status table will be displayed on the ready event.
         custom_log_level:
             The name of the custom log level for cogs. Defaults to ``COG``.
         log_color:
             The color to use for cog logs. This will only have an effect if ``custom_log_level`` is enabled.
             If this is ``None``, a default color will be used.
         """
+
+        self.cog_log_style = log
 
         cogs = self._manage_cogs(
             *directories,
@@ -450,11 +459,13 @@ class Bot(_main_bot):  # type: ignore
         """Prints the bot's information when it's ready."""
         await asyncio.sleep(0.1)
 
-        if self.show_cogs_status:
-            from .internal.ready_style import print_cog_table
+        if self.cog_log_style == CogLog.table:
+            cog_count = len(self.extensions)
+            cog_table = print_cog_table(self, self.ready_event)
 
-            print(print_cog_table(self, self.ready_event))
-        await asyncio.sleep(0.6)
+            if cog_table:
+                txt = f"Loaded {cog_count} cog{'s' if cog_count != 1 else ''}\n{cog_table}"
+                self._send_cog_log("COG", txt, color=None)
 
         modifications = self.ready_event_adds, self.ready_event_removes
         print_ready(self, self.ready_event, modifications=modifications)

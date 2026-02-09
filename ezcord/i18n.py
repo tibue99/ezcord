@@ -5,7 +5,7 @@ import random
 import re
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Literal, Union
+from typing import TYPE_CHECKING, Callable, Literal, Union, overload
 
 from .internal.dc import PYCORD, discord
 from .logs import log
@@ -61,7 +61,7 @@ def _no_lowercase(s: str) -> bool:
     return not any(c.islower() for c in s)
 
 
-def t(obj: LOCALE | str, key: str, count: int | None = None, **variables):
+def t(obj: LOCALE | str, key: str, count: int | None = None, **variables) -> str:
     """Get the localized string for the given key and insert all variables.
 
     Parameters
@@ -699,6 +699,28 @@ class I18N:
 
         return key
 
+    @overload
+    @staticmethod
+    def load_text(
+        key: None,
+        locale: str,
+        count: int | None = ...,
+        called_class: str | None = ...,
+        add_locations: tuple = ...,
+        **variables,
+    ) -> None: ...
+
+    @overload
+    @staticmethod
+    def load_text(
+        key: str,
+        locale: str,
+        count: int | None = ...,
+        called_class: str | None = ...,
+        add_locations: tuple = ...,
+        **variables,
+    ) -> str: ...
+
     @staticmethod
     def load_text(
         key: str,
@@ -707,7 +729,7 @@ class I18N:
         called_class: str | None = None,
         add_locations: tuple = (),
         **variables,
-    ):
+    ) -> str | None:
         """A helper methods that calls :meth:`get_text` to load the specified key
         and :meth:`replace_variables` to replace the variables.
 

@@ -1,5 +1,5 @@
 general:
-  # General values can be used anywhere in the language file with curly braces
+  # Uppercase general values can be used anywhere in the language file with curly braces
   # and will be replaced when the language file is loaded.
   COOKIE: Cookie
 

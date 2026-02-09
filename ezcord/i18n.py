@@ -6,7 +6,7 @@ import re
 from collections.abc import Callable
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Union
+from typing import TYPE_CHECKING, Literal, Union, overload
 
 from .internal.dc import PYCORD, discord
 from .logs import log
@@ -56,7 +56,13 @@ if TYPE_CHECKING:
 __all__ = ("t", "TEmbed", "I18N", "LOCALE")
 
 
-def t(obj: LOCALE | str, key: str, count: int | None = None, **variables):
+def _no_lowercase(s: str) -> bool:
+    """Check if a string contains no lowercase letters."""
+
+    return not any(c.islower() for c in s)
+
+
+def t(obj: LOCALE | str, key: str, count: int | None = None, **variables) -> str:
     """Get the localized string for the given key and insert all variables.
 
     Parameters
@@ -444,6 +450,10 @@ class I18N:
             fallback_locale = "en-US"
 
         if process_strings:
+            for var in variables.keys():
+                if not _no_lowercase(var):
+                    raise ValueError(f"Custom variable key '{var}' must be uppercase.")
+
             I18N.localizations = self._process_strings(localizations, **variables)
         else:
             I18N.localizations = localizations
@@ -690,6 +700,28 @@ class I18N:
 
         return key
 
+    @overload
+    @staticmethod
+    def load_text(
+        key: None,
+        locale: str,
+        count: int | None = ...,
+        called_class: str | None = ...,
+        add_locations: tuple = ...,
+        **variables,
+    ) -> None: ...
+
+    @overload
+    @staticmethod
+    def load_text(
+        key: str,
+        locale: str,
+        count: int | None = ...,
+        called_class: str | None = ...,
+        add_locations: tuple = ...,
+        **variables,
+    ) -> str: ...
+
     @staticmethod
     def load_text(
         key: str,
@@ -698,7 +730,7 @@ class I18N:
         called_class: str | None = None,
         add_locations: tuple = (),
         **variables,
-    ):
+    ) -> str | None:
         """A helper methods that calls :meth:`get_text` to load the specified key
         and :meth:`replace_variables` to replace the variables.
 
@@ -825,7 +857,7 @@ class I18N:
         def replace_global(possible_match: re.Match) -> str:
             match = possible_match.group()
             clean_match = match.replace("{", "").replace("}", "")
-            if clean_match in I18N._general_values:
+            if clean_match in I18N._general_values and _no_lowercase(str(clean_match)):
                 if type(I18N._general_values[clean_match]) is str:
                     return I18N._general_values[clean_match]
 
@@ -900,6 +932,6 @@ class I18N:
         for locale, values in I18N.localizations.items():
             missing_keys = I18N._find_missing_keys(I18N.localizations[I18N.fallback_locale], values)
             if len(missing_keys) > 0:
-                log.warn(
+                log.warning(
                     f"Locale '{locale}' misses some keys from the fallback locale: {missing_keys}"
                 )

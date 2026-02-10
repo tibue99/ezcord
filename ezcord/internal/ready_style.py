@@ -228,82 +228,56 @@ def tables(rows: list[list[str]], color_rows: list[list[str]] | None = None, s: 
     return table
 
 
-def print_cog_table(bot: Bot, ready_event: ReadyEvent = ReadyEvent.default):
-    """Print cog table with the same style as the main ready table.
+def print_cog_table(cogs: list[str]):
+    """Print cog table in a standard table format.
 
     Parameters
     ----------
-    bot:
-        The bot instance.
-    ready_event:
-        The ready event style to use for the cog table.
-        Defaults to :attr:`.ReadyEvent.default`.
+    cogs:
+        List of cog paths (e.g., ['cogs.system', 'cogs.admin']).
     """
-
     max_per_row = 8
 
     cog_infos = OrderedDict()
-    for ext in sorted(bot.extensions):
-        cog_name = ext.split(".")[-1]
+    for cog_path in sorted(cogs):
+        cog_name = cog_path.split(".")[-1]
         cog_infos[cog_name] = "✓"
 
     if not cog_infos:
         return ""
 
     style_cls = Style()
-    if "bold" in ready_event.name:
-        style_cls = Bold()
+    color_table = {key: Fore.GREEN + value + Fore.RESET for key, value in cog_infos.items()}
 
-    if ready_event in [ReadyEvent.box, ReadyEvent.box_bold]:
-        colors = [Fore.CYAN] * len(cog_infos)
+    total_cogs = len(cog_infos)
+
+    if total_cogs <= max_per_row:
+        cols_per_row = total_cogs
     else:
-        colors = [Fore.CYAN, Fore.GREEN] * len(cog_infos)
+        rows_needed = (total_cogs + max_per_row - 1) // max_per_row
+        cols_per_row = (total_cogs + rows_needed - 1) // rows_needed
 
-    if ready_event in [ReadyEvent.box, ReadyEvent.box_bold, ReadyEvent.box_colorful]:
-        colon_infos = {key + ":": value for key, value in cog_infos.items()}
-        return box(colon_infos, colors, ready_event, style_cls)
+    cog_keys = list(cog_infos.keys())
+    cog_values = list(cog_infos.values())
+    color_values = list(color_table.values())
 
-    elif ready_event == ReadyEvent.logs:
-        return ", ".join(cog_infos.keys())
+    info_list = []
+    color_list = []
 
-    else:
-        color_table = {key: Fore.GREEN + value + Fore.RESET for key, value in cog_infos.items()}
+    for i in range(0, total_cogs, cols_per_row):
+        chunk_keys = cog_keys[i : i + cols_per_row]
+        chunk_values = cog_values[i : i + cols_per_row]
+        chunk_color_values = color_values[i : i + cols_per_row]
 
-        if ready_event == ReadyEvent.table or ready_event == ReadyEvent.table_bold:
-            total_cogs = len(cog_infos)
+        while len(chunk_keys) < cols_per_row:
+            chunk_keys.append("")
+            chunk_values.append("")
+            chunk_color_values.append("")
 
-            if total_cogs <= max_per_row:
-                cols_per_row = total_cogs
-            else:
-                rows_needed = (total_cogs + max_per_row - 1) // max_per_row
-                cols_per_row = (total_cogs + rows_needed - 1) // rows_needed
+        info_list.append(chunk_keys)
+        info_list.append(chunk_values)
 
-            cog_keys = list(cog_infos.keys())
-            cog_values = list(cog_infos.values())
-            color_values = list(color_table.values())
+        color_list.append(chunk_keys)
+        color_list.append(chunk_color_values)
 
-            info_list = []
-            color_list = []
-
-            for i in range(0, total_cogs, cols_per_row):
-                chunk_keys = cog_keys[i : i + cols_per_row]
-                chunk_values = cog_values[i : i + cols_per_row]
-                chunk_color_values = color_values[i : i + cols_per_row]
-
-                while len(chunk_keys) < cols_per_row:
-                    chunk_keys.append("")
-                    chunk_values.append("")
-                    chunk_color_values.append("")
-
-                info_list.append(chunk_keys)
-                info_list.append(chunk_values)
-
-                color_list.append(chunk_keys)
-                color_list.append(chunk_color_values)
-
-            return Fore.RESET + tables(info_list, color_list, style_cls)
-        else:
-            info_list = [["Cog", "Status"]] + [list(item) for item in cog_infos.items()]
-            color_list = [["Cog", "Status"]] + [[k, color_table[k]] for k in cog_infos.keys()]
-
-        return Fore.RESET + tables(info_list, color_list, style_cls)
+    return Fore.RESET + tables(info_list, color_list, style_cls)

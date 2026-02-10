@@ -1,7 +1,6 @@
 import ezcord
-from ezcord import ReadyEvent
 
-bot = ezcord.Bot(ready_event=ReadyEvent.table_bold)  # Uses a bold table-style ready message
+bot = ezcord.Bot()
 
 if __name__ == "__main__":
     bot.load_cogs(

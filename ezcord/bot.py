@@ -38,7 +38,7 @@ from .internal.dc import (
     discord,
 )
 from .internal.ready_style import print_cog_table
-from .logs import DEFAULT_LOG, custom_log, log, set_log
+from .logs import DEFAULT_LOG, custom_log, set_log
 from .sql import DBHandler, PGHandler
 from .times import dc_timestamp
 
@@ -165,8 +165,6 @@ class Bot(_main_bot):  # type: ignore
 
         self.safe_loading = safe_loading
 
-        self.cog_log_style: CogLog | str | None = None
-
         # Needed for Discord.py command mentions
         self.all_dpy_commands = None
 
@@ -235,8 +233,16 @@ class Bot(_main_bot):  # type: ignore
         count: int,
         color: str | None = None,
         directory: str | None = None,
+        cogs: list[str] | None = None,
     ):
         """Sends a log message for the number of loaded cogs in a directory or in total."""
+
+        if log_format == CogLog.table and not directory and count > 0 and cogs:
+            cog_table = print_cog_table(cogs)
+            if cog_table:
+                txt = f"Loaded {count} cog{'s' if count != 1 else ''}\n{cog_table}"
+                self._send_cog_log(custom_log_level, txt, color=color)
+            return
 
         if (
             not log_format
@@ -299,7 +305,8 @@ class Bot(_main_bot):  # type: ignore
                 self._cog_count_log(custom_log_level, log, loaded_dir_cogs, log_color, path.stem)
                 if not subdirectories:
                     break
-        self._cog_count_log(custom_log_level, log, loaded_cogs, log_color)
+
+        self._cog_count_log(custom_log_level, log, loaded_cogs, log_color, cogs=cogs)
         return cogs
 
     def load_extension(self, name: str, **kwargs):
@@ -370,8 +377,6 @@ class Bot(_main_bot):  # type: ignore
             The color to use for cog logs. This will only have an effect if ``custom_log_level`` is enabled.
             If this is ``None``, a default color will be used.
         """
-
-        self.cog_log_style = log
 
         cogs = self._manage_cogs(
             *directories,
@@ -458,14 +463,6 @@ class Bot(_main_bot):  # type: ignore
     async def _ready_event(self):
         """Prints the bot's information when it's ready."""
         await asyncio.sleep(0.1)
-
-        if self.cog_log_style == CogLog.table:
-            cog_count = len(self.extensions)
-            cog_table = print_cog_table(self, self.ready_event)
-
-            if cog_table:
-                txt = f"Loaded {cog_count} cog{'s' if cog_count != 1 else ''}\n{cog_table}"
-                self._send_cog_log("COG", txt, color=None)
 
         modifications = self.ready_event_adds, self.ready_event_removes
         print_ready(self, self.ready_event, modifications=modifications)

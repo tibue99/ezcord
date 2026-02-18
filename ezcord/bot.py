@@ -370,7 +370,6 @@ class Bot(_main_bot):  # type: ignore
         log:
             The log format for cogs. Defaults to :attr:`.CogLog.default`.
             If this is ``None``, logs will be disabled.
-            When set to :attr:`.CogLog.table`, a cog status table will be displayed on the ready event.
         custom_log_level:
             The name of the custom log level for cogs. Defaults to ``COG``.
         log_color:

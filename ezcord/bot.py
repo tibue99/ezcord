@@ -37,6 +37,7 @@ from .internal.dc import (
     commands,
     discord,
 )
+from .internal.ready_style import print_cog_table
 from .logs import DEFAULT_LOG, custom_log, set_log
 from .sql import DBHandler, PGHandler
 from .times import dc_timestamp
@@ -214,7 +215,7 @@ class Bot(_main_bot):  # type: ignore
     ):
         """Sends a log message for a loaded cog."""
 
-        if not log_format or "{sum}" in log_format:
+        if not log_format or "{sum}" in log_format or log_format == CogLog.table:
             return
 
         log_format = log_format.replace("{cog}", cog_name)
@@ -232,10 +233,23 @@ class Bot(_main_bot):  # type: ignore
         count: int,
         color: str | None = None,
         directory: str | None = None,
+        cogs: list[str] | None = None,
     ):
         """Sends a log message for the number of loaded cogs in a directory or in total."""
 
-        if not log_format or "{cog}" in log_format or "{path}" in log_format:
+        if log_format == CogLog.table and not directory and count > 0 and cogs:
+            cog_table = print_cog_table(cogs)
+            if cog_table:
+                txt = f"Loaded {count} cog{'s' if count != 1 else ''}\n{cog_table}"
+                self._send_cog_log(custom_log_level, txt, color=color)
+            return
+
+        if (
+            not log_format
+            or "{cog}" in log_format
+            or "{path}" in log_format
+            or log_format == CogLog.table
+        ):
             return
         if directory and "{directory}" not in log_format:
             return
@@ -291,7 +305,8 @@ class Bot(_main_bot):  # type: ignore
                 self._cog_count_log(custom_log_level, log, loaded_dir_cogs, log_color, path.stem)
                 if not subdirectories:
                     break
-        self._cog_count_log(custom_log_level, log, loaded_cogs, log_color)
+
+        self._cog_count_log(custom_log_level, log, loaded_cogs, log_color, cogs=cogs)
         return cogs
 
     def load_extension(self, name: str, **kwargs):

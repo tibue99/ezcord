@@ -226,3 +226,58 @@ def tables(rows: list[list[str]], color_rows: list[list[str]] | None = None, s: 
             table += "\n" + s.BL + bottom_row + s.BR
 
     return table
+
+
+def print_cog_table(cogs: list[str]):
+    """Print cog table in a standard table format.
+
+    Parameters
+    ----------
+    cogs:
+        List of cog paths (e.g., ['cogs.system', 'cogs.admin']).
+    """
+    max_per_row = 8
+
+    cog_infos = OrderedDict()
+    for cog_path in sorted(cogs):
+        cog_name = cog_path.split(".")[-1]
+        cog_infos[cog_name] = "✓"
+
+    if not cog_infos:
+        return ""
+
+    style_cls = Style()
+    color_table = {key: Fore.GREEN + value + Fore.RESET for key, value in cog_infos.items()}
+
+    total_cogs = len(cog_infos)
+
+    if total_cogs <= max_per_row:
+        cols_per_row = total_cogs
+    else:
+        rows_needed = (total_cogs + max_per_row - 1) // max_per_row
+        cols_per_row = (total_cogs + rows_needed - 1) // rows_needed
+
+    cog_keys = list(cog_infos.keys())
+    cog_values = list(cog_infos.values())
+    color_values = list(color_table.values())
+
+    info_list = []
+    color_list = []
+
+    for i in range(0, total_cogs, cols_per_row):
+        chunk_keys = cog_keys[i : i + cols_per_row]
+        chunk_values = cog_values[i : i + cols_per_row]
+        chunk_color_values = color_values[i : i + cols_per_row]
+
+        while len(chunk_keys) < cols_per_row:
+            chunk_keys.append("")
+            chunk_values.append("")
+            chunk_color_values.append("")
+
+        info_list.append(chunk_keys)
+        info_list.append(chunk_values)
+
+        color_list.append(chunk_keys)
+        color_list.append(chunk_color_values)
+
+    return Fore.RESET + tables(info_list, color_list, style_cls)

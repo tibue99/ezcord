@@ -591,7 +591,7 @@ class I18N:
                 return I18N.fallback_locale
             return locale
 
-        return locale  # I18N class is not in use
+        return locale
 
     @staticmethod
     def get_clean_locale(obj: LOCALE) -> str:

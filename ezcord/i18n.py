@@ -385,8 +385,11 @@ class I18N:
     debug:
         Whether to send debug messages and warnings. Defaults to ``True``.
     language_settings:
-        A function to set custom language settings. The function must return a dictionary
-        with user/guild IDs as keys and the locale as values. Defaults to ``None``.
+        A function to set custom language settings.
+        The function takes user/guild IDs and returns a locale or None. Defaults to ``None``.
+    user_locale_settings:
+        A function to dynamically set `prefer_user_locale` per guild.
+        The function takes a guild IDs and returns a boolean. Defaults to ``None``.
     variables:
         Additional variables to replace in the language file. This is useful for
         values that are the same in all languages.
@@ -406,7 +409,8 @@ class I18N:
     cmd_localizations: dict[str, dict] = {}  # set through bot.localize_commands
     initialized: bool = False
 
-    _custom_language_settings: Callable
+    _custom_language_settings: Callable[[int], int | None] | None = None
+    _custom_user_locale_settings: Callable[[int], bool] | None = None
 
     def __init__(
         self,
@@ -436,7 +440,8 @@ class I18N:
             | None
         ) = None,
         debug: bool = True,
-        language_settings=None,
+        language_settings: Callable[[int], int | None] | None = None,
+        user_locale_settings: Callable[[int], bool] | None = None,
         **variables,
     ):
         I18N.initialized = True
@@ -466,6 +471,7 @@ class I18N:
         I18N.exclude_methods = exclude_methods
         I18N.do_not_localize = do_not_localize
         I18N._custom_language_settings = language_settings
+        I18N._custom_user_locale_settings = user_locale_settings
 
         if not disable_translations:
             disable_translations = []
@@ -553,22 +559,31 @@ class I18N:
             locale = I18N.fallback_locale
             user_id = obj.id
 
+        custom_locale = None
+
         if interaction:
             if interaction.guild and not I18N.prefer_user_locale:
                 locale = interaction.guild_locale
                 guild_id = interaction.guild.id
             else:
-                locale = interaction.locale
+                # prevent language setting from overriding the user locale when prefer_user_locale is True
+                custom_locale = interaction.locale
                 user_id = interaction.user.id
 
+            if I18N._custom_user_locale_settings and guild_id:
+                prefer_user_locale = I18N._custom_user_locale_settings(guild_id)
+                if prefer_user_locale:
+                    custom_locale = interaction.locale
+                    user_id = interaction.user.id
+
         # check custom language settings
-        if hasattr(I18N, "_custom_language_settings") and I18N._custom_language_settings:
+        if I18N._custom_language_settings and not custom_locale:
             if guild_id:
                 custom_locale = I18N._custom_language_settings(guild_id)
-                locale = custom_locale or locale
             if user_id:
                 custom_locale = I18N._custom_language_settings(user_id)
-                locale = custom_locale or locale
+
+        locale = custom_locale or locale
 
         # check if the locale is available. if not, use the fallback locale
         if hasattr(I18N, "localizations"):
@@ -576,7 +591,7 @@ class I18N:
                 return I18N.fallback_locale
             return locale
 
-        return locale  # I18N class is not in use
+        return locale
 
     @staticmethod
     def get_clean_locale(obj: LOCALE) -> str:

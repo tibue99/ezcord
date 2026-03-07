@@ -566,7 +566,8 @@ class I18N:
                 locale = interaction.guild_locale
                 guild_id = interaction.guild.id
             else:
-                locale = interaction.locale
+                # prevent language setting from overriding the user locale when prefer_user_locale is True
+                custom_locale = interaction.locale
                 user_id = interaction.user.id
 
             if I18N._custom_user_locale_settings and guild_id:

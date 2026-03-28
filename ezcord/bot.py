@@ -115,7 +115,7 @@ class Bot(_main_bot):  # type: ignore
         debug: bool = True,
         error_handler: bool = True,
         error_webhook_url: str | None = None,
-        ignored_errors: list[Any | int] | None = None,
+        ignored_errors: list[Any] | None = None,
         ignored_webhook_errors: list[Any | int] | None = None,
         full_error_traceback: bool = False,
         language: str = "auto",

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Literal
 from .errors import ConvertTimeError, DurationError
 from .internal import tp
 from .internal.dc import discord
-from .utils import warn_deprecated
+from .internal.deprecation import warn_deprecated
 
 if TYPE_CHECKING:
     from .i18n import LOCALE

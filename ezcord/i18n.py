@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Literal, Union, overload
 
 from .internal.dc import PYCORD, discord
+from .internal.deprecation import warn_deprecated
 from .logs import log
-from .utils import warn_deprecated
 
 MESSAGE_SEND = discord.abc.Messageable.send
 MESSAGE_REPLY = discord.Message.reply

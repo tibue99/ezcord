@@ -126,6 +126,8 @@ def convert_dt(
             abs((dt - datetime.now(timezone.utc)).total_seconds()), relative, locale=locale
         )
 
+    raise ValueError("dt must be datetime or timedelta")
+
 
 def dc_timestamp(
     seconds: int | float, style: Literal["t", "T", "d", "D", "f", "F", "R"] = "R"

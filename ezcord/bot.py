@@ -527,24 +527,24 @@ class Bot(_main_bot):  # type: ignore
             or type(error) is commands.CheckFailure
         ):
             if self.error_handler:
-                await error_emb(ctx, tr("no_user_perms", use_locale=ctx))
+                await error_emb(ctx, tr("no_user_perms", locale=ctx))
             return
 
         if isinstance(error, commands.CommandOnCooldown):
             if self.error_handler:
                 seconds = round(ctx.command.get_cooldown_retry_after(ctx))
-                cooldown_txt = tr("cooldown", dc_timestamp(seconds), use_locale=ctx)
-                await error_emb(ctx, cooldown_txt, title=tr("cooldown_title", use_locale=ctx))
+                cooldown_txt = tr("cooldown", dc_timestamp(seconds), locale=ctx)
+                await error_emb(ctx, cooldown_txt, title=tr("cooldown_title", locale=ctx))
 
         elif isinstance(error, checks.BotMissingPermissions):
             if self.error_handler:
                 perms = "\n".join(error.missing_permissions)
-                perm_txt = f"{tr('no_perms', use_locale=ctx)} ```\n{perms}```"
-                await error_emb(ctx, perm_txt, title=tr("no_perms_title", use_locale=ctx))
+                perm_txt = f"{tr('no_perms', locale=ctx)} ```\n{perms}```"
+                await error_emb(ctx, perm_txt, title=tr("no_perms_title", locale=ctx))
 
         elif isinstance(error, commands.NotOwner):
             if self.error_handler:
-                await error_emb(ctx, tr("no_user_perms", use_locale=ctx))
+                await error_emb(ctx, tr("no_user_perms", locale=ctx))
 
         else:
             automod = False
@@ -565,9 +565,9 @@ class Bot(_main_bot):  # type: ignore
                 error_msg = f"{error}"
 
             if self.error_handler:
-                error_txt = f"{tr('error', f'```{error_msg}```', use_locale=ctx)}"
+                error_txt = f"{tr('error', f'```{error_msg}```', locale=ctx)}"
                 try:
-                    await error_emb(ctx, error_txt, title=tr("error_title", use_locale=ctx))
+                    await error_emb(ctx, error_txt, title=tr("error_title", locale=ctx))
                 except discord.HTTPException as e:
                     # ignore invalid interaction error, probably took too long to respond
                     if e.code != 10062:

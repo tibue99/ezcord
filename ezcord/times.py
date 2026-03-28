@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Literal
 from .errors import ConvertTimeError, DurationError
 from .internal import tp
 from .internal.dc import discord
+from .utils import warn_deprecated
 
 if TYPE_CHECKING:
     from .i18n import LOCALE
@@ -36,7 +37,11 @@ def set_utc(dt: datetime) -> datetime:
 
 
 def convert_time(
-    seconds: int | float, relative: bool = True, *, use_locale: LOCALE | None = None
+    seconds: int | float,
+    relative: bool = True,
+    *,
+    locale: LOCALE | None = None,
+    use_locale: LOCALE | None = None,
 ) -> str:
     """Convert seconds to a human-readable time.
 
@@ -55,7 +60,7 @@ def convert_time(
             '5 Tagen'
             >>> convert_time(450000, relative=False)  # Not relative: 5 Tage
             '5 Tage'
-    use_locale:
+    locale:
         The object to get the language from. Defaults to ``None``.
         If not provided, the language will be set to the default language.
 
@@ -64,22 +69,27 @@ def convert_time(
     :class:`str`
         A human-readable time.
     """
+    if use_locale:
+        warn_deprecated("use_locale", "locale", "0.7.5", "0.8.0")
+    locale = locale or use_locale
+
     if seconds < 60:
-        return f"{round(seconds)} {tp('sec', round(seconds), use_locale=use_locale)}"
+        return f"{round(seconds)} {tp('sec', round(seconds), locale=locale)}"
     minutes = seconds / 60
     if minutes < 60:
-        return f"{round(minutes)} {tp('min', round(minutes), use_locale=use_locale)}"
+        return f"{round(minutes)} {tp('min', round(minutes), locale=locale)}"
     hours = minutes / 60
     if hours < 24:
-        return f"{round(hours)} {tp('hour', round(hours), use_locale=use_locale)}"
+        return f"{round(hours)} {tp('hour', round(hours), locale=locale)}"
     days = hours / 24
-    return f"{round(days)} {tp('day', round(days), relative=relative, use_locale=use_locale)}"
+    return f"{round(days)} {tp('day', round(days), relative=relative, locale=locale)}"
 
 
 def convert_dt(
     dt: datetime | timedelta,
     relative: bool = True,
     *,
+    locale: LOCALE | None = None,
     use_locale: LOCALE | None = None,
 ) -> str:
     """Convert :class:`datetime` or :class:`timedelta` to a human-readable time.
@@ -92,7 +102,7 @@ def convert_dt(
         The datetime or timedelta object to convert.
     relative:
         Whether to use relative time. Defaults to ``True``.
-    use_locale:
+    locale:
         The interaction to get the language from. Defaults to ``None``.
         If not provided, the language will be set to the default language.
 
@@ -101,15 +111,19 @@ def convert_dt(
     :class:`str`
         A human-readable time.
     """
+    if use_locale:
+        warn_deprecated("use_locale", "locale", "0.7.5", "0.8.0")
+    locale = locale or use_locale
+
     if isinstance(dt, timedelta):
-        return convert_time(abs(dt.total_seconds()), relative, use_locale=use_locale)
+        return convert_time(abs(dt.total_seconds()), relative, locale=locale)
 
     if isinstance(dt, datetime):
         if dt.tzinfo is None:
             dt = dt.astimezone()
 
         return convert_time(
-            abs((dt - datetime.now(timezone.utc)).total_seconds()), relative, use_locale=use_locale
+            abs((dt - datetime.now(timezone.utc)).total_seconds()), relative, locale=locale
         )
 
 

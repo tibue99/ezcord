@@ -121,7 +121,7 @@ def tp(
     amount: int,
     *args: str,
     relative: bool = True,
-    use_locale: LOCALE | None = None,
+    locale: LOCALE | None = None,
 ) -> str:
     """Load a string in the selected language and pluralize it.
 
@@ -135,17 +135,17 @@ def tp(
         The arguments to format the string with.
     relative:
         Whether to use relative time. Defaults to ``True``.
-    use_locale:
+    locale:
         The object to get the locale from. Defaults to ``None``.
     """
-    word = tr(key, *args, use_locale=use_locale)
-    locale = get_locale(use_locale)
+    word = tr(key, *args, locale=locale)
+    locale_str = get_locale(locale)
 
-    if locale == "de":
+    if locale_str == "de":
         return plural_de(amount, word, relative)
-    elif locale == "es":
+    elif locale_str == "es":
         return plural_es(amount, word)
-    elif locale == "fr":
+    elif locale_str == "fr":
         return plural_fr(amount, word)
     else:
         return plural_en(amount, word)
@@ -161,7 +161,7 @@ def get_locale(obj) -> str:
         return EzConfig.lang
 
 
-def tr(key: str, *args: str, use_locale: LOCALE | None = None) -> str:
+def tr(key: str, *args: str, locale: LOCALE | None = None) -> str:
     """Load a string in the selected language.
 
     Parameters
@@ -170,7 +170,7 @@ def tr(key: str, *args: str, use_locale: LOCALE | None = None) -> str:
         The text to load.
     *args:
         The arguments to format the string with.
-    use_locale:
+    locale:
         The object to get the language from. Defaults to ``None``.
     """
     n = 1
@@ -181,10 +181,10 @@ def tr(key: str, *args: str, use_locale: LOCALE | None = None) -> str:
         origin_file = Path(inspect.stack()[n].filename).stem
 
     lang = EzConfig.lang
-    locale = get_locale(use_locale)
+    locale_str = get_locale(locale)
 
     try:
-        lang_dict = load_lang(locale)
+        lang_dict = load_lang(locale_str)
         string = lang_dict[origin_file][key]
         return string.format(*args)
     except KeyError:

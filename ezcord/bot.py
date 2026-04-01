@@ -514,7 +514,7 @@ class Bot(_main_bot):  # type: ignore
         webhook_sent = False
         if self.error_webhook_url:
             error = sys.exception()
-            if self.is_webhook_error_ignored(error):
+            if not self.is_webhook_error_ignored(error):
                 description = f"- **Event:** {event_method}\n```py\n{traceback.format_exc()}```"
                 webhook_sent = await self._send_error_webhook(description[:3750])
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import sys
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
@@ -510,11 +511,12 @@ class Bot(_main_bot):  # type: ignore
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
         """This overrides the default ``on_error`` event to send an error webhook."""
 
+        webhook_sent = False
         if self.error_webhook_url:
-            description = f"- **Event:** {event_method}\n```py\n{traceback.format_exc()}```"
-            webhook_sent = await self._send_error_webhook(description[:3750])
-        else:
-            webhook_sent = False
+            error = sys.exception()
+            if error and not self.is_webhook_error_ignored(error):
+                description = f"- **Event:** {event_method}\n```py\n{traceback.format_exc()}```"
+                webhook_sent = await self._send_error_webhook(description[:3750])
 
         self.logger.exception(
             f"Error in event **{event_method}** ```{traceback.format_exc(limit=0)}```",
@@ -592,7 +594,7 @@ class Bot(_main_bot):  # type: ignore
                 extra={"webhook_sent": webhook_sent},
             )
 
-    def is_webhook_error_ignored(self, error: Exception) -> bool:
+    def is_webhook_error_ignored(self, error: BaseException) -> bool:
         """Check if the error is ignored for the error webhook."""
         if type(error) in self.ignored_webhook_errors:
             return True

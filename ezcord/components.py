@@ -13,8 +13,8 @@ import inspect
 from collections.abc import Callable
 
 from .internal.dc import discord
+from .internal.deprecation import warn_deprecated
 from .logs import log
-from .utils import warn_deprecated
 
 _view_checks: list[Callable] = []
 _view_check_failures: list[Callable] = []

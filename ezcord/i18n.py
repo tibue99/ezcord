@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Union, overload
 
 from .internal.dc import PYCORD, discord
+from .internal.deprecation import warn_deprecated
 from .logs import log
 
 MESSAGE_SEND = discord.abc.Messageable.send
@@ -237,6 +238,7 @@ def _localize_send(send_func):
         content=None,
         *,
         count: int | None = None,
+        locale: LOCALE | None = None,
         use_locale: LOCALE | None = None,
         **kwargs,
     ):
@@ -250,25 +252,28 @@ def _localize_send(send_func):
             The content of the message.
         count:
             The count for pluralization. Defaults to ``None``.
-        use_locale:
+        locale:
             Use a specific object to extract the locale from. This is useful for DMs
             or followup messages. Defaults to ``None``.
         """
+        if use_locale:
+            warn_deprecated("use_locale", "locale", "0.7.5", "0.8.0")
+        locale = locale or use_locale
 
         if isinstance(self, discord.Interaction):
             # This is used for cases where followup.send is executed inside of interaction.respond,
             # because the locale can't be extracted from application webhooks
-            return await send_func(self, content, count=count, use_locale=self, **kwargs)
+            return await send_func(self, content, count=count, locale=self, **kwargs)
 
-        locale = I18N.get_locale(use_locale or self)
+        locale_str = I18N.get_locale(locale or self)
         variables, kwargs = _extract_parameters(send_func, **kwargs)
 
         # Check content
-        content = I18N.load_text(content, locale, **variables)
+        content = I18N.load_text(content, locale_str, **variables)
 
-        kwargs = _check_embed(locale, count, variables, **kwargs)
-        kwargs = _check_embeds(locale, count, variables, **kwargs)
-        kwargs = _check_view(locale, count, variables, **kwargs)
+        kwargs = _check_embed(locale_str, count, variables, **kwargs)
+        kwargs = _check_embeds(locale_str, count, variables, **kwargs)
+        kwargs = _check_view(locale_str, count, variables, **kwargs)
 
         return await send_func(self, content, **kwargs)
 
@@ -281,27 +286,32 @@ def _localize_edit(edit_func):
         message_id: int | None = None,
         *,
         count: int | None = None,
+        locale: LOCALE | None = None,
         use_locale: LOCALE | None = None,
         **kwargs,
     ):
         """The message_id is only needed for followup.edit_message, because it's a positional
         argument in the original function.
 
-        The parameter "use_locale" is only needed for followup.edit_message,
+        The parameter "locale" is only needed for followup.edit_message,
         because the locale can't be extracted automatically.
         """
-        locale = I18N.get_locale(use_locale or self)
+        if use_locale:
+            warn_deprecated("use_locale", "locale", "0.7.5", "0.8.0")
+        locale = locale or use_locale
+
+        locale_str = I18N.get_locale(locale or self)
         variables, kwargs = _extract_parameters(edit_func, **kwargs)
 
         # Check content (must be a kwarg)
         content = kwargs.get("content")
         if content:
-            new_content = I18N.load_text(content, locale, count, **variables)
+            new_content = I18N.load_text(content, locale_str, count, **variables)
             kwargs["content"] = new_content
 
-        kwargs = _check_embed(locale, count, variables, **kwargs)
-        kwargs = _check_embeds(locale, count, variables, **kwargs)
-        kwargs = _check_view(locale, count, variables, **kwargs)
+        kwargs = _check_embed(locale_str, count, variables, **kwargs)
+        kwargs = _check_embeds(locale_str, count, variables, **kwargs)
+        kwargs = _check_view(locale_str, count, variables, **kwargs)
 
         if isinstance(self, discord.Webhook):
             return await edit_func(self, message_id, **kwargs)

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import sys
 import traceback
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -86,6 +87,9 @@ class Bot(_main_bot):  # type: ignore
             This will send an error report to the webhook, but it won't send an error message to the user.
     ignored_errors:
         A list of error types to ignore. Defaults to ``None``.
+    ignored_webhook_errors:
+        A list of error types or codes to ignore for the error webhook. The error is still logged.
+        Defaults to ``None``.
     full_error_traceback:
         Whether to send the full error traceback. If this is ``False``,
         only the most recent traceback will be sent. Defaults to ``False``.
@@ -114,6 +118,7 @@ class Bot(_main_bot):  # type: ignore
         error_handler: bool = True,
         error_webhook_url: str | None = None,
         ignored_errors: list[Any] | None = None,
+        ignored_webhook_errors: list[Any | int] | None = None,
         full_error_traceback: bool = False,
         language: str = "auto",
         default_language: str = "en",
@@ -139,6 +144,7 @@ class Bot(_main_bot):  # type: ignore
         self.error_handler = error_handler
         self.error_webhook_url = error_webhook_url
         self.ignored_errors = ignored_errors or []
+        self.ignored_webhook_errors = ignored_webhook_errors or []
         self.full_error_traceback = full_error_traceback
 
         EzConfig.lang = language
@@ -506,11 +512,12 @@ class Bot(_main_bot):  # type: ignore
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
         """This overrides the default ``on_error`` event to send an error webhook."""
 
+        webhook_sent = False
         if self.error_webhook_url:
-            description = f"- **Event:** {event_method}\n```py\n{traceback.format_exc()}```"
-            webhook_sent = await self._send_error_webhook(description[:3750])
-        else:
-            webhook_sent = False
+            error = sys.exception()
+            if error and not self.is_webhook_error_ignored(error):
+                description = f"- **Event:** {event_method}\n```py\n{traceback.format_exc()}```"
+                webhook_sent = await self._send_error_webhook(description[:3750])
 
         self.logger.exception(
             f"Error in event **{event_method}** ```{traceback.format_exc(limit=0)}```",
@@ -528,24 +535,24 @@ class Bot(_main_bot):  # type: ignore
             or type(error) is commands.CheckFailure
         ):
             if self.error_handler:
-                await error_emb(ctx, tr("no_user_perms", use_locale=ctx))
+                await error_emb(ctx, tr("no_user_perms", locale=ctx))
             return
 
         if isinstance(error, commands.CommandOnCooldown):
             if self.error_handler:
                 seconds = round(ctx.command.get_cooldown_retry_after(ctx))
-                cooldown_txt = tr("cooldown", dc_timestamp(seconds), use_locale=ctx)
-                await error_emb(ctx, cooldown_txt, title=tr("cooldown_title", use_locale=ctx))
+                cooldown_txt = tr("cooldown", dc_timestamp(seconds), locale=ctx)
+                await error_emb(ctx, cooldown_txt, title=tr("cooldown_title", locale=ctx))
 
         elif isinstance(error, checks.BotMissingPermissions):
             if self.error_handler:
                 perms = "\n".join(error.missing_permissions)
-                perm_txt = f"{tr('no_perms', use_locale=ctx)} ```\n{perms}```"
-                await error_emb(ctx, perm_txt, title=tr("no_perms_title", use_locale=ctx))
+                perm_txt = f"{tr('no_perms', locale=ctx)} ```\n{perms}```"
+                await error_emb(ctx, perm_txt, title=tr("no_perms_title", locale=ctx))
 
         elif isinstance(error, commands.NotOwner):
             if self.error_handler:
-                await error_emb(ctx, tr("no_user_perms", use_locale=ctx))
+                await error_emb(ctx, tr("no_user_perms", locale=ctx))
 
         else:
             automod = False
@@ -566,9 +573,9 @@ class Bot(_main_bot):  # type: ignore
                 error_msg = f"{error}"
 
             if self.error_handler:
-                error_txt = f"{tr('error', f'```{error_msg}```', use_locale=ctx)}"
+                error_txt = f"{tr('error', f'```{error_msg}```', locale=ctx)}"
                 try:
-                    await error_emb(ctx, error_txt, title=tr("error_title", use_locale=ctx))
+                    await error_emb(ctx, error_txt, title=tr("error_title", locale=ctx))
                 except discord.HTTPException as e:
                     # ignore invalid interaction error, probably took too long to respond
                     if e.code != 10062:
@@ -578,7 +585,7 @@ class Bot(_main_bot):  # type: ignore
                 return  # Don't log AutoMod errors
 
             webhook_sent = False
-            if self.error_webhook_url:
+            if self.error_webhook_url and not self.is_webhook_error_ignored(error):
                 description = get_error_text(ctx, error)
                 webhook_sent = await self._send_error_webhook(description)
 
@@ -588,7 +595,19 @@ class Bot(_main_bot):  # type: ignore
                 extra={"webhook_sent": webhook_sent},
             )
 
+    def is_webhook_error_ignored(self, error: BaseException) -> bool:
+        """Check if the error is ignored for the error webhook."""
+        if type(error) in self.ignored_webhook_errors:
+            return True
+
+        if isinstance(error, discord.HTTPException) and error.code in self.ignored_webhook_errors:
+            return True
+
+        return False
+
     async def _send_error_webhook(self, description: str) -> bool:
+        """Send an error message with the given description."""
+
         if not self.error_webhook_url:
             return False
 
@@ -639,8 +658,11 @@ class Bot(_main_bot):  # type: ignore
                 )
                 return
 
-        description = get_error_text(interaction, error, item)
-        webhook_sent = await self._send_error_webhook(description)
+        if self.is_webhook_error_ignored(error):
+            webhook_sent = False
+        else:
+            description = get_error_text(interaction, error, item)
+            webhook_sent = await self._send_error_webhook(description)
 
         self.logger.exception(
             f"Error in View **{view_name}** ({view_module}) ```{error}```",
@@ -654,8 +676,11 @@ class Bot(_main_bot):  # type: ignore
         if type(error) in self.ignored_errors + [ErrorMessageSent]:
             return
 
-        description = get_error_text(interaction, error, interaction.modal)
-        webhook_sent = await self._send_error_webhook(description)
+        if self.is_webhook_error_ignored(error):
+            webhook_sent = False
+        else:
+            description = get_error_text(interaction, error, interaction.modal)
+            webhook_sent = await self._send_error_webhook(description)
 
         self.logger.exception(
             f"Error in Modal **{type(interaction.modal).__name__}** ({type(interaction.modal).__module__})",

@@ -514,7 +514,7 @@ class Bot(_main_bot):  # type: ignore
         webhook_sent = False
         if self.error_webhook_url:
             error = sys.exception()
-            if not self.is_webhook_error_ignored(error):
+            if error and not self.is_webhook_error_ignored(error):
                 description = f"- **Event:** {event_method}\n```py\n{traceback.format_exc()}```"
                 webhook_sent = await self._send_error_webhook(description[:3750])
 
@@ -594,7 +594,7 @@ class Bot(_main_bot):  # type: ignore
                 extra={"webhook_sent": webhook_sent},
             )
 
-    def is_webhook_error_ignored(self, error: Exception) -> bool:
+    def is_webhook_error_ignored(self, error: BaseException) -> bool:
         """Check if the error is ignored for the error webhook."""
         if type(error) in self.ignored_webhook_errors:
             return True

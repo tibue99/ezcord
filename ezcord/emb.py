@@ -170,7 +170,7 @@ async def _send_embed(
     else:
         if I18N.initialized:
             return await target.followup.send(
-                content=content, embed=embed, ephemeral=ephemeral, use_locale=target, **kwargs
+                content=content, embed=embed, ephemeral=ephemeral, locale=target, **kwargs
             )
         else:
             return await target.followup.send(
@@ -356,7 +356,7 @@ class EzContext(_ctx_type):  # type: ignore
         return t(self.interaction, key, count, **kwargs)
 
     def convert_time(self, seconds: int | float, relative: bool = True):
-        return convert_time(seconds, relative, use_locale=self)
+        return convert_time(seconds, relative, locale=self)
 
     def convert_dt(self, dt: datetime | timedelta, relative: bool = True):
-        return convert_dt(dt, relative, use_locale=self)
+        return convert_dt(dt, relative, locale=self)

@@ -5,12 +5,12 @@ More information can be found in the :doc:`Localization Documentation </ezcord/i
 This is currently only available for Pycord.
 
 .. warning::
-   The following cases can't get the current locale automatically. You can use the ``use_locale``
+   The following cases can't get the current locale automatically. You can use the ``locale``
    parameter to pass an object to extract the locale automatically.
 
-   - **followup.send** - Use ``interaction.respond`` instead (or pass the interaction manually using the ``use_locale`` argument
-   - **followup.edit_message** - Pass the interaction manually using the ``use_locale`` argument
-   - **DMs** - Pass a localizable object manually using the ``use_locale`` argument
+   - **followup.send** - Use ``interaction.respond`` instead (or pass the interaction manually using the ``locale`` argument
+   - **followup.edit_message** - Pass the interaction manually using the ``locale`` argument
+   - **DMs** - Pass a localizable object manually using the ``locale`` argument
 
 Localize Commands
 -----------------

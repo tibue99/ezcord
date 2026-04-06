@@ -9,12 +9,10 @@ class UserDB(ezcord.DBHandler):
 
     async def setup(self):
         """Execute a single query."""
-        await self.exec(
-            """CREATE TABLE IF NOT EXISTS users(
+        await self.exec("""CREATE TABLE IF NOT EXISTS users(
             user_id INTEGER PRIMARY KEY,
             coins INTEGER DEFAULT 0
-            )"""
-        )
+            )""")
 
     async def add_coins(self, user_id, amount):
         """Execute multiple queries in one connection."""

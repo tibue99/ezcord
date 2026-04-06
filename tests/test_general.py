@@ -12,12 +12,10 @@ class UserDB(ezcord.DBHandler):
         super().__init__(path)
 
     async def setup(self):
-        await self.exec(
-            """CREATE TABLE IF NOT EXISTS users(
+        await self.exec("""CREATE TABLE IF NOT EXISTS users(
             user_id INTEGER PRIMARY KEY,
             coins INTEGER DEFAULT 0
-            )"""
-        )
+            )""")
 
     async def add_coins(self, user_id, amount):
         async with self.start() as cursor:

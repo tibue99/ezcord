@@ -21,13 +21,11 @@ class _BanDB(DBHandler):
         super().__init__(EzConfig.blacklist.db_path)
 
     async def setup(self):
-        await self.exec(
-            f"""CREATE TABLE IF NOT EXISTS {self.db_name} (
+        await self.exec(f"""CREATE TABLE IF NOT EXISTS {self.db_name} (
             user_id INTEGER PRIMARY KEY,
             reason TEXT,
             dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )"""
-        )
+            )""")
 
     async def add_ban(self, user_id: int, reason: str | None):
         await self.exec(

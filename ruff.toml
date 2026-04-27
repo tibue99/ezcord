@@ -29,14 +29,15 @@ extend-select = [
 ]
 
 ignore = [
-    "F403",
-    "D205",
-    "PIE796",
-    "N818",
     "A003",
-    "RUF012",
+    "A003",
+    "D205",
     "D401",
+    "F403",
+    "N818",
+    "PIE796",
     "RUF005",
+    "RUF012",
 ]
 
 [lint.pydocstyle]

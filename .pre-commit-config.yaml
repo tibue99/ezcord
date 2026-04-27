@@ -11,37 +11,11 @@ repos:
       - id: check-docstring-first
       - id: check-yaml
 
-  - repo: https://github.com/PyCQA/autoflake
-    rev: v2.3.1
-    hooks:
-    -   id: autoflake
-        args:
-        - --remove-all-unused-imports
-        - --remove-unused-variables
-
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 25.12.0
-    hooks:
-      - id: black
-        args: [--safe, --line-length=100]
-
-  - repo: https://github.com/PyCQA/isort
-    rev: 7.0.0
-    hooks:
-      - id: isort
-        args: ["--profile", "black"]
-
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.19.1
     hooks:
       - id: mypy
         args: [--disable-error-code=name-defined, --disable-error-code=import]
-
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.21.2
-    hooks:
-      - id: pyupgrade
-        args: [--py39-plus]
 
   - repo: https://github.com/DanielNoord/pydocstringformatter
     rev: v0.7.5
@@ -49,3 +23,9 @@ repos:
       - id: pydocstringformatter
         args:
           [--style=numpydoc, --no-numpydoc-name-type-spacing]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.5
+    hooks:
+      - id: ruff-check
+      - id: ruff-format

@@ -20,7 +20,8 @@ def test_convert_dt():
 @pytest.mark.dc
 def test_dc_timestamp():
     result = ezcord.dc_timestamp(0)
-    assert result.startswith("<t:") and result.endswith(":R>")
+    assert result.startswith("<t:")
+    assert result.endswith(":R>")
 
 
 def test_convert_so_seconds():

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import inspect
 import traceback
+from collections.abc import Callable
 from copy import deepcopy
 from functools import cache
-from typing import Callable
 
 from ..internal.dc import discord
 from .config import EzConfig
@@ -41,7 +41,6 @@ def save_embeds(**kwargs: discord.Embed | str):
 @cache
 def load_embed(name: str) -> discord.Embed | str:
     """Load an embed template."""
-
     if not EzConfig.embed_templates:
         save_embeds()
 

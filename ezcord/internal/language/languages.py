@@ -13,7 +13,6 @@ from ..config import EzConfig
 @cache
 def load_lang(language: str) -> dict[str, dict[str, str]]:
     """Loads the given language file and checks if the user provided a custom language file."""
-
     if language == "auto":
         language = EzConfig.default_lang
 
@@ -28,7 +27,7 @@ def load_lang(language: str) -> dict[str, dict[str, str]]:
             break
 
     # check if the user has a custom language file
-    for root, directories, files in os.walk(os.getcwd()):
+    for root, _directories, files in os.walk(os.getcwd()):
         for filename in files:
             if filename != f"ez_{language}.json":
                 continue
@@ -61,7 +60,6 @@ def localize_command(
     This code is inspired by https://github.com/Dorukyum/pycord-i18n,
     which is licensed under the MIT License.
     """
-
     if isinstance(command, discord.SlashCommandGroup):
         for cmd in command.walk_commands():
             localize_command(cmd, locale, localizations.get(cmd.name, {}), default_locale)
@@ -131,7 +129,6 @@ def localize_cog(
     localizations: dict,
 ):
     """Localize a cog. This is only used for the help command."""
-
     if localized_cog := localizations.get(cog_name):
         if localized_name := localized_cog.get("name"):
             if not hasattr(cog, "name_localizations"):

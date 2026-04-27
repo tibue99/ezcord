@@ -25,7 +25,8 @@ class DBHandler:
         When used without a context manager, this must be closed with :meth:`close`
         or by using ``end=True`` in :meth:`exec`.
     auto_setup:
-        Whether to call :meth:`setup` when the first instance of this class is created. Defaults to ``True``.
+        Whether to call :meth:`setup` when the first instance of this class is created.
+        Defaults to ``True``.
         This is called in the ``on_ready`` event of the bot.
     conv_json:
         Whether to auto-convert JSON. Defaults to ``False``.
@@ -81,7 +82,6 @@ class DBHandler:
 
         If ``conv_json`` is ``True``, all dicts will be converted to JSON strings.
         """
-
         if len(args) == 1 and isinstance(args, tuple):
             if isinstance(args[0], tuple):
                 args = args[0]
@@ -144,7 +144,6 @@ class DBHandler:
 
     async def connect(self, **kwargs) -> DBHandler:
         """Alias for :meth:`start`."""
-
         return self.start(**kwargs)
 
     async def _connect(self, **kwargs) -> aiosqlite.Connection:
@@ -154,7 +153,6 @@ class DBHandler:
         If ``auto_connect`` is ``True``, a connection will be created and stored
         as the instance connection.
         """
-
         if self.connection is not None:
             return self.connection
 
@@ -210,7 +208,6 @@ class DBHandler:
 
     def _convert_json_one(self, result: tuple) -> tuple:
         """Converts all JSON strings from :meth:`one` to dicts (if enabled)."""
-
         if not self.conv_json or not result:
             return result
 
@@ -218,7 +215,6 @@ class DBHandler:
 
     def _convert_json_all(self, result: list) -> list:
         """Converts all JSON strings from :meth:`all` to dicts (if enabled)."""
-
         if self.conv_json:
             return [self._convert_tuple_json(row) for row in result]
         return result

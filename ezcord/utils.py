@@ -11,7 +11,6 @@ import json
 import os
 import random
 import re
-import warnings
 from pathlib import Path
 from typing import Any
 
@@ -28,18 +27,18 @@ from .internal import get_locale
 from .internal.dc import DPY, commands, discord
 
 __all__ = (
+    "avatar",
+    "codeblock",
+    "convert_color",
+    "count_lines",
+    "create_html_file",
     "create_json_file",
     "create_text_file",
-    "create_html_file",
     "create_yaml_file",
-    "avatar",
-    "random_avatar",
-    "codeblock",
     "ez_autocomplete",
-    "count_lines",
-    "load_message",
     "format_number",
-    "convert_color",
+    "load_message",
+    "random_avatar",
 )
 
 
@@ -150,7 +149,6 @@ def create_yaml_file(
     -------
     :class:`discord.File`
     """
-
     yaml_string = yaml.dump(data, indent=indent, **kwargs)
     return discord.File(
         io.BytesIO(yaml_string.encode()),
@@ -173,7 +171,6 @@ def avatar(user_id: int) -> str:
 
 def random_avatar() -> str:
     """Returns the URL of a random default avatar."""
-
     return f"https://cdn.discordapp.com/embed/avatars/{random.randint(0, 5)}.png"
 
 
@@ -200,7 +197,6 @@ def codeblock(
         If not provided, the language will be set to the default language.
         The language will determine how large numbers are formatted.
     """
-
     if isinstance(content, int):
         number = f"{content:,}"
         if get_locale(interaction) == "de":
@@ -221,8 +217,9 @@ def ez_autocomplete(values):
     Parameters
     ----------
     values: Iterable[str]
-        Accepts an iterable of :class:`str`, a callable (sync or async) that takes a single argument
-        of :class:`~discord.AutocompleteContext`, or a coroutine. Must resolve to an iterable of :class:`str`.
+        Accepts an iterable of :class:`str`, a callable (sync or async) that takes a single
+        argument of :class:`~discord.AutocompleteContext`, or a coroutine. Must resolve to
+        an iterable of :class:`str`.
     """
 
     async def autocomplete_callback(ctx):
@@ -281,14 +278,14 @@ def count_lines(
         if "pyvenv.cfg" in files:  # ignore venv folders
             ignored_dirs.append(root)
 
-        if any([True for pattern in ignored_dirs if pattern in str(Path(root))]):
+        if any(True for pattern in ignored_dirs if pattern in str(Path(root))):
             continue
 
         for file in files:
             if not file.endswith(".py"):
                 continue
 
-            if any([True for pat in ignored_files if fnmatch.fnmatch(file, pat)]):
+            if any(True for pat in ignored_files if fnmatch.fnmatch(file, pat)):
                 continue
 
             file_path = os.path.join(root, file)
@@ -392,7 +389,6 @@ def format_number(number: int, *, decimal_places: int = 1, trailing_zero: bool =
     >>> format_number(1_000, trailing_zero=True)
     '1.0K'
     """
-
     suffix = ""
     if number >= 1_000_000_000 or number <= -1_000_000_000:
         txt = f"{number / 1_000_000_000:.{decimal_places}f}"
@@ -434,7 +430,6 @@ def convert_color(color: str, strict_hex: bool = True, hex_hash: bool = False) -
     :exc:`commands.BadColourArgument`
         The color could not be converted.
     """
-
     additional_colors = {
         "white": "#FFFFFF",
         "black": "#000000",

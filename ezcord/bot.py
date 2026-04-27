@@ -5,9 +5,10 @@ import logging
 import os
 import sys
 import traceback
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import aiohttp
 from dotenv import load_dotenv
@@ -57,7 +58,7 @@ if TYPE_CHECKING:
     else:
         _main_bot = commands.Bot
 
-__all__ = ("Bot", "PrefixBot", "BridgeBot", "AutoShardedBot", "Cog")
+__all__ = ("AutoShardedBot", "Bot", "BridgeBot", "Cog", "PrefixBot")
 
 
 class Bot(_main_bot):  # type: ignore
@@ -83,7 +84,8 @@ class Bot(_main_bot):  # type: ignore
 
         .. note::
             You can disable the default error handler, but still provide an error webhook URL.
-            This will send an error report to the webhook, but it won't send an error message to the user.
+            This will send an error report to the webhook, but it won't send an error message
+            to the user.
     ignored_errors:
         A list of error types to ignore. Defaults to ``None``.
     ignored_webhook_errors:
@@ -104,7 +106,8 @@ class Bot(_main_bot):  # type: ignore
         If this is ``None``, the event will be disabled.
     safe_loading:
         Enable safe loading of cogs.
-        If this is ``True``, errors during cog loading will be caught and logged without interrupting execution.
+        If this is ``True``, errors during cog loading will be caught and logged
+        without interrupting execution.
     **kwargs:
         Additional keyword arguments for :class:`discord.Bot`.
     """
@@ -197,7 +200,7 @@ class Bot(_main_bot):  # type: ignore
         return len(cmds)
 
     async def get_application_context(self, interaction: discord.Interaction, cls=EzContext):
-        """A custom application command context for Pycord."""
+        """Custom application command context for Pycord."""
         return await super().get_application_context(interaction, cls=cls)
 
     def _send_cog_log(
@@ -219,8 +222,7 @@ class Bot(_main_bot):  # type: ignore
         directory: str,
         color: str | None = None,
     ):
-        """Sends a log message for a loaded cog."""
-
+        """Send a log message for a loaded cog."""
         if not log_format or "{sum}" in log_format or log_format == CogLog.table:
             return
 
@@ -241,8 +243,7 @@ class Bot(_main_bot):  # type: ignore
         directory: str | None = None,
         cogs: list[str] | None = None,
     ):
-        """Sends a log message for the number of loaded cogs in a directory or in total."""
-
+        """Send a log message for the number of loaded cogs in a directory or in total."""
         if log_format == CogLog.table and not directory and count > 0 and cogs:
             cog_table = print_cog_table(cogs)
             if cog_table:
@@ -291,7 +292,7 @@ class Bot(_main_bot):  # type: ignore
 
         loaded_cogs = 0
         for directory in directories:
-            for root, dirs, files in os.walk(directory):
+            for root, _dirs, files in os.walk(directory):
                 path = Path(root)
                 loaded_dir_cogs = 0
                 for filename in files:
@@ -316,7 +317,7 @@ class Bot(_main_bot):  # type: ignore
         return cogs
 
     def load_extension(self, name: str, **kwargs):
-        """Loads an extension with configurable error handling.
+        """Load an extension with configurable error handling.
 
         This method attempts to load a bot extension. The behavior on error depends
         on the `safe_loading` setting in the ``ezcord.Bot`` instance.
@@ -336,7 +337,7 @@ class Bot(_main_bot):  # type: ignore
             self.logger.error(f"Failed to load extension '{name}'", exc_info=e.__cause__)
 
     async def load_extension_dpy(self, name: str, **kwargs):
-        """Loads an extension for discord.py.
+        """Load an extension for discord.py.
 
         Parameters
         ----------
@@ -379,10 +380,10 @@ class Bot(_main_bot):  # type: ignore
         custom_log_level:
             The name of the custom log level for cogs. Defaults to ``COG``.
         log_color:
-            The color to use for cog logs. This will only have an effect if ``custom_log_level`` is enabled.
+            The color to use for cog logs. This will only have an effect if
+            ``custom_log_level`` is enabled.
             If this is ``None``, a default color will be used.
         """
-
         cogs = self._manage_cogs(
             *directories,
             subdirectories=subdirectories,
@@ -404,7 +405,7 @@ class Bot(_main_bot):  # type: ignore
         position: int | None = None,
         color: str | None = None,
     ):
-        """Adds an information to the ``on_ready`` message.
+        """Add an information to the ``on_ready`` message.
 
         Parameters
         ----------
@@ -420,7 +421,7 @@ class Bot(_main_bot):  # type: ignore
         self.ready_event_adds[name] = {"value": value, "position": position, "color": color}
 
     def remove_ready_info(self, *elements: str | int):
-        """Removes an information from the ``on_ready`` message.
+        """Remove an information from the ``on_ready`` message.
 
         Parameters
         ----------
@@ -466,7 +467,7 @@ class Bot(_main_bot):  # type: ignore
         print_custom_ready(self, title, modifications, style, default_info, new_info, colors)
 
     async def _ready_event(self):
-        """Prints the bot's information when it's ready."""
+        """Print the bot's information when it's ready."""
         await asyncio.sleep(0.1)
 
         modifications = self.ready_event_adds, self.ready_event_removes
@@ -477,8 +478,7 @@ class Bot(_main_bot):  # type: ignore
 
     @staticmethod
     async def _db_setup():
-        """Calls the setup method of all registered :class:`.DBHandler` instances."""
-
+        """Call the setup method of all registered :class:`.DBHandler` instances."""
         load_dotenv()
         auto_setup = os.getenv("PGAUTOSETUP", "1") == "1"
 
@@ -500,17 +500,17 @@ class Bot(_main_bot):  # type: ignore
         await asyncio.gather(*tasks)
 
     async def _check_cog_groups(self):
-        """Checks if all cog groups are valid."""
+        """Check if all cog groups are valid."""
         for cog in self.cogs.values():
             if hasattr(cog, "group") and cog.group:
                 if cog.group not in self.cogs.keys():
                     self.logger.warning(
-                        f"The cog group '{cog.group}' for cog '{cog.qualified_name}' does not exist."
+                        f"The cog group '{cog.group}' for cog '{cog.qualified_name}' "
+                        f"does not exist."
                     )
 
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
-        """This overrides the default ``on_error`` event to send an error webhook."""
-
+        """Override the default ``on_error`` event to send an error webhook."""
         webhook_sent = False
         if self.error_webhook_url:
             error = sys.exception()
@@ -524,8 +524,8 @@ class Bot(_main_bot):  # type: ignore
         )
 
     async def _error_event(self, ctx, error: discord.DiscordException):
-        """The event that handles application command errors."""
-        if type(error) in self.ignored_errors + [ErrorMessageSent]:
+        """Handle application command errors."""
+        if type(error) in [*self.ignored_errors, ErrorMessageSent]:
             return
 
         if (
@@ -563,7 +563,8 @@ class Bot(_main_bot):  # type: ignore
                         automod = True
                         guild_id = ctx.guild.id if ctx.guild else "None"
                         self.logger.warning(
-                            f"**/{ctx.command.qualified_name}** was blocked by AutoMod (Guild {guild_id})"
+                            f"**/{ctx.command.qualified_name}** was blocked by AutoMod "
+                            f"(Guild {guild_id})"
                         )
 
                 error_msg = f"{original_error.__class__.__name__}: {error.__cause__}"
@@ -606,7 +607,6 @@ class Bot(_main_bot):  # type: ignore
 
     async def _send_error_webhook(self, description: str) -> bool:
         """Send an error message with the given description."""
-
         if not self.error_webhook_url:
             return False
 
@@ -640,9 +640,8 @@ class Bot(_main_bot):  # type: ignore
     async def on_view_error(
         self, error: Exception, item: discord.ui.ViewItem, interaction: discord.Interaction
     ):
-        """Handles all view errors in Pycord."""
-
-        if type(error) in self.ignored_errors + [ErrorMessageSent]:
+        """Handle all view errors in Pycord."""
+        if type(error) in [self.ignored_errors, ErrorMessageSent]:
             return
 
         view_name = type(item).__name__
@@ -670,9 +669,8 @@ class Bot(_main_bot):  # type: ignore
         )
 
     async def on_modal_error(self, error: Exception, interaction: discord.Interaction) -> None:
-        """Handles all modal errors in Pycord."""
-
-        if type(error) in self.ignored_errors + [ErrorMessageSent]:
+        """Handle all modal errors in Pycord."""
+        if type(error) in [*self.ignored_errors, ErrorMessageSent]:
             return
 
         if self.is_webhook_error_ignored(error):
@@ -682,13 +680,14 @@ class Bot(_main_bot):  # type: ignore
             webhook_sent = await self._send_error_webhook(description)
 
         self.logger.exception(
-            f"Error in Modal **{type(interaction.modal).__name__}** ({type(interaction.modal).__module__})",
+            f"Error in Modal **{type(interaction.modal).__name__}** "
+            f"({type(interaction.modal).__module__})",
             exc_info=error,
             extra={"webhook_sent": webhook_sent},
         )
 
     def get_cmd(self, name: str, bold: bool = True) -> str:
-        """Helper method to get a command mention. Returns a string if the command was not found.
+        """Get a command mention. Returns a string if the command was not found.
 
         Parameters
         ----------
@@ -789,7 +788,6 @@ class Bot(_main_bot):  # type: ignore
             Additional variables to use in the help command. This can either be a string value or
             a callable that returns a string value.
         """
-
         if buttons is None:
             buttons = []
         for button in buttons:
@@ -878,7 +876,6 @@ class Bot(_main_bot):  # type: ignore
                 coins=get_coins
             )
         """
-
         final_acts = []
         for act in activities:
             if isinstance(act, (list, tuple)):
@@ -936,7 +933,6 @@ class Bot(_main_bot):  # type: ignore
             Overwrites for the default blacklist commands. This can be used to change the
             default commands behavior.
         """
-
         if disabled_commands is None:
             disabled_commands = []
 
@@ -967,8 +963,7 @@ class Bot(_main_bot):  # type: ignore
     def localize_commands(
         self, languages: dict[str, dict], default: str = "en-US", cogs: bool = True
     ):
-        """
-        Localize commands with the given test dictionary. This should be called after the
+        """Localize commands with the given test dictionary. This should be called after the
         commands have been added to the bot, but before they are synced.
 
         A list of available languages is available here:
@@ -1011,8 +1006,7 @@ class Bot(_main_bot):  # type: ignore
                     localize_cog(cog_name, cog, locale, localizations["cogs"])
 
     async def setup_hook(self):
-        """This is used for Discord.py startup and should not be called manually."""
-
+        """Used for Discord.py startup and should not be called manually."""
         for cog in self.initial_cogs:
             await self.load_extension_dpy(cog)
 
@@ -1053,8 +1047,8 @@ class Bot(_main_bot):  # type: ignore
         token_var: str = "TOKEN",
         **kwargs,
     ) -> None:
-        """This overrides the default :meth:`discord.Bot.run` method and automatically loads the token
-        from the environment.
+        """Override the default :meth:`discord.Bot.run` method and automatically loads the
+        token from the environment.
 
         Parameters
         ----------
@@ -1079,8 +1073,8 @@ class Bot(_main_bot):  # type: ignore
         token_var: str = "TOKEN",
         **kwargs,
     ) -> None:
-        """This overrides the default :meth:`discord.Bot.start` method and automatically loads the token
-        from the environment.
+        """Override the default :meth:`discord.Bot.start` method and automatically
+        loads the token from the environment.
 
         Parameters
         ----------
@@ -1134,7 +1128,7 @@ class _CogMeta(CogMeta):
     """A metaclass for cogs that adds an ``emoji`` attribute."""
 
     def __new__(cls, *args, **kwargs) -> CogMeta:
-        name, bases, attrs = args
+        _name, _bases, attrs = args
         attrs["emoji"] = kwargs.pop("emoji", None)
         attrs["group"] = kwargs.pop("group", None)
         attrs["hidden"] = kwargs.pop("hidden", False)
@@ -1142,7 +1136,7 @@ class _CogMeta(CogMeta):
 
 
 class Cog(commands.Cog, metaclass=_CogMeta):
-    """This can be used as a base class for all cogs.
+    """Can be used as a base class for all cogs.
 
     Parameters
     ----------

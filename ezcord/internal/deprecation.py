@@ -13,8 +13,8 @@ def warn_deprecated(
     reference: str | None = None,
     stacklevel: int = 3,
 ) -> None:
-    """Warn about a deprecated function, with the ability to specify details about the deprecation. Emits a
-    DeprecationWarning.
+    """Warn about a deprecated function, with the ability to specify details about the deprecation.
+    Emits a DeprecationWarning.
 
     Parameters
     ----------
@@ -27,7 +27,8 @@ def warn_deprecated(
     removed:
         The version in which the function is planned to be removed.
     reference:
-        A reference that explains the deprecation, typically a URL to a page such as a changelog entry or a GitHub
+        A reference that explains the deprecation, typically a URL to a page
+        such as a changelog entry or a GitHub
         issue/PR.
     stacklevel:
         The stacklevel kwarg passed to :func:`warnings.warn`. Defaults to ``3``.

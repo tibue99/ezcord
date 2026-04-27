@@ -12,7 +12,6 @@ def _process_args(args) -> tuple:
     """If SQL query parameters are passed as a tuple instead of single values,
     the tuple will be unpacked.
     """
-
     if len(args) == 1 and isinstance(args, tuple):
         if isinstance(args[0], tuple):
             args = args[0]
@@ -132,7 +131,6 @@ class PGHandler:
         Custom pools are stored in :attr:`_pools`. If a custom pool for a specified key already
         exists, it will be returned and set as the pool for the current class instance.
         """
-
         if self.custom_pool:
             if self._pools[self.custom_pool]:
                 self.pool = self._pools[self.custom_pool]
@@ -228,7 +226,6 @@ class PGHandler:
 
     async def execute(self, sql: str, *args, **kwargs) -> QueryStatus:
         """Alias for :meth:`exec`."""
-
         return await self.exec(sql, *args, **kwargs)
 
     async def executemany(self, sql: str, args: Iterable[Iterable[Any]], **kwargs) -> str:

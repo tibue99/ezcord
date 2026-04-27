@@ -1,10 +1,10 @@
-"""
-The blacklist can be managed within Discord using the ``/admin`` commands.
+"""The blacklist can be managed within Discord using the ``/admin`` commands.
 However, if you want to manage the blacklist in your own code, you can use these functions.
 
 .. warning::
 
-    These methods can only be used after the blacklist has been activated with :meth:`.add_blacklist`.
+    These methods can only be used after the blacklist has been activated
+    with :meth:`.add_blacklist`.
 """
 
 from __future__ import annotations

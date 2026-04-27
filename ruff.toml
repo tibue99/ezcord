@@ -7,8 +7,6 @@ fix = true
 [lint]
 extend-select = [
     "A",
-    "ANN001",
-    "ARG",
     "ASYNC",
     "B007",
     "C4",
@@ -16,7 +14,6 @@ extend-select = [
     "D4",
     "E",
     "FAST",
-    "FBT003",
     "FLY",
     "FURB",
     "I",
@@ -26,11 +23,25 @@ extend-select = [
     "PT",
     "RET501",
     "RUF",
-    "SLF",
     "T20",
     "UP",
     "W",
 ]
 
+ignore = [
+    "F403",
+    "D205",
+    "PIE796",
+    "N818",
+    "A003",
+    "RUF012",
+    "D401",
+    "RUF005",
+]
+
 [lint.pydocstyle]
 convention = "numpy"
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"examples/*" = ["T201"]

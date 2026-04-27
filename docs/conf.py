@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.abspath("../"))
 from ezcord import __version__
 
 project = "Ezcord"
-copyright = f"{date.today().year}, tibue99"
+copyright = f"{date.today().year}, tibue99"  # noqa: A001
 author = "tibue99"
 release = __version__
 

@@ -3,9 +3,10 @@ from __future__ import annotations
 import inspect
 import random
 import re
+from collections.abc import Callable
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Literal, Union, overload
+from typing import TYPE_CHECKING, Literal, Union, overload
 
 from .internal.dc import PYCORD, discord
 from .internal.deprecation import warn_deprecated
@@ -23,7 +24,7 @@ WEBHOOK_SEND = discord.Webhook.send
 WEBHOOK_EDIT_MESSAGE = discord.Webhook.edit_message
 WEBHOOK_EDIT = discord.WebhookMessage.edit
 
-LOCALE = Union[str]
+LOCALE = Union[str]  # noqa: UP007
 
 if PYCORD:
     INTERACTION_EDIT_ORIGINAL = discord.Interaction.edit_original_response
@@ -43,7 +44,7 @@ else:
 if TYPE_CHECKING:
     import discord  # type: ignore
 
-    LOCALE = Union[  # type: ignore
+    LOCALE = Union[  # type: ignore  # noqa: UP007
         discord.Interaction,
         discord.ApplicationContext,
         discord.InteractionResponse,
@@ -53,12 +54,11 @@ if TYPE_CHECKING:
         str,
     ]
 
-__all__ = ("t", "TEmbed", "I18N", "LOCALE")
+__all__ = ("I18N", "LOCALE", "TEmbed", "t")
 
 
 def _no_lowercase(s: str) -> bool:
     """Check if a string contains no lowercase letters."""
-
     return not any(c.islower() for c in s)
 
 
@@ -115,7 +115,6 @@ def _check_embed(locale: str, count: int | None, variables: dict, **kwargs):
     - Embed is a TEmbed: Load the embed from the language file.
     - Embed is a default Embed: Load all keys inside the embed from the language file
     """
-
     add_locations: tuple = ()
     embed = kwargs.get("embed")
     if isinstance(embed, TEmbed):
@@ -136,7 +135,6 @@ def _check_embed(locale: str, count: int | None, variables: dict, **kwargs):
 
 def _check_embeds(locale: str, count: int | None, variables: dict, **kwargs):
     """Check if the kwargs contain an embed list. Returns the updated kwargs."""
-
     add_locations: tuple = ()
     embeds = kwargs.get("embeds")
     if not embeds:
@@ -162,7 +160,6 @@ def _check_embeds(locale: str, count: int | None, variables: dict, **kwargs):
 
 def _check_components(component, locale: str, count: int | None, class_name: str, **variables):
     """Recursively walks through components and loads language file keys."""
-
     if isinstance(component, discord.ui.Container):
         for item in component.items:
             _check_components(item, locale, count, class_name, **variables)
@@ -201,7 +198,6 @@ def _check_components(component, locale: str, count: int | None, class_name: str
 
 def _check_view(locale: str, count: int | None, variables: dict, **kwargs):
     """Load all keys inside the view from the language file."""
-
     if "count" in variables:
         count = variables["count"]
 
@@ -289,7 +285,9 @@ def _localize_edit(edit_func):
         use_locale: LOCALE | None = None,
         **kwargs,
     ):
-        """The message_id is only needed for followup.edit_message, because it's a positional
+        """Localizes message edit functions.
+
+        The message_id is only needed for followup.edit_message, because it's a positional
         argument in the original function.
 
         The parameter "locale" is only needed for followup.edit_message,
@@ -527,7 +525,6 @@ class I18N:
         obj:
             The object to get the locale from.
         """
-
         if isinstance(obj, str):
             if hasattr(I18N, "localizations") and obj not in I18N.localizations:
                 return I18N.fallback_locale
@@ -576,7 +573,8 @@ class I18N:
                 locale = interaction.guild_locale
                 guild_id = interaction.guild.id
             else:
-                # prevent language setting from overriding the user locale when prefer_user_locale is True
+                # prevent language setting from overriding the user locale
+                # when prefer_user_locale is True
                 custom_locale = interaction.locale
                 user_id = interaction.user.id
 
@@ -622,7 +620,6 @@ class I18N:
 
         This can only get the class if a method was executed from inside the class.
         """
-
         inspect_stack = inspect.stack()
 
         # Ignore the following internal sources to determine the origin method
@@ -673,7 +670,6 @@ class I18N:
         key: str, locale: str, count: int | None, called_class: str | None, add_locations: tuple
     ) -> str:
         """Looks for the specified key in different locations of the language file."""
-
         if key.startswith(I18N.do_not_localize):
             return key.replace(I18N.do_not_localize, "", 1)
 
@@ -766,7 +762,6 @@ class I18N:
         This is used to load embed keys from the location of the embed creation,
         instead of the location of the embed usage.
         """
-
         if key is None:
             return None
 
@@ -790,7 +785,6 @@ class I18N:
     @staticmethod
     def load_embed(embed: TEmbed, locale: str) -> discord.Embed:
         """Loads an embed from the language file."""
-
         file_name, method_name, class_name = I18N.get_location()
 
         # search not only the location of the embed usage,
@@ -838,7 +832,6 @@ class I18N:
 
         Does not modify the original content.
         """
-
         if isinstance(content, str):
             return I18N.load_text(content, locale, count, add_locations=add_locations, **variables)
 
@@ -936,7 +929,6 @@ class I18N:
     @staticmethod
     def _find_missing_keys(fallback: dict, current_locale: dict):
         """Find keys and sub-keys that are missing in the current locale."""
-
         missing_keys = []
 
         def explore_dict(original: dict, current: dict, path: str):
@@ -952,7 +944,6 @@ class I18N:
     @staticmethod
     def _check_localizations():
         """Checks if all locales have the same keys."""
-
         for locale, values in I18N.localizations.items():
             missing_keys = I18N._find_missing_keys(I18N.localizations[I18N.fallback_locale], values)
             if len(missing_keys) > 0:

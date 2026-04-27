@@ -7,7 +7,8 @@ else:
 
 
 class ErrorMessageSent(_DC_ERROR_TYPE):  # type: ignore
-    """Exception that can be raised to indicate that an error message has already been sent to the user.
+    """Exception that can be raised to indicate that an error message has already been
+    sent to the user.
 
     This could be useful if an error message has already been sent to the user within a check
     function. This prevents further messages to the user, as this error will be ignored by

@@ -37,7 +37,6 @@ class UserDB(ezcord.DBHandler):
 @pytest.mark.dc
 def test_libs():
     """Test compatibility with different Discord libraries."""
-
     intents = discord.Intents.default()
     intents.message_content = True
     bot = ezcord.Bot(command_prefix="!", intents=intents)
@@ -50,7 +49,6 @@ def test_libs():
 @pytest.mark.asyncio
 async def test_db():
     """Test the DBHandler class."""
-
     with tempfile.NamedTemporaryFile(delete=False) as db_file:
         db = UserDB(db_file.name)
 

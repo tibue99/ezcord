@@ -31,7 +31,8 @@ def get_escape_code(color_string: str | None) -> str:
         return getattr(Fore, color_string.upper())
     except AttributeError:
         raise ValueError(
-            f"'{color_string}' is not a valid color string. Use either the colorama library or a string like 'red'."
+            f"'{color_string}' is not a valid color string. "
+            f"Use either the colorama library or a string like 'red'."
         )
 
 
@@ -56,7 +57,8 @@ def remove_escapes(string: str) -> str:
 
 def replace_dc_format(string: str, color: str | None = None, remove_stars: bool = False) -> str:
     """Replaces Discord markdown with ansi colors.
-    If logs are written to a file or the log message if fully colored, ``remove`` should be ``True``.
+    If logs are written to a file or the log message if fully colored,
+    ``remove`` should be ``True``.
     """
     if color is None:
         color = DEFAULT_COLOR

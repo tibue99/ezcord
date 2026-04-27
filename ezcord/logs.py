@@ -213,7 +213,8 @@ class _DiscordHandler(logging.Handler):
                 msg = self.format(record)
 
         if self.webhook_url:
-            task = asyncio.create_task(_send_discord_log(self.webhook_url, record, msg))
+            loop = asyncio.get_event_loop()
+            task = loop.create_task(_send_discord_log(self.webhook_url, record, msg))
             background_tasks.add(task)
             task.add_done_callback(background_tasks.discard)
 

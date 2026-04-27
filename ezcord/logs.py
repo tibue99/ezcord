@@ -25,6 +25,9 @@ DEFAULT_LOG = "ezcord"
 log = logging.getLogger(DEFAULT_LOG)
 
 
+background_tasks = set()
+
+
 def custom_log(
     key: str, message: str, *, color: str | None = DEFAULT_COLOR, level: int = logging.INFO
 ):
@@ -84,7 +87,6 @@ def _format_log_colors(log_format: str, file: bool, final_colors: dict[int, str]
 
 def _format_colors(colors: dict[int, str] | str | None = None) -> dict[int, str]:
     """Overwrite the default colors for the given log levels in the given format."""
-
     final_colors = DEFAULT_LOG_COLORS.copy()
     if colors is None:
         colors = final_colors
@@ -212,7 +214,9 @@ class _DiscordHandler(logging.Handler):
 
         if self.webhook_url:
             loop = asyncio.get_event_loop()
-            loop.create_task(_send_discord_log(self.webhook_url, record, msg))
+            task = loop.create_task(_send_discord_log(self.webhook_url, record, msg))
+            background_tasks.add(task)
+            task.add_done_callback(background_tasks.discard)
 
 
 async def _send_discord_log(webhook_url: str, record: logging.LogRecord, msg):

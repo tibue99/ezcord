@@ -1,0 +1,48 @@
+# For a full list of rules, go to https://docs.astral.sh/ruff/rules/
+
+line-length = 100
+target-version = "py310"
+fix = true
+
+[lint]
+extend-select = [
+    "A",
+    "ASYNC",
+    "B007",
+    "C4",
+    "D2",
+    "D4",
+    "E",
+    "FAST",
+    "FLY",
+    "FURB",
+    "I",
+    "ISC",
+    "N",
+    "PIE",
+    "PT",
+    "RET501",
+    "RUF",
+    "T20",
+    "UP",
+    "W",
+]
+
+ignore = [
+    "A003",
+    "A003",
+    "D205",
+    "D401",
+    "F403",
+    "N818",
+    "PIE796",
+    "RUF005",
+    "RUF012",
+]
+
+[lint.pydocstyle]
+convention = "numpy"
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"examples/*" = ["T201"]

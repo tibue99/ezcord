@@ -19,7 +19,7 @@ from .logs import log
 _view_checks: list[Callable] = []
 _view_check_failures: list[Callable] = []
 
-__all__ = ("event", "Modal", "View", "EzView", "EzModal", "DropdownPaginator")
+__all__ = ("DropdownPaginator", "EzModal", "EzView", "Modal", "View", "event")
 
 
 def _check_coro(func):
@@ -62,13 +62,13 @@ def event(coro):
         _view_check_failures.append(coro)
     elif name == "on_view_error":
         raise ValueError(
-            f"This event was removed in version 0.7.5, use 'Bot.on_view_error' instead: "
-            f"https://docs.pycord.dev/en/master/api/clients.html#discord.Bot.on_modal_error"
+            "This event was removed in version 0.7.5, use 'Bot.on_view_error' instead: "
+            "https://docs.pycord.dev/en/master/api/clients.html#discord.Bot.on_modal_error"
         )
     elif name == "on_modal_error":
         raise ValueError(
-            f"This event was removed in version 0.7.5, use 'Bot.on_modal_error' instead: "
-            f"https://docs.pycord.dev/en/master/api/clients.html#discord.Bot.on_view_error"
+            "This event was removed in version 0.7.5, use 'Bot.on_modal_error' instead: "
+            "https://docs.pycord.dev/en/master/api/clients.html#discord.Bot.on_view_error"
         )
     else:
         raise ValueError(f"Invalid event name: '{coro.__name__}'")
@@ -92,14 +92,16 @@ class View(discord.ui.View):
         super().__init__(*args, **kwargs)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        """Returns ``True`` if all custom checks return ``True`` or if no custom checks are registered."""
+        """Return ``True`` if all custom checks return ``True`` or if no custom checks are
+        registered.
+        """
         for coro in _view_checks:
             if not await coro(interaction):
                 return False
         return True
 
     async def on_check_failure(self, interaction: discord.Interaction) -> None:
-        """This method is called if :meth:`interaction_check` returns ``False``."""
+        """Called if :meth:`interaction_check` returns ``False``."""
         for coro in _view_check_failures:
             await coro(interaction)
 
@@ -196,10 +198,9 @@ class DropdownPaginator(discord.ui.Select):
 
     @property
     def item_selected(self):
-        """Returns ``True`` if the user selected an item from the dropdown.
+        """Return ``True`` if the user selected an item from the dropdown.
         If the user clicked on the next or previous page button, this will return ``False``.
         """
-
         return "ez_next" not in self.values and "ez_previous" not in self.values
 
     async def callback(self, interaction: discord.Interaction):
@@ -227,7 +228,7 @@ class DropdownPaginator(discord.ui.Select):
             return
 
     def check_next_page(self) -> bool:
-        """Returns True if the user clicked on the next page button.
+        """Return True if the user clicked on the next page button.
         In this case, the dropdown menu will be edited.
         """
         if "ez_next" in self.values:
@@ -237,7 +238,7 @@ class DropdownPaginator(discord.ui.Select):
         return False
 
     def check_previous_page(self) -> bool:
-        """Returns True if the user clicked on the previous page button.
+        """Return True if the user clicked on the previous page button.
         In this case, the dropdown menu will be edited.
         """
         if "ez_previous" in self.values:
@@ -250,7 +251,6 @@ class DropdownPaginator(discord.ui.Select):
         self, options: list[discord.SelectOption], chunk: int = 0
     ) -> list[discord.SelectOption]:
         """Split the options into chunks and append options for next/previous pages."""
-
         chunk_size = 23
         if len(options) > chunk_size:
             x = [

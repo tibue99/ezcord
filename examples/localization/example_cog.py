@@ -5,7 +5,7 @@ import ezcord
 
 
 class ExampleCog(ezcord.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: ezcord.Bot):
         self.bot = bot
 
     @slash_command()
@@ -33,5 +33,5 @@ class ExampleCog(ezcord.Cog):
         await ctx.respond(embed=embed, view=view)
 
 
-def setup(bot):
+def setup(bot: ezcord.Bot):
     bot.add_cog(ExampleCog(bot))

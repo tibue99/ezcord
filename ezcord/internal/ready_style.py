@@ -61,7 +61,6 @@ def modify_info(
     bot: Bot, modifications: tuple, custom_color_list: list[str] | None = None
 ) -> tuple[list[tuple[str, str]], list[str]]:
     """Add or remove information from the default ready event."""
-
     infos = get_default_info(bot)
     additions, deletions = modifications
     colors = custom_color_list or DEFAULT_COLORS

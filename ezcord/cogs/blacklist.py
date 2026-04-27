@@ -145,7 +145,7 @@ class Blacklist(Cog, hidden=True):
         self,
         ctx,
         user: discord.Member,
-        reason: str = None,  # type: ignore
+        reason: str | None = None,
     ):
         if await check_overwrite("add", ctx, user, reason):
             return

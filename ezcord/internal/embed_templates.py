@@ -41,7 +41,6 @@ def save_embeds(**kwargs: discord.Embed | str):
 @cache
 def load_embed(name: str) -> discord.Embed | str:
     """Load an embed template."""
-
     if not EzConfig.embed_templates:
         save_embeds()
 

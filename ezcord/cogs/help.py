@@ -28,7 +28,7 @@ def get_group(cog: Cog, cog_name: str, locale: str) -> tuple[str | None, str]:
     if hasattr(cog, "group") and cog.group:
         group = cog.group
 
-    name = group if group else cog_name
+    name = group or cog_name
 
     localized_name = None
     if hasattr(cog, "name_localizations"):
@@ -275,7 +275,7 @@ class CategorySelect(discord.ui.Select):
         self.commands = commands
 
     def get_mention(self, cmd, locale: str) -> str:
-        """This is only needed for Discord.py."""
+        """Only needed for Discord.py."""
         if self.bot.all_dpy_commands:
             for c in self.bot.all_dpy_commands:
                 if c.name == cmd.name:
@@ -348,7 +348,10 @@ class CategorySelect(discord.ui.Select):
             embed.description = desc + "\n"
             for command in commands:
                 if len(embed.description) <= 3500:
-                    embed.description += f"**{self.get_mention(command, locale)}**\n{get_cmd_desc(command, locale)}\n\n"
+                    txt = (
+                        f"**{self.get_mention(command, locale)}**\n{get_cmd_desc(command, locale)}"
+                    )
+                    embed.description += txt + "\n\n"
                 else:
                     log.error("Help embed length limit reached. Some commands are not shown.")
                     break
@@ -357,7 +360,10 @@ class CategorySelect(discord.ui.Select):
             embed.description = desc
             for command in commands:
                 if len(embed.description) <= 3500:
-                    embed.description += f"### {self.get_mention(command, locale)}\n{get_cmd_desc(command, locale)}\n"
+                    txt = (
+                        f"### {self.get_mention(command, locale)}\n{get_cmd_desc(command, locale)}"
+                    )
+                    embed.description += txt + "\n"
                 else:
                     log.error("Help embed length limit reached. Some commands are not shown.")
                     break

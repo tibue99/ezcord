@@ -30,7 +30,7 @@ and [Pycord](https://github.com/Pycord-Development/pycord) with some utility fun
 - **Blacklist** - Block users from using your bot
 
 ## Installing
-Python 3.9 or higher is required.
+Python 3.10 or higher is required.
 ```
 pip install ezcord
 ```

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .internal.dc import DPY, discord
 
 if DPY:

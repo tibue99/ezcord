@@ -6,6 +6,8 @@
         You can use `discord.ui.View` instead of `ezcord.View`.
 """
 
+from __future__ import annotations
+
 import inspect
 from collections.abc import Callable
 

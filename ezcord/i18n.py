@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Union, overload
 
 from .internal.dc import PYCORD, discord
-from .internal.deprecation import warn_deprecated
 from .logs import log
 
 MESSAGE_SEND = discord.abc.Messageable.send
@@ -234,7 +233,6 @@ def _localize_send(send_func):
         *,
         count: int | None = None,
         locale: LOCALE | None = None,
-        use_locale: LOCALE | None = None,
         **kwargs,
     ):
         """Wrapper to localize the content and the embed of a message.
@@ -251,10 +249,6 @@ def _localize_send(send_func):
             Use a specific object to extract the locale from. This is useful for DMs
             or followup messages. Defaults to ``None``.
         """
-        if use_locale:
-            warn_deprecated("use_locale", "locale", "0.7.5", "0.8.0")
-        locale = locale or use_locale
-
         if isinstance(self, discord.Interaction):
             # This is used for cases where followup.send is executed inside of interaction.respond,
             # because the locale can't be extracted from application webhooks
@@ -282,7 +276,6 @@ def _localize_edit(edit_func):
         *,
         count: int | None = None,
         locale: LOCALE | None = None,
-        use_locale: LOCALE | None = None,
         **kwargs,
     ):
         """Localizes message edit functions.
@@ -293,10 +286,6 @@ def _localize_edit(edit_func):
         The parameter "locale" is only needed for followup.edit_message,
         because the locale can't be extracted automatically.
         """
-        if use_locale:
-            warn_deprecated("use_locale", "locale", "0.7.5", "0.8.0")
-        locale = locale or use_locale
-
         locale_str = I18N.get_locale(locale or self)
         variables, kwargs = _extract_parameters(edit_func, **kwargs)
 

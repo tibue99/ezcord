@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Literal
 from .errors import ConvertTimeError, DurationError
 from .internal import tp
 from .internal.dc import discord
-from .internal.deprecation import warn_deprecated
 
 if TYPE_CHECKING:
     from .i18n import LOCALE
@@ -41,7 +40,6 @@ def convert_time(
     relative: bool = True,
     *,
     locale: LOCALE | None = None,
-    use_locale: LOCALE | None = None,
 ) -> str:
     """Convert seconds to a human-readable time.
 
@@ -69,10 +67,6 @@ def convert_time(
     :class:`str`
         A human-readable time.
     """
-    if use_locale:
-        warn_deprecated("use_locale", "locale", "0.7.5", "0.8.0")
-    locale = locale or use_locale
-
     if seconds < 60:
         return f"{round(seconds)} {tp('sec', round(seconds), locale=locale)}"
     minutes = seconds / 60
@@ -90,7 +84,6 @@ def convert_dt(
     relative: bool = True,
     *,
     locale: LOCALE | None = None,
-    use_locale: LOCALE | None = None,
 ) -> str:
     """Convert :class:`datetime` or :class:`timedelta` to a human-readable time.
 
@@ -111,10 +104,6 @@ def convert_dt(
     :class:`str`
         A human-readable time.
     """
-    if use_locale:
-        warn_deprecated("use_locale", "locale", "0.7.5", "0.8.0")
-    locale = locale or use_locale
-
     if isinstance(dt, timedelta):
         return convert_time(abs(dt.total_seconds()), relative, locale=locale)
 

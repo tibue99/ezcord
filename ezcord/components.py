@@ -8,7 +8,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import inspect
 from collections.abc import Callable
 
@@ -23,7 +22,7 @@ __all__ = ("DropdownPaginator", "EzModal", "EzView", "Modal", "View", "event")
 
 
 def _check_coro(func):
-    if not asyncio.iscoroutinefunction(func):
+    if not inspect.iscoroutinefunction(func):
         raise TypeError(f"Event registered must be a coroutine function, not {type(func)}")
 
 

@@ -36,7 +36,19 @@ Import any features that you would like to test.
     bot.run()
 
 
-You can build the documentation locally to check if it's working as expected.
+You can run tests locally with pytest.
+
+.. code:: shell
+
+   pytest
+
+or without Discord libraries:
+
+.. code:: shell
+
+   pytest -m "not dc"
+
+You can also build the documentation locally to check if it's working as expected.
 
 .. code:: shell
 

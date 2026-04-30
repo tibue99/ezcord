@@ -7,8 +7,6 @@ However, if you want to manage the blacklist in your own code, you can use these
     with :meth:`.add_blacklist`.
 """
 
-from __future__ import annotations
-
 from aiocache import cached
 
 from .internal import EzConfig

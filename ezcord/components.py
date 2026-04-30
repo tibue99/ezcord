@@ -8,22 +8,20 @@
 
 from __future__ import annotations
 
-import asyncio
 import inspect
 from collections.abc import Callable
 
 from .internal.dc import discord
-from .internal.deprecation import warn_deprecated
 from .logs import log
 
 _view_checks: list[Callable] = []
 _view_check_failures: list[Callable] = []
 
-__all__ = ("DropdownPaginator", "EzModal", "EzView", "Modal", "View", "event")
+__all__ = ("DropdownPaginator", "Modal", "View", "event")
 
 
 def _check_coro(func):
-    if not asyncio.iscoroutinefunction(func):
+    if not inspect.iscoroutinefunction(func):
         raise TypeError(f"Event registered must be a coroutine function, not {type(func)}")
 
 
@@ -127,22 +125,6 @@ class Modal(discord.ui.Modal):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-
-class EzView(View):
-    """Alias for :class:`View`."""
-
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        warn_deprecated("ezcord.EzView", "discord.ui.View", "0.7", "0.8")
-
-
-class EzModal(Modal):
-    """Alias for :class:`Modal`."""
-
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        warn_deprecated("ezcord.EzModal", "discord.ui.Modal", "0.7", "0.8")
 
 
 # replace all default components with Ezcord components

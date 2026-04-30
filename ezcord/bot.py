@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import logging
 import os
 import sys
@@ -943,7 +944,7 @@ class Bot(_main_bot):  # type: ignore
                     f"Possible values are: {EzConfig.BLACKLIST_COMMANDS.__args__}."  # type: ignore
                 )
 
-            if not asyncio.iscoroutinefunction(func):
+            if not inspect.iscoroutinefunction(func):
                 raise TypeError(f"Blacklist command overwrite `{name}` must be async.")
 
         EzConfig.blacklist = Blacklist(

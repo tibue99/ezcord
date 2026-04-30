@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import inspect
 import traceback
 from collections.abc import Callable

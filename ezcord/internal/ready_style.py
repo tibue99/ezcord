@@ -1,7 +1,5 @@
 """Utility functions for the ready event."""
 
-from __future__ import annotations
-
 from collections import OrderedDict
 from itertools import cycle, islice
 from typing import TYPE_CHECKING

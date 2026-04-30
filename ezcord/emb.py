@@ -25,8 +25,6 @@ In any other case, the interaction must be passes to the template method.
             await emb.success(interaction, "Success!")
 """
 
-from __future__ import annotations
-
 import copy
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING

@@ -1,7 +1,5 @@
 """Some utility functions for Discord and Python."""
 
-from __future__ import annotations
-
 import asyncio
 import fnmatch
 import inspect

@@ -1,7 +1,5 @@
 """Some logging utilities that are used for bot logs."""
 
-from __future__ import annotations
-
 import asyncio
 import logging
 import os

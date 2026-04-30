@@ -1,7 +1,5 @@
 """Inspired by Pycord: https://github.com/Pycord-Development/pycord/blob/master/discord/utils.py."""
 
-from __future__ import annotations
-
 import warnings
 
 

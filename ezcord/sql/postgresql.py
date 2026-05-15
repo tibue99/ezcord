@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import json
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -147,6 +148,29 @@ class PGHandler:
         else:
             PGHandler.pool = pool
             return PGHandler.pool
+
+    @contextlib.asynccontextmanager
+    async def transaction(self):
+        """Async context manager that provides a connection with an active transaction.
+
+        Yields
+        ------
+        :class:`EzConnection`
+            A connection object with an active transaction.
+
+        Example
+        -------
+        ::
+
+            async with self.transaction() as con:
+                await con.exec("INSERT INTO users VALUES (...)")
+                await con.exec("UPDATE users SET ...")
+        """
+        pool = await self._check_pool()
+
+        async with pool.acquire() as con:
+            async with con.transaction():
+                yield con
 
     async def one(self, sql: str, *args, default=None, **kwargs):
         """Returns one result record. If no record is found, ``None`` is returned.

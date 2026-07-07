@@ -25,7 +25,7 @@ DEFAULT_LOG = "ezcord"
 log = logging.getLogger(DEFAULT_LOG)
 
 
-background_tasks = set()
+background_tasks: set[asyncio.Task] = set()
 
 
 def custom_log(

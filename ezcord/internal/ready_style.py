@@ -162,7 +162,7 @@ def print_ready(
 def box(infos: dict[str, str], colors: list[str], box_style: ReadyEvent, s: Style = Style()):
     longest = max([str(i) for i in infos.values()], key=len)
     formatter = f"<{len(longest)}"
-    longest_key = max([len(i) for i in infos.keys()]) + 1
+    longest_key = max([len(i) for i in infos]) + 1
 
     if box_style == ReadyEvent.box_colorful:
         txt = f"\n{Fore.RESET}"

@@ -195,14 +195,7 @@ class DropdownPaginator(discord.ui.Select):
             else:
                 return x
 
-        if self.check_next_page():
-            new_children = map(set_current_options, self.view.children)
-
-            self.view.children = list(new_children)
-            await interaction.response.edit_message(view=self.view)
-            return
-
-        elif self.check_previous_page():
+        if self.check_next_page() or self.check_previous_page():
             new_children = map(set_current_options, self.view.children)
 
             self.view.children = list(new_children)

@@ -451,7 +451,7 @@ class I18N:
             fallback_locale = "en-US"
 
         if process_strings:
-            for var in variables.keys():
+            for var in variables:
                 if not _no_lowercase(var):
                     raise ValueError(f"Custom variable key '{var}' must be uppercase.")
 
@@ -477,31 +477,27 @@ class I18N:
             I18N._check_localizations()
 
         if "send" not in disable_translations:
-            setattr(discord.abc.Messageable, "send", _localize_send(MESSAGE_SEND))
+            discord.abc.Messageable.send = _localize_send(MESSAGE_SEND)
         if "edit" not in disable_translations:
-            setattr(discord.Message, "edit", _localize_edit(MESSAGE_EDIT))
+            discord.Message.edit = _localize_edit(MESSAGE_EDIT)
         if "reply" not in disable_translations:
-            setattr(discord.Message, "reply", _localize_send(MESSAGE_REPLY))
+            discord.Message.reply = _localize_send(MESSAGE_REPLY)
 
         if "send_message" not in disable_translations:
-            setattr(discord.InteractionResponse, "send_message", _localize_send(INTERACTION_SEND))
+            discord.InteractionResponse.send_message = _localize_send(INTERACTION_SEND)
         if "send_modal" not in disable_translations:
-            setattr(discord.InteractionResponse, "send_modal", _localize_modal)
+            discord.InteractionResponse.send_modal = _localize_modal
         if "edit_message" not in disable_translations:
-            setattr(discord.InteractionResponse, "edit_message", _localize_edit(INTERACTION_EDIT))
+            discord.InteractionResponse.edit_message = _localize_edit(INTERACTION_EDIT)
         if "edit_original_response" not in disable_translations:
-            setattr(
-                discord.Interaction,
-                "edit_original_response",
-                _localize_edit(INTERACTION_EDIT_ORIGINAL),
-            )
+            discord.Interaction.edit_original_response = _localize_edit(INTERACTION_EDIT_ORIGINAL)
         if "webhook_send" not in disable_translations:
-            setattr(discord.Webhook, "send", _localize_send(WEBHOOK_SEND))
-            setattr(discord.Interaction, "respond", _localize_send(INTERACTION_RESPOND))
+            discord.Webhook.send = _localize_send(WEBHOOK_SEND)
+            discord.Interaction.respond = _localize_send(INTERACTION_RESPOND)
         if "webhook_edit_message" not in disable_translations:
-            setattr(discord.Webhook, "edit_message", _localize_edit(WEBHOOK_EDIT_MESSAGE))
+            discord.Webhook.edit_message = _localize_edit(WEBHOOK_EDIT_MESSAGE)
         if "webhook_edit_message" not in disable_translations:
-            setattr(discord.WebhookMessage, "edit_message", _localize_edit(WEBHOOK_EDIT))
+            discord.WebhookMessage.edit_message = _localize_edit(WEBHOOK_EDIT)
 
     @staticmethod
     def get_locale(obj: LOCALE) -> str:

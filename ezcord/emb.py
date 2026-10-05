@@ -355,7 +355,7 @@ class EzContext(_ctx_type):  # type: ignore
     def t(self, key: str, count: int | None = None, **kwargs):
         return t(self.interaction, key, count, **kwargs)
 
-    def convert_time(self, seconds: int | float, relative: bool = True):
+    def convert_time(self, seconds: float, relative: bool = True):
         return convert_time(seconds, relative, locale=self)
 
     def convert_dt(self, dt: datetime | timedelta, relative: bool = True):

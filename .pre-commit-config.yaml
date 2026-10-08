@@ -12,7 +12,7 @@ repos:
       - id: check-yaml
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.1.0
+    rev: v2.4.0
     hooks:
       - id: mypy
         args: [--disable-error-code=name-defined, --disable-error-code=import]
@@ -25,7 +25,7 @@ repos:
           [--style=numpydoc, --no-numpydoc-name-type-spacing]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.20
+    rev: v0.16.10
     hooks:
       - id: ruff-check
       - id: ruff-format

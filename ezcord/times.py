@@ -36,7 +36,7 @@ def set_utc(dt: datetime) -> datetime:
 
 
 def convert_time(
-    seconds: int | float,
+    seconds: float,
     relative: bool = True,
     *,
     locale: LOCALE | None = None,
@@ -118,9 +118,7 @@ def convert_dt(
     raise ValueError("dt must be datetime or timedelta")
 
 
-def dc_timestamp(
-    seconds: int | float, style: Literal["t", "T", "d", "D", "f", "F", "R"] = "R"
-) -> str:
+def dc_timestamp(seconds: float, style: Literal["t", "T", "d", "D", "f", "F", "R"] = "R") -> str:
     """Convert seconds to a Discord timestamp.
 
     Parameters

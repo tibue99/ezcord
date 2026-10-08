@@ -168,9 +168,8 @@ class PGHandler:
         """
         pool = await self._check_pool()
 
-        async with pool.acquire() as con:
-            async with con.transaction():
-                yield con
+        async with pool.acquire() as con, con.transaction():
+            yield con
 
     async def one(self, sql: str, *args, default=None, **kwargs):
         """Returns one result record. If no record is found, ``None`` is returned.

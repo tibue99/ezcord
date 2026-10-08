@@ -70,9 +70,7 @@ Refer to the [Pycord Documentation](https://docs.pycord.dev) for more informatio
 import ezcord
 import discord
 
-bot = ezcord.Bot(
-    intents=discord.Intents.default()
-)
+bot = ezcord.Bot(intents=discord.Intents.default())
 
 if __name__ == "__main__":
     bot.load_cogs("cogs")  # Load all cogs in the "cogs" folder

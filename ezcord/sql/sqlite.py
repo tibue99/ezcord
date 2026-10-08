@@ -245,9 +245,9 @@ class DBHandler:
         try:
             async with db.execute(sql, args) as cursor:
                 result = await cursor.fetchone()
-        except Exception as e:
+        except Exception:
             await self._close(db)
-            raise e
+            raise
 
         await self._close(db)
 
@@ -285,9 +285,9 @@ class DBHandler:
         try:
             async with db.execute(sql, args) as cursor:
                 result = await cursor.fetchall()
-        except Exception as e:
+        except Exception:
             await self._close(db)
-            raise e
+            raise
 
         await self._close(db)
 
@@ -315,9 +315,9 @@ class DBHandler:
         db = await self._connect(**kwargs)
         try:
             cursor = await db.execute(sql, args)
-        except Exception as e:
+        except Exception:
             await self._commit_and_close(db, end)
-            raise e
+            raise
         await self._commit_and_close(db, end)
         return cursor
 
@@ -342,8 +342,8 @@ class DBHandler:
         db = await self._connect(**kwargs)
         try:
             cursor = await db.executemany(sql, args)
-        except Exception as e:
+        except Exception:
             await self._commit_and_close(db)
-            raise e
+            raise
         await self._commit_and_close(db)
         return cursor
